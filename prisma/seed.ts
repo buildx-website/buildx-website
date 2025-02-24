@@ -9,8 +9,8 @@ const userData: Prisma.UserCreateInput[] = [{
     email: 'alice@gmail.com',
     name: 'Alice',
     password: 'password',
-}
-]
+}]
+
 
 async function main() {
     try {
@@ -22,6 +22,26 @@ async function main() {
                     create: user
                 })
                 console.log("User created with id: ", insertUser.id)
+                // create new Project
+                const newProject = await db.project.create({
+                    data: {
+                        name: "Test Project" + Math.random(),
+                        description: "This is a test project",
+                        ownerId: insertUser.id,
+                        projectLocation: "example.com",
+                        framework: "NEXTJS",
+                        status: "CREATED"
+                    }
+                })
+                console.log("Project created with id: ", newProject.id);
+                // update project
+                const updatedProject = await db.project.update({
+                    where: { id: newProject.id },
+                    data: {
+                        status: "ARCHIVED"
+                    }
+                })
+                console.log("Project updated with status: ", updatedProject.status);    
             })
         )
     } catch (error) {
