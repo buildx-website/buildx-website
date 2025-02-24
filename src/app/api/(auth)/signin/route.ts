@@ -2,8 +2,7 @@ import { db } from "@/db";
 import { userSignIn } from "@/types/userTypes";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-
-const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
+import { SECRET_KEY } from "@/lib/constants";
 
 export async function POST(req: Request) {
     const data = await req.json();
