@@ -14,3 +14,7 @@ export const userSignIn = z.object({
 export const getTempleteTypes = z.object({
     prompt: z.string()
 })
+
+export const apiKeyTypes = z.object({
+    apiKey: z.string()
+})

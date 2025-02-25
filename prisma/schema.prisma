@@ -29,19 +29,20 @@ model User {
   email      String    @unique
   name       String
   password   String
+  apiKey     String?    @default("api-key")
   createdAt  DateTime  @default(now())
   projects   Project[]
   last_login DateTime? @default(now())
 }
 
 model Project {
-  id              String        @id @default(cuid())
+  id              String           @id @default(cuid())
   name            String
   description     String?
-  createdAt       DateTime      @default(now())
-  owner           User          @relation(fields: [ownerId], references: [id])
+  createdAt       DateTime         @default(now())
+  owner           User             @relation(fields: [ownerId], references: [id])
   ownerId         String
-  framework            ProjectFramework
+  framework       ProjectFramework
   projectLocation String
   status          ProjectStatus
 }
