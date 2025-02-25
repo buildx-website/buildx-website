@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { userSignUp } from "@/types/userTypes";
+import { userSignUp } from "@/types/types";
 import bcrypt from "bcrypt";
 
 

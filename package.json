@@ -19,6 +19,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.9",
     "bcrypt": "^5.1.1",
+    "jose": "^6.0.6",
     "jsonwebtoken": "^9.0.2",
     "next": "15.1.7",
     "react": "^19.0.0",

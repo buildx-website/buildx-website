@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import jwt from "jsonwebtoken";
-import { SECRET_KEY } from "./lib/constants";
+import * as jose from 'jose'
+import { jwtConfig } from "./lib/constants";
 
-export function middleware(req: NextRequest) {
-    console.log("Middleware executed");
+export async function middleware(req: NextRequest) {
 
     const authorization = req.headers.get("Authorization");
     if (!authorization || !authorization.startsWith("Bearer ")) {
@@ -15,12 +14,19 @@ export function middleware(req: NextRequest) {
         return new Response("No token provided", { status: 401 });
     }
     try {
-        const decoded = jwt.verify(token, SECRET_KEY) as { userId: string };
+        const { payload } = await jose.jwtVerify(token, jwtConfig.secret);
+        const userId = payload.id as string;
+        const email = payload.email as string;
         
+        if (!userId || !email) {
+            throw new Error("User ID not found in token payload");
+        }
+
         const response = NextResponse.next();
-        response.headers.set("X-User-Id", decoded.userId);
-        
+        response.headers.set("X-User-Id", userId);
+        response.headers.set("X-User-Email", email);
         return response;
+
     } catch (error) {
         console.error("Token verification failed:", error);
         return new Response("Invalid or expired token", { status: 403 });

@@ -1,8 +1,8 @@
 import { db } from "@/db";
-import { userSignIn } from "@/types/userTypes";
+import { jwtConfig } from "@/lib/constants";
+import { userSignIn } from "@/types/types";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { SECRET_KEY } from "@/lib/constants";
 
 export async function POST(req: Request) {
     const data = await req.json();
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
             id: user.id,
             email: user.email,
             name: user.name,
-        }, SECRET_KEY);
+        }, jwtConfig.secret as unknown as string);
 
         return new Response(JSON.stringify({ token }), { status: 200 });
     } catch (e) {
