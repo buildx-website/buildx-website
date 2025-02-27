@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { Eye, EyeOff, LogOut, User } from "lucide-react"
+import { Eye, EyeOff, LogOut, UserCog } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 
 export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean) => void }) {
@@ -14,8 +14,10 @@ export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
     const [apiKey, setApiKey] = useState<string | undefined>("")
     const [isApiKeyVisible, setIsApiKeyVisible] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     async function fetchApiKey() {
+        setLoading(true)
         try {
             const res = await fetch("/api/main/api", {
                 headers: {
@@ -32,6 +34,7 @@ export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
         } catch {
             toast.error("Something went wrong")
         }
+        setLoading(false)
     }
 
     useEffect(() => {
@@ -65,7 +68,6 @@ export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
         localStorage.removeItem("name")
         setIsDialogOpen(false)
         toast.success("Logged out successfully");
-        window.location.reload()
     }
 
     return (
@@ -73,7 +75,7 @@ export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
             <CardHeader className="pb-4">
                 <div className="flex items-center justify-center mb-2">
                     <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                        <User size={32} className="text-muted-foreground" />
+                        <UserCog size={32} className="text-muted-foreground" />
                     </div>
                 </div>
                 <CardTitle className="text-center text-2xl font-semibold">{name}</CardTitle>
@@ -87,8 +89,9 @@ export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
                         <Input
                             id="apiKey"
                             type={isApiKeyVisible ? "text" : "password"}
-                            value={apiKey}
+                            value={loading ? "Loading..." : apiKey}
                             onChange={(e) => setApiKey(e.target.value)}
+                            disabled={loading}
                             className="w-full pr-10 transition-all"
                             placeholder="Enter your API key"
                         />
