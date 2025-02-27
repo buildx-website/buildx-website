@@ -1,5 +1,6 @@
 import { Message } from "@/types/types";
 import OpenAI from "openai";
+import { getSystemPrompt } from "../prompts";
 
 export async function chat(llm: OpenAI, prompt: string) {
     const completion = await llm.chat.completions.create({
@@ -18,12 +19,15 @@ export async function chat(llm: OpenAI, prompt: string) {
 
 export async function chatStream(llm: OpenAI, prompt: string, messages: Message[], response: (token: string) => void) {
     try {
+        if (!messages.some(msg => msg.role === "system")) {
+            messages.unshift({ role: "system", content: getSystemPrompt() });
+        }
         messages.push({ role: 'user', content: prompt });
+        
         const completion = await llm.chat.completions.create({
             model: "qwen/qwen-2.5-coder-32b-instruct",
             messages: messages,
             stream: true,
-            temperature: 1,
         });
 
         let fullContent = "";

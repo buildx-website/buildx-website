@@ -23,3 +23,11 @@ export interface Message {
     role: 'user' | 'assistant' | 'system';
     content: string;
 }
+
+export const chatBodyTypes = z.object({
+    messages: z.array(z.object({
+        role: z.enum(['user', 'assistant', 'system']),
+        content: z.string()
+    })),
+    prompt: z.string(),
+})
