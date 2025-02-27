@@ -14,7 +14,25 @@ export function AuthCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
+    function validateForm() {
+        if (isSignup && !name.trim()) {
+            toast.error("Name is required");
+            return false;
+        }
+        if (!email.trim() || !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+            toast.error("Enter a valid email");
+            return false;
+        }
+        if (password.length < 6) {
+            toast.error("Password must be at least 6 characters");
+            return false;
+        }
+        return true;
+    }
+
     async function handleSubmit() {
+        if (!validateForm()) return;
+
         setIsLoading(true);
         if (isSignup) {
             await signup();
@@ -28,15 +46,11 @@ export function AuthCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
         try {
             const res = await fetch("/api/signin", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
             });
 
             const data = await res.json();
-            console.log(data)
-
             if (res.ok) {
                 localStorage.setItem("token", data.token);
                 localStorage.setItem("name", data.name);
@@ -45,8 +59,7 @@ export function AuthCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
             } else {
                 toast.error(data.error);
             }
-        } catch (error) {
-            console.error(error);
+        } catch {
             toast.error("Something went wrong");
         }
     }
@@ -55,22 +68,17 @@ export function AuthCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
         try {
             const res = await fetch("/api/signup", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email, password }),
             });
 
             const data = await res.json();
-            console.log("res", data);
-
             if (res.ok) {
                 toast.success("Account created successfully. Please login");
             } else {
                 toast.error(data.error);
             }
-        } catch (error) {
-            console.error(error);
+        } catch {
             toast.error("Something went wrong");
         }
     }
