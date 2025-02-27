@@ -18,3 +18,8 @@ export const getTempleteTypes = z.object({
 export const apiKeyTypes = z.object({
     apiKey: z.string()
 })
+
+export interface Message {
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+}
