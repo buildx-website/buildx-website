@@ -15,7 +15,8 @@ datasource db {
 
 enum ProjectFramework {
   REACT
-  NEXTJS
+  NEXT
+  NODE
 }
 
 enum ProjectStatus {
