@@ -34,7 +34,7 @@ export async function POST(req: Request) {
             name: user.name,
         }, jwtConfig.secret as unknown as string);
 
-        return new Response(JSON.stringify({ token }), { status: 200 });
+        return new Response(JSON.stringify({ token, name: user.name }), { status: 200 });
     } catch (e) {
         return new Response(JSON.stringify({ error: e }), { status: 500 });
     }
