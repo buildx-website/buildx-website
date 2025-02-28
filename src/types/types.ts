@@ -42,7 +42,7 @@ export interface FileType {
     children?: FileType[]
 }
 
-enum StepType {
+export enum StepType {
     CreateFile,
     CreateFolder,
     EditFile,
@@ -54,12 +54,13 @@ enum StepType {
 }
 
 export interface Step {
-    id: string;
-    name: string;
+    id: number;
+    title: string;
     description: string;
     type: StepType
     status: "pending" | "completed" | "in-progress";
     code?: string;
+    path?: string;
 }
 
 

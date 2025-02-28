@@ -31,9 +31,9 @@ export function CodeEditor({ file }: CodeEditorProps) {
   }
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full overflow-hidden">
       <Editor
-        height="100%"
+        height="90vh"
         defaultLanguage={file.language}
         defaultValue={file.content}
         theme="vs-dark"

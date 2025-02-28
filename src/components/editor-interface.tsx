@@ -222,8 +222,8 @@ export function EditorInterface() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#1e1e1e] text-white">
-      <ResizablePanelGroup direction="horizontal" className="flex-1">
+    <div className="h-full">
+      <ResizablePanelGroup direction="horizontal" className="flex-1 rounded-lg">
         <ResizablePanel defaultSize={15} minSize={15} maxSize={20}>
           <FileExplorer
             files={files}
@@ -284,4 +284,5 @@ export function EditorInterface() {
     </div>
   )
 }
+
 

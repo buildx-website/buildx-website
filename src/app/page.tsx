@@ -10,6 +10,7 @@ import { Message } from "@/types/types";
 import { useRouter } from "next/navigation";
 import { useMessagesStore } from "@/store/messagesAtom";
 import { useStepsStore } from "@/store/initialStepsAtom";
+import { parseXml } from "@/lib/steps";
 
 export default function Home() {
   const router = useRouter();
@@ -42,8 +43,11 @@ export default function Home() {
         return toast.error("Try again with a different prompt");
       }
       const { prompts, uiPrompts } = data;
+      setSteps(
+        uiPrompts.map((x: string) => parseXml(x))
+      );
       const msgs: Message[] = [...prompts, prompt].map(content => ({ role: "user", content }));
-      console.log("Messages: ", msgs);  
+      console.log("Messages: ", msgs);
       setMessages(msgs);
       router.push("/editor");
 
