@@ -61,3 +61,18 @@ export interface Step {
     status: "pending" | "completed" | "in-progress";
     code?: string;
 }
+
+
+export interface MessagesState {
+    messages: Message[];
+    setMessages: (messages: Message[]) => void;
+    addMessage: (message: Message) => void;
+    clearMessages: () => void;
+}
+
+export interface StepsState {
+    steps: Step[];
+    setSteps: (steps: Step[]) => void;
+    addStep: (step: Step) => void;
+    clearSteps: () => void;
+}

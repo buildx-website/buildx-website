@@ -6,15 +6,16 @@ import { Spotlight } from "@/components/ui/spotlight-new"
 import { Navbar } from "@/components/navbar"
 import { useState } from "react";
 import { toast } from "sonner";
-import { useSetRecoilState } from "recoil";
-import { messagesAtom } from "@/store/messagesAtom";
 import { Message } from "@/types/types";
 import { useRouter } from "next/navigation";
+import { useMessagesStore } from "@/store/messagesAtom";
+import { useStepsStore } from "@/store/initialStepsAtom";
 
 export default function Home() {
   const router = useRouter();
   const [prompt, setPrompt] = useState<string>("");
-  const setMessages = useSetRecoilState(messagesAtom);
+  const setMessages = useMessagesStore((state) => state.setMessages);
+  const setSteps = useStepsStore((state) => state.setSteps);
 
   async function handleSubmit() {
     if (!prompt.trim()) {

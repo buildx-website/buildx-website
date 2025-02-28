@@ -1,7 +1,11 @@
-import { Step } from "@/types/types";
-import { atom } from "recoil";
+import { StepsState } from "@/types/types";
+import { create } from "zustand";
 
-export const initialStepsAtom = atom<Step[]>({
-    key: "initialStepsAtom",
-    default: [],
-})
+export const useStepsStore = create<StepsState>((set) => ({
+    steps: [],
+    setSteps: (steps) => set({ steps }),
+    addStep: (step) => set((state) => ({
+        steps: [...state.steps, step]
+    })),
+    clearSteps: () => set({ steps: [] }),
+}));
