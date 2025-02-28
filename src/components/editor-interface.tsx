@@ -224,7 +224,7 @@ export function EditorInterface() {
   return (
     <div className="h-full">
       <ResizablePanelGroup direction="horizontal" className="flex-1 rounded-lg">
-        <ResizablePanel defaultSize={15} minSize={15} maxSize={20}>
+        <ResizablePanel defaultSize={20} minSize={15} maxSize={40}>
           <FileExplorer
             files={files}
             onFileSelect={handleFileSelect}

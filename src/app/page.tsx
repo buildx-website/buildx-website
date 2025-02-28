@@ -43,9 +43,7 @@ export default function Home() {
         return toast.error("Try again with a different prompt");
       }
       const { prompts, uiPrompts } = data;
-      setSteps(
-        uiPrompts.map((x: string) => parseXml(x))
-      );
+      setSteps(parseXml(uiPrompts[0]));
       const msgs: Message[] = [...prompts, prompt].map(content => ({ role: "user", content }));
       console.log("Messages: ", msgs);
       setMessages(msgs);
