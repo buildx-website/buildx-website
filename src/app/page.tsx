@@ -19,7 +19,7 @@ export default function Home() {
           </div>
           <div className="flex flex-col gap-4 w-full">
             <Textarea
-              className="w-full h-40 p-4 text-lg rounded-lg resize-none m-3 border border-gray-700 bg-black/30 backdrop-blur-sm shadow-inner shadow-primary/10 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
+              className="w-full h-40 p-4 text-lg rounded-lg resize-none m-3 border border-gray-700 bg-black/30 backdrop-blur-sm shadow-inner shadow-primary/10 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 font-mono"
               placeholder="Write your idea here..."
             />
             <div className="flex justify-end w-full">

@@ -31,3 +31,15 @@ export const chatBodyTypes = z.object({
     })),
     prompt: z.string(),
 })
+
+export interface FileType {
+    id: string
+    name: string
+    type: "file" | "directory"
+    language?: string
+    content?: string
+    isOpen?: boolean
+    children?: FileType[]
+  }
+  
+  
