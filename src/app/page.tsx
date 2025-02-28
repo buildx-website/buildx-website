@@ -1,9 +1,51 @@
+"use client";
+
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Spotlight } from "@/components/ui/spotlight-new"
 import { Navbar } from "@/components/navbar"
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function Home() {
+  const [prompt, setPrompt] = useState<string>("");
+
+  async function handleSubmit() {
+    if (!prompt.trim()) {
+      return toast.error("Please write your idea first");
+    }
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return toast.error("You need to login first");
+    }
+
+    const template = await fetch("/api/main/template", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ prompt }),
+    })
+
+
+    if (template.ok) {
+      const data = await template.json();
+      if (data.message === "Try again with a different prompt") {
+        return toast.error("Try again with a different prompt");
+      }
+      console.log(data);
+    } else {
+      const data = await template.json();
+      if (template.status === 401) {
+        return toast.warning(data.error);
+      }
+      return toast.error(data.error);
+    }
+  }
+
+
+
   return (
     <div className="overflow-hidden relative">
       <Spotlight />
@@ -19,11 +61,14 @@ export default function Home() {
           </div>
           <div className="flex flex-col gap-4 w-full">
             <Textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
               className="w-full h-40 p-4 text-lg rounded-lg resize-none m-3 border border-gray-700 bg-black/30 backdrop-blur-sm shadow-inner shadow-primary/10 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 font-mono"
               placeholder="Write your idea here..."
             />
             <div className="flex justify-end w-full">
               <Button
+                onClick={handleSubmit}
                 size={"lg"}
                 className="text-lg inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors hover:bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] hover:bg-[length:220%_100%] hover:text-slate-200 outline-none"
               >
@@ -37,4 +82,3 @@ export default function Home() {
     </div>
   )
 }
-

@@ -11,13 +11,19 @@ export async function POST(req: Request) {
     try {
         const parsedData = getTempleteTypes.safeParse(data);
         if (!parsedData.success) {
-            return new Response(JSON.stringify(parsedData.error), { status: 400 });
+            return new Response(JSON.stringify({ err: "Zod Error" }), { status: 400 });
         }
         const { prompt } = parsedData.data;
         const userId = req.headers.get('X-User-Id') || '';
         const apiKey = await getApiKey(userId) || '';
+        if (!apiKey) {
+            return new Response(JSON.stringify({
+                error: "No API key found",
+            }), { status: 401 });
+        }
 
         const response = await chat(llm(apiKey), prompt);
+        console.log("Resp: ", response);
         console.log("Response: ", response.content);
 
         if (response.content === "react") {
@@ -39,7 +45,21 @@ export async function POST(req: Request) {
         }))
 
     } catch (error) {
-        console.error("Error parsing data", error);
-        return new Response("Error parsing data", { status: 500 });
+        if (error instanceof Error) {
+            console.log("Inside error: ", error.message);
+            if (error.message === "401 No auth credentials found") {
+                return new Response(JSON.stringify({
+                    error: "Check your API key in your profile and try again",
+                }), { status: 401 });
+            }
+            return new Response(JSON.stringify({
+                error: error.message,
+            }), { status: 500 });
+        } else {
+            console.log("Inside error: ", error);
+            return new Response(JSON.stringify({
+                error: "An unknown error occurred",
+            }), { status: 500 });
+        }
     }
 }

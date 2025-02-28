@@ -3,18 +3,26 @@ import OpenAI from "openai";
 import { getSystemPrompt } from "../prompts";
 
 export async function chat(llm: OpenAI, prompt: string) {
-    const completion = await llm.chat.completions.create({
-        model: "qwen/qwen-2.5-coder-32b-instruct",
-        max_tokens: 200,
-        messages: [{
-            role: "system",
-            content: "Return either node or react based on what do you think this project should be. Only return a single word either 'node' or 'react'. Do not return anything extra."
-        }, {
-            role: "user",
-            content: prompt
-        }]
-    });
-    return completion.choices[0].message;
+    try {
+        const completion = await llm.chat.completions.create({
+            model: "qwen/qwen-2.5-coder-32b-instruct",
+            max_tokens: 200,
+            messages: [{
+                role: "system",
+                content: "Return either node or react based on what do you think this project should be. Only return a single word either 'node' or 'react'. Do not return anything extra."
+            }, {
+                role: "user",
+                content: prompt
+            }]
+        });
+        return completion.choices[0].message;
+    } catch (error) {
+        if (error instanceof Error) {
+            throw Error(`${error.message}`);
+        } else {
+            throw Error("An unknown error occurred");
+        }
+    }
 }
 
 export async function chatStream(llm: OpenAI, prompt: string, messages: Message[], response: (token: string) => void) {
@@ -23,7 +31,7 @@ export async function chatStream(llm: OpenAI, prompt: string, messages: Message[
             messages.unshift({ role: "system", content: getSystemPrompt() });
         }
         messages.push({ role: 'user', content: prompt });
-        
+
         const completion = await llm.chat.completions.create({
             model: "qwen/qwen-2.5-coder-32b-instruct",
             messages: messages,
