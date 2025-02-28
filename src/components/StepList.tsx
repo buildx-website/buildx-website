@@ -10,7 +10,7 @@ interface StepsListProps {
 
 export function StepList({ steps, currentStep, onStepClick }: StepsListProps) {
     return (
-        <div className="relative w-full p-3">
+        <div className="w-full p-3 min-w-full">
             <div className="w-full p-4 text-lg rounded-lg resize-none border border-gray-900 bg-[#1e1e1e] backdrop-blur-sm shadow-primary/10  font-mono">
 
                 <h3 className="text-lg font-bold text-primary">Build Steps</h3>

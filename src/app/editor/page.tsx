@@ -17,7 +17,6 @@ export default function Editor() {
     const router = useRouter();
     const [showPreview, setShowPreview] = useState<boolean>(false);
     const [files, setFiles] = useState<FileType[]>([]);
-    const [visibleMsgs, setVisibleMsgs] = useState<Message[]>([]);
     const { messages, addMessage, clearMessages } = useMessagesStore();
     // const { steps, setSteps } = useStepsStore();
     const steps: Step[] = [
@@ -154,16 +153,15 @@ export default function Editor() {
     //     router.push("/");
     // }}, [])
 
-
-
-
     return (
         <main className="min-h-screen min-w-screen grid grid-cols-3 p-3 overflow-hidden relative gap-3">
             <div className="col-span-1 h-full flex flex-col rounded-xl shadow-lg overflow-hidden p-4">
-                <div className="flex-1 max-h-[calc(80vh-4rem)] overflow-y-auto gap-4 scrollbar-hide">
+                <div className="flex-1 max-h-[calc(82vh-4rem)] overflow-y-auto gap-4 scrollbar-hide">
+                    <MessageComponent key={0} message={messages[2]} />
                     <StepList steps={steps} currentStep={1} onStepClick={(stepId) => { }} />
-                    {messages.map((message, index) => (
-                        <MessageComponent key={index} message={message} />
+                    {/* map msgs after messages[3] */}
+                    {messages.slice(3).map((msg, idx) => (
+                        <MessageComponent key={idx} message={msg} />
                     ))}
                 </div>
 
