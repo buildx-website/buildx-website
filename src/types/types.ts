@@ -40,6 +40,24 @@ export interface FileType {
     content?: string
     isOpen?: boolean
     children?: FileType[]
-  }
-  
-  
+}
+
+enum StepType {
+    CreateFile,
+    CreateFolder,
+    EditFile,
+    DeleteFile,
+    DeleteFolder,
+    RenameFile,
+    RenameFolder,
+    RunScript,
+}
+
+export interface Step {
+    id: string;
+    name: string;
+    description: string;
+    type: StepType
+    status: "pending" | "completed" | "in-progress";
+    code?: string;
+}

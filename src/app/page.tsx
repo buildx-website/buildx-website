@@ -6,9 +6,15 @@ import { Spotlight } from "@/components/ui/spotlight-new"
 import { Navbar } from "@/components/navbar"
 import { useState } from "react";
 import { toast } from "sonner";
+import { useSetRecoilState } from "recoil";
+import { messagesAtom } from "@/store/messagesAtom";
+import { Message } from "@/types/types";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
   const [prompt, setPrompt] = useState<string>("");
+  const setMessages = useSetRecoilState(messagesAtom);
 
   async function handleSubmit() {
     if (!prompt.trim()) {
@@ -34,7 +40,13 @@ export default function Home() {
       if (data.message === "Try again with a different prompt") {
         return toast.error("Try again with a different prompt");
       }
-      console.log(data);
+      const { prompts, uiPrompts } = data;
+      const msgs: Message[] = [...prompts, prompt].map(content => ({ role: "user", content }));
+      console.log("Messages: ", msgs);  
+      setMessages(msgs);
+      router.push("/editor");
+
+
     } else {
       const data = await template.json();
       if (template.status === 401) {
