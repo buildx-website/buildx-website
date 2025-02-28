@@ -4,26 +4,29 @@ import { useStepsStore } from "@/store/initialStepsAtom";
 import { useMessagesStore } from "@/store/messagesAtom";
 import { useRouter } from "next/navigation";
 import { Switch } from "@/components/ui/switch"
-import {  useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, Send } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
-import { FileType, StepType } from "@/types/types";
+import { FileType, Message, Step, StepType } from "@/types/types";
+import { StepList } from "@/components/StepList";
+import { MessageComponent } from "@/components/Messages";
 
 
 export default function Editor() {
     const router = useRouter();
     const [showPreview, setShowPreview] = useState<boolean>(false);
     const [files, setFiles] = useState<FileType[]>([]);
+    const [visibleMsgs, setVisibleMsgs] = useState<Message[]>([]);
     const { messages, addMessage, clearMessages } = useMessagesStore();
     // const { steps, setSteps } = useStepsStore();
-    const steps = [
+    const steps: Step[] = [
         {
             "id": 1,
             "title": "Project Files",
             "description": "",
             "type": 1,
-            "status": "pending"
+            "status": "pending" as "pending"
         },
         {
             "id": 2,
@@ -143,27 +146,32 @@ export default function Editor() {
             "path": "src/vite-env.d.ts"
         }
     ]
- 
-    console.log(steps)
+
+    console.log("Steps:", steps)
 
     // useEffect(() => {
     //     if (messages.length === 0) {
     //     router.push("/");
     // }}, [])
 
-    
+
 
 
     return (
         <main className="min-h-screen min-w-screen grid grid-cols-3 p-3 overflow-hidden relative gap-3">
             <div className="col-span-1 h-full flex flex-col rounded-xl shadow-lg overflow-hidden p-4">
-                <div className="flex-1 overflow-auto">
-
+                <div className="flex-1 max-h-[calc(80vh-4rem)] overflow-y-auto gap-4 scrollbar-hide">
+                    <StepList steps={steps} currentStep={1} onStepClick={(stepId) => { }} />
+                    {messages.map((message, index) => (
+                        <MessageComponent key={index} message={message} />
+                    ))}
                 </div>
+
                 <div className="mt-auto">
                     <SendPrompt handleSubmit={() => { }} prompt={""} setPrompt={() => { }} />
                 </div>
             </div>
+
             <div className="col-span-2 flex flex-col bg-[#1e1e1e] text-white h-full flex-1 rounded-xl shadow-lg overflow-hidden p-4">
                 <div className="flex items-center justify-between border-b border-gray-700 pb-2 mb-2">
                     <h2 className="text-lg font-semibold">{
