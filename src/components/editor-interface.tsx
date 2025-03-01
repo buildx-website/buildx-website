@@ -7,7 +7,7 @@ import { ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FileType } from "@/types/types"
 import { useFileStore } from "@/store/filesAtom"
-import { Button } from "./ui/button"
+import { BlocksIcon } from "lucide-react"
 
 
 export function EditorInterface() {
@@ -100,7 +100,7 @@ export function EditorInterface() {
 
   return (
     <div className="h-full">
-      <ResizablePanelGroup direction="horizontal" className="flex-1 rounded-lg">
+      <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel defaultSize={20} minSize={15} maxSize={40}>
           <FileExplorer
             files={files}
@@ -120,22 +120,22 @@ export function EditorInterface() {
                       <TabsTrigger
                         key={tab.id}
                         value={tab.id}
-                        className="data-[state=active]:bg-[#1e1e1e] relative px-4 py-1.5 h-full"
+                        className="data-[state=active]:bg-[#1e1e1e] relative py-1.5 h-full hover:bg-[#1e1e1e] border border-[#3c3c3c] text-gray-300"
                         onClick={() => {
                           setActiveTab(tab.id)
                           setSelectedFile(tab)
                         }}
                       >
                         <span className="mr-2">{tab.name}</span>
-                        <Button
-                          variant="ghost"
+                        <span
+                          className="inline-flex items-center justify-center rounded-md my-auto w-5 h-5 text-xs hover:bg-gray-700 cursor-pointer"
                           onClick={(e) => {
                             e.stopPropagation()
                             handleTabClose(tab.id)
                           }}
                         >
                           ×
-                        </Button>
+                        </span>
                       </TabsTrigger>
                     ))}
                   </TabsList>
@@ -148,10 +148,11 @@ export function EditorInterface() {
                 </Tabs>
               </>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-400">
-                <div className="text-center">
-                  <h2 className="text-2xl font-light mb-2">Welcome to the Editor</h2>
-                  <p>Select a file from the explorer to start editing</p>
+              <div className="flex items-center justify-center h-full bg-zinc-900 text-gray-300">
+                <div className="text-center p-6">
+                  <BlocksIcon size={64} className="mx-auto mb-4 text-gray-400" />
+                  <h2 className="text-2xl font-light mb-2 text-gray-200">Welcome to the Editor</h2>
+                  <p className="text-gray-400">Select a file from the explorer to start editing</p>
                 </div>
               </div>
             )}

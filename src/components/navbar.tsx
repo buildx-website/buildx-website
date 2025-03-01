@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AuthCard } from "./AuthCard";
 import { UserCard } from "./UserCard";
-import { Boxes, UserRound, UserRoundCheck } from "lucide-react";
+import { BlocksIcon, UserRound, UserRoundCheck } from "lucide-react";
 
 export function Navbar() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -39,7 +39,7 @@ export function Navbar() {
             <nav className="w-full row-start-1 flex items-center px-4 sm:px-0 py-4 justify-between">
                 <span className="flex items-center gap-2 text-slate-200 cursor-pointer"
                 onClick={() => window.location.href = '/'}>
-                    <Boxes size={32} />
+                    <BlocksIcon size={32} />
                 </span>
                 <Button
                     variant="outline"

@@ -62,7 +62,7 @@ export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedF
   }
 
   return (
-    <div className="h-full bg-[#252526] overflow-y-auto rounded-md">
+    <div className="h-full bg-[#252526] overflow-y-auto">
       <div className="p-2 text-sm font-medium text-gray-300">EXPLORER</div>
       <div>{renderFileTree(files)}</div>
     </div>

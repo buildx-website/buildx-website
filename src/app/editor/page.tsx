@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Switch } from "@/components/ui/switch"
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Boxes, Download } from "lucide-react";
+import { BlocksIcon, Download } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
 import { Message, StepType } from "@/types/types";
 import { StepList } from "@/components/StepList";
@@ -235,7 +235,7 @@ export default function Editor() {
             <div className="flex items-center gap-6">
               <span className="flex items-center gap-2 text-slate-200 cursor-pointer"
                 onClick={() => window.location.href = '/'}>
-                <Boxes size={32} />
+                <BlocksIcon size={32} />
               </span>
               <h2 className="text-lg font-medium text-gray-200">{showPreview ? "Preview" : "Code"}</h2>
             </div>

@@ -1,21 +1,41 @@
 import type { Message } from "@/types/types"
-import { BotMessageSquare, UserRoundIcon as UserRoundPen } from "lucide-react"
+import { BotMessageSquare, UserRoundIcon } from "lucide-react"
+import { motion } from "framer-motion"
+import { cn } from "@/lib/utils"
 
 export function MessageComponent({ message }: { message: Message }) {
-  if(!message) return null;
-  if(message.ignoreInUI) return null;
+
+  if (!message || message.ignoreInUI) return null
+
+  const isUser = message.role === "user"
+
   return (
-    <div className="w-full p-3 rounded-lg border border-zinc-800 bg-black/30 shadow-lg my-4">
-      <div className="flex items-center gap-2 pb-2 mb-3 border-b border-zinc-800">
-        {message.role === "user" ? (
-          <UserRoundPen className="text-gray-400" size={18} />
-        ) : (
-          <BotMessageSquare className="text-gray-400" size={18} />
-        )}
-        <span className="text-gray-400 text-sm font-semibold">{message.role === "user" ? "You" : "Bot"}</span>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className={cn(
+        "w-full p-5 rounded-xl border shadow-lg my-6 transition-all",
+        "bg-black/40 border-zinc-800",
+      )}
+    >
+      <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-800/70">
+        <div className="flex items-center gap-3">
+          {isUser ? <UserRoundIcon className="" size={18} /> : <BotMessageSquare className="" size={18} />}
+          <div>
+            <span className={cn("font-semibold")}>
+              {isUser ? "You" : "Assistant"}
+            </span>
+          </div>
+        </div>
       </div>
-      <p className="text-gray-300 text-sm">{message.content}</p>
-    </div>
+
+      <div className="message-content">
+        <p className={cn("text-base leading-relaxed whitespace-pre-wrap", isUser ? "text-blue-50" : "text-zinc-50")}>
+          {message.content}
+        </p>
+      </div>
+    </motion.div>
   )
 }
 
