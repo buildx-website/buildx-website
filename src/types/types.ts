@@ -22,6 +22,7 @@ export const apiKeyTypes = z.object({
 export interface Message {
     role: 'user' | 'assistant' | 'system';
     content: string;
+    ignoreInUI?: boolean;
 }
 
 export const chatBodyTypes = z.object({

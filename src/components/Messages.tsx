@@ -2,6 +2,8 @@ import type { Message } from "@/types/types"
 import { BotMessageSquare, UserRoundIcon as UserRoundPen } from "lucide-react"
 
 export function MessageComponent({ message }: { message: Message }) {
+  if(!message) return null;
+  if(message.ignoreInUI) return null;
   return (
     <div className="my-4 w-full p-4 rounded-lg border border-zinc-800 bg-black/30 shadow-lg">
       <div className="flex items-center gap-2 pb-2 mb-3 border-b border-zinc-800">

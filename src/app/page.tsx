@@ -6,7 +6,6 @@ import { Spotlight } from "@/components/ui/spotlight-new"
 import { Navbar } from "@/components/navbar"
 import { useState } from "react";
 import { toast } from "sonner";
-import { Message } from "@/types/types";
 import { useRouter } from "next/navigation";
 import { useMessagesStore } from "@/store/messagesAtom";
 import { useStepsStore } from "@/store/initialStepsAtom";
@@ -16,6 +15,7 @@ export default function Home() {
   const router = useRouter();
   const [prompt, setPrompt] = useState<string>("");
   const setMessages = useMessagesStore((state) => state.setMessages);
+  const addMessage = useMessagesStore((state) => state.addMessage);
   const setSteps = useStepsStore((state) => state.setSteps);
 
   async function handleSubmit() {
@@ -43,12 +43,11 @@ export default function Home() {
         return toast.error("Try again with a different prompt");
       }
       const { prompts, uiPrompts } = data;
+      console.log(prompts)
       setSteps(parseXml(uiPrompts[0]));
-      const msgs: Message[] = [...prompts, prompt].map(content => ({ role: "user", content }));
-      console.log("Messages: ", msgs);
-      setMessages(msgs);
+      setMessages(prompts.map((prompt: string) => ({ role: "user", content: prompt, ignoreInUI: true })));
+      addMessage({ role: "user", content: prompt });
       router.push("/editor");
-
 
     } else {
       const data = await template.json();
