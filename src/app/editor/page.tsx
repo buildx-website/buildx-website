@@ -8,12 +8,15 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BlocksIcon, Download } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
-import { Message, StepType } from "@/types/types";
+import { FileType, Message, StepType } from "@/types/types";
 import { StepList } from "@/components/StepList";
 import { MessageComponent } from "@/components/Messages";
 import { useFileStore } from "@/store/filesAtom";
 import { User } from "@/components/User";
 import { parseXml } from "@/lib/steps";
+import { useWebContainer } from "@/hooks/useWebContainer";
+import { FileSystemTree } from "@webcontainer/api";
+import { Web } from "@/components/Web";
 
 
 export default function Editor() {
@@ -28,6 +31,7 @@ export default function Editor() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [uiMsgs, setUiMsgs] = useState<Message[]>([]);
   const [building, setBuilding] = useState(false);
+  const webcontainer = useWebContainer();
 
   useEffect(() => {
     setLoading(true);
@@ -112,6 +116,31 @@ export default function Editor() {
     }
     setLoading(false);
   }, [steps, files]);
+
+  useEffect(() => {
+    if (!webcontainer) return;
+    const createFileSystemTree = (files: FileType[]): FileSystemTree => {
+      const result: FileSystemTree = {};
+      for (const file of files) {
+        if (file.type === "file") {
+          result[file.name] = {
+            file: {
+              contents: file.content || ''
+            }
+          };
+        } else if (file.type === "directory") {
+          result[file.name] = {
+            directory: file.children ? createFileSystemTree(file.children) : {}
+          };
+        }
+      }
+      return result;
+    };
+    const mountFiles = createFileSystemTree(files);
+    console.log(mountFiles);
+    webcontainer.mount(mountFiles);
+
+  }, [files, webcontainer])
 
   async function send(msg: string) {
     try {
@@ -257,8 +286,9 @@ export default function Editor() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto">
-            <EditorInterface />
+          <div className="flex-1 overflow-auto">{
+            showPreview ? <Web webcontainer={webcontainer} /> : <EditorInterface />
+          }
           </div>
         </div>
       </main>
