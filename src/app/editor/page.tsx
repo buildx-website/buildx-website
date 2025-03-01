@@ -8,37 +8,48 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Boxes, Download } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
-import { StepType } from "@/types/types";
+import { Message, StepType } from "@/types/types";
 import { StepList } from "@/components/StepList";
 import { MessageComponent } from "@/components/Messages";
 import { useFileStore } from "@/store/filesAtom";
 import { User } from "@/components/User";
+import { parseXml } from "@/lib/steps";
 
 
 export default function Editor() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState<boolean>(false);
-  const { messages } = useMessagesStore();
-  const { steps, setSteps } = useStepsStore();
+  const { messages, addMessage } = useMessagesStore();
+  const { steps, setSteps, addSteps } = useStepsStore();
   const { files, setFiles } = useFileStore();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [prompt, setPrompt] = useState("");
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamedResponse, setStreamedResponse] = useState("");
 
   useEffect(() => {
     console.log("messages", messages);
     setLoading(true);
     if (messages.length === 0) {
       router.push("/");
+    } else {
+      setInitialLoadComplete(true);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     let originalFiles = [...files];
     let updateHappened = false;
-    steps.filter(({ status }) => status === "pending").map(step => {
+
+    steps.filter(({ status }) => status === "pending").map(step => {  
       updateHappened = true;
+      setCurrentStep(step.id);
+
       if (step?.type === StepType.CreateFile) {
-        let parsedPath = step.path?.split("/") ?? []; // ["src", "components", "App.tsx"]
-        let currentFileStructure = [...originalFiles]; // {}
+        let parsedPath = step.path?.split("/") ?? []; // ["src", "components", "App.tsx"]    
+        let currentFileStructure = [...originalFiles]; // {}    
         const finalAnswerRef = currentFileStructure;
 
         let currentFolder = ""
@@ -46,13 +57,15 @@ export default function Editor() {
           currentFolder = `${currentFolder}/${parsedPath[0]}`;
           const currentFolderName = parsedPath[0];
           parsedPath = parsedPath.slice(1);
+            
 
           if (!parsedPath.length) {
             // final file
-            const file = currentFileStructure.find(x => x.path === currentFolder)
+            const file = currentFileStructure.find(x => x.id === currentFolder);
+            console.log("file", file);
             if (!file) {
               currentFileStructure.push({
-                id: Math.random().toString(),
+                id: currentFolder,
                 name: currentFolderName,
                 type: 'file',
                 path: currentFolder,
@@ -67,7 +80,7 @@ export default function Editor() {
             if (!folder) {
               // create the folder
               currentFileStructure.push({
-                id: Math.random().toString(),
+                id: currentFolder,
                 name: currentFolderName,
                 type: 'directory',
                 path: currentFolder,
@@ -80,6 +93,21 @@ export default function Editor() {
         originalFiles = finalAnswerRef;
       }
 
+      if (step?.type === StepType.EditFile) {
+        const file = originalFiles.find(x => x.path === step.path);
+        if (file) {
+          file.content = step.code;
+        }
+      }
+
+      if (step?.type === StepType.DeleteFile) {
+        originalFiles = originalFiles.filter(x => x.path !== step.path);
+      }
+
+      if (step?.type === StepType.DeleteFolder) {
+        originalFiles = originalFiles.filter(x => step?.path && !x.path.startsWith(step.path));
+      }
+
     })
     if (updateHappened) {
       setFiles(originalFiles)
@@ -87,6 +115,67 @@ export default function Editor() {
     }
     setLoading(false);
   }, [steps, files]);
+
+  async function send(msg: string) {
+    console.log("sending", msg);
+    try {
+      setIsStreaming(true);
+      const response = await fetch('api/main/chat', {
+        method: 'POST',
+        body: JSON.stringify({
+          messages: messages.slice(-1),
+          prompt: msg
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      if (!response.body) {
+        throw new Error("Response body is null");
+      }
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullResponseText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          setIsStreaming(false);
+          break;
+        }
+        const chunk = decoder.decode(value, { stream: true });
+        console.log("chunk", chunk);
+        fullResponseText += chunk;
+        setStreamedResponse(fullResponseText);
+      }
+      console.log("Response: ", fullResponseText);
+      setSteps(parseXml(fullResponseText));
+      const newMsg: Message = {
+        role: "assistant",
+        content: fullResponseText
+      }
+      addMessage(newMsg);
+
+    } catch (e) {
+      console.error("Error sending message: ", e);
+      setIsStreaming(false);
+    }
+  }
+
+  useEffect(() => {
+    if (initialLoadComplete && messages.length > 0) {
+      send(messages[messages.length - 1].content);
+    }
+  }, [initialLoadComplete]);
+
+  async function handleSubmit() {
+    console.log("submitting", prompt);
+  }
 
   if (loading) {
     return <div>Loading...</div>
@@ -101,14 +190,14 @@ export default function Editor() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3">
-            <StepList StepTitle="Build Steps" steps={steps} currentStep={1} />
+            <StepList StepTitle="Build Steps" steps={steps} currentStep={currentStep} />
             {messages.map((msg, idx) => (
               <MessageComponent key={idx} message={msg} />
             ))}
           </div>
 
           <div className="p-4 border-t border-gray-800 bg-[#1e1e1e]">
-            <SendPrompt handleSubmit={() => { }} prompt={""} setPrompt={() => { }} />
+            <SendPrompt handleSubmit={() => { handleSubmit() }} prompt={prompt} setPrompt={(val) => setPrompt(val)} />
           </div>
         </div>
 

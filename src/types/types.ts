@@ -73,9 +73,3 @@ export interface MessagesState {
     clearMessages: () => void;
 }
 
-export interface StepsState {
-    steps: Step[];
-    setSteps: (steps: Step[]) => void;
-    addStep: (step: Step) => void;
-    clearSteps: () => void;
-}
