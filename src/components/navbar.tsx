@@ -2,10 +2,9 @@
 
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AuthCard } from "./AuthCard";
 import { UserCard } from "./UserCard";
-import { DialogTitle } from "@radix-ui/react-dialog";
 import { Boxes, UserRound, UserRoundCheck } from "lucide-react";
 
 export function Navbar() {
