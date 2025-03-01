@@ -100,8 +100,8 @@ export default function Editor() {
             <h2 className="text-lg font-medium text-gray-200">Conversation</h2>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
-            <StepList steps={steps} currentStep={1} onStepClick={() => { }} />
+          <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3">
+            <StepList StepTitle="Build Steps" steps={steps} currentStep={1} />
             {messages.map((msg, idx) => (
               <MessageComponent key={idx} message={msg} />
             ))}
