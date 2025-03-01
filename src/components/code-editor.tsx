@@ -12,9 +12,9 @@ interface CodeEditorProps {
 export function CodeEditor({ file }: CodeEditorProps) {
   const [mounted, setMounted] = useState(false)
   const [editorContent, setEditorContent] = useState<string>(file.content || "")
-  const { updateFile } = useFileStore()
+  const { updateFile } = useFileStore();
+  const [language, setLanguage] = useState("")
 
-  // Update editor content when file changes
   useEffect(() => {
     setEditorContent(file.content || "")
   }, [file.id, file.content])
@@ -37,29 +37,49 @@ export function CodeEditor({ file }: CodeEditorProps) {
   const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined) {
       setEditorContent(value)
-      
-      // Create updated file object with new content
+    
       const updatedFile: FileType = {
         ...file,
         content: value
       }
       
-      // Update the file in the store
       updateFile(updatedFile)
     }
   }
 
+  useEffect(() => {
+    const extension = file.name.split(".").pop() || "plaintext"
+    if(extension === "js" || extension === "jsx" || extension === "tsx") {
+      setLanguage("javascript")
+    } else if(extension === "ts") {
+      setLanguage("typescript")
+    } else if(extension === "py") {
+      setLanguage("python")
+    } else if(extension === "java") {
+      setLanguage("java")
+    } else if(extension === "json") {
+      setLanguage("json")
+    } else if(extension === "xml") {
+      setLanguage("xml")
+    } else if(extension === "html") {
+      setLanguage("html")
+    } else if(extension === "css") {
+      setLanguage("css")
+    }
+  }, [file.name])
+
   if (!mounted) {
     return null
   }
+  
 
   return (
     <div className="h-full w-full overflow-hidden">
       <Editor
         key={file.id} 
         height="80vh"
-        defaultLanguage={file.language}
-        value={editorContent} // Use controlled component
+        defaultLanguage={language}
+        value={editorContent}
         theme="vs-dark"
         beforeMount={handleEditorWillMount}
         onChange={handleEditorChange}

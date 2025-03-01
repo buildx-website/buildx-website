@@ -1,17 +1,21 @@
-import { Step, StepType } from "@/types/types";
-import { CircleCheckBig, ChevronDown, ChevronUp, Loader } from "lucide-react";
-import { Button } from "./ui/button";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { useState } from "react";
+"use client"
+
+import { type Step, StepType } from "@/types/types"
+import { CircleCheckBig, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
+import { Button } from "./ui/button"
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
+import { useState } from "react"
+import { cn } from "@/lib/utils"
 
 interface StepsListProps {
-    StepTitle: string;
-    steps: Step[];
-    currentStep: number;
+    StepTitle: string
+    steps: Step[]
+    building?: boolean
+    maxHeight?: string
 }
 
-export function StepList({ StepTitle, steps, currentStep }: StepsListProps) {
-    const [isOpen, setIsOpen] = useState(true);
+export function StepList({ StepTitle, steps, building, maxHeight = "400px" }: StepsListProps) {
+    const [isOpen, setIsOpen] = useState(true)
 
     return (
         <div className="w-full p-3">
@@ -19,51 +23,83 @@ export function StepList({ StepTitle, steps, currentStep }: StepsListProps) {
                 <Collapsible open={isOpen} onOpenChange={setIsOpen}>
                     <div className="flex items-center justify-between">
                         <h3 className="text-lg font-bold text-gray-200">{StepTitle}</h3>
-                        <CollapsibleTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-gray-200"
-                            >
-                                {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                            </Button>
-                        </CollapsibleTrigger>
+                        <div className="flex items-center gap-2">
+                            {building && (
+                                <div className="relative">
+                                    <Loader2 size={20} className="text-primary animate-spin" />
+                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                                </div>
+                            )}
+                            <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="sm" className="text-gray-200 hover:bg-gray-800/50">
+                                    {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                </Button>
+                            </CollapsibleTrigger>
+                        </div>
                     </div>
                     <CollapsibleContent>
-                        <ul className="flex flex-col gap-2 mt-2">
-                            {steps.map((step) => (
-                                <li key={step.id} className="w-full">
-                                    <Button
-                                        className="w-full text-left justify-start hover:bg-gray-800 transition-colors duration-200 h-auto py-3"
-                                        variant="ghost"
-                                    >
-                                        <div className="flex items-start gap-3 w-full">
-                                            <div className="flex-shrink-0 mt-0.5">
-                                                {step.status === "completed" && <CircleCheckBig size={22} className="text-green-300" />}
-                                                {step.status === "pending" && <CircleCheckBig size={22} className="text-gray-400" />}
-                                                {step.status === "in-progress" && <Loader size={22} className="text-gray-400 animate-spin" />}
-                                            </div>
+                        <div
+                            className={cn(
+                                "mt-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent pr-1",
+                                maxHeight && `max-h-[${maxHeight}]`,
+                            )}
+                            style={{ maxHeight }}
+                        >
+                            <ul className="flex flex-col gap-2 scrollbar-hide">
+                                {steps.map((step) => (
+                                    <li key={step.id} className="w-full scrollbar-hide">
+                                        <div
+                                            className={cn(
+                                                "w-full p-3 rounded-md transition-colors duration-200 scrollbar-hide",
+                                                step.type === StepType.RunScript
+                                                    ? "bg-gray-800/30 hover:bg-gray-800/50"
+                                                    : "hover:bg-gray-800/20",
+                                            )}
+                                        >
+                                            <div className="flex items-start gap-3 w-full">
+                                                {
+                                                    step.type !== 1 && (
+                                                        <div className="flex-shrink-0 mt-0.5">
+                                                            {step.status === "completed" && <CircleCheckBig size={22} className="text-green-300" />}
+                                                            {step.status === "pending" && <CircleCheckBig size={22} className="text-gray-400" />}
+                                                            {step.status === "in-progress" && (
+                                                                <div className="relative">
+                                                                    <Loader2 size={22} className="text-blue-400 animate-spin" />
+                                                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 rounded-full animate-ping"></span>
+                                                                </div>
+                                                            )}
+                                                        </div>
 
-                                            <div className="flex flex-col gap-1 w-full overflow-hidden">
-                                                <span className={`text-sm ${(step.type === 1) || (step.id === currentStep) ? "text-gray-200 font-semibold" : "text-gray-400"}`}>
-                                                    {step.title}
-                                                </span>
-                                                {step.type === StepType.RunScript && step.code && (
-                                                    <div className="bg-gray-900 text-white p-2 rounded-md mt-1 w-full">
-                                                        <pre className="overflow-x-auto text-xs whitespace-pre-wrap break-all">
-                                                            <code>{step.code}</code>
-                                                        </pre>
-                                                    </div>
-                                                )}
+                                                    )
+                                                }
+
+                                                <div className="flex flex-col gap-1 w-full overflow-hidden">
+                                                    {step.type === 1 ? (
+                                                        <h4 className="text-gray-100 font-bold text-base border-b mx-auto">{step.title}</h4>
+                                                    ) : (
+                                                        <span className="text-sm text-gray-400">{step.title}</span>
+                                                    )}
+
+                                                    {step.type === StepType.RunScript && step.code && (
+                                                        <div className="bg-gray-900 text-white p-2 rounded-md mt-2 w-full border border-gray-700">
+                                                            <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                                                                <pre className="overflow-x-auto text-xs whitespace-pre-wrap break-all">
+                                                                    <code>{step.code}</code>
+                                                                </pre>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                    </Button>
-                                </li>
-                            ))}
-                        </ul>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     </CollapsibleContent>
                 </Collapsible>
             </div>
         </div>
-    );
+    )
 }
+

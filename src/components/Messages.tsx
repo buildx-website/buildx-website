@@ -5,7 +5,7 @@ export function MessageComponent({ message }: { message: Message }) {
   if(!message) return null;
   if(message.ignoreInUI) return null;
   return (
-    <div className="w-full p-3 rounded-lg border border-zinc-800 bg-black/30 shadow-lg">
+    <div className="w-full p-3 rounded-lg border border-zinc-800 bg-black/30 shadow-lg my-4">
       <div className="flex items-center gap-2 pb-2 mb-3 border-b border-zinc-800">
         {message.role === "user" ? (
           <UserRoundPen className="text-gray-400" size={18} />

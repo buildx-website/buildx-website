@@ -23,29 +23,28 @@ export default function Editor() {
   const { messages, addMessage } = useMessagesStore();
   const { steps, setSteps, addSteps } = useStepsStore();
   const { files, setFiles } = useFileStore();
-  const [currentStep, setCurrentStep] = useState(1);
   const [prompt, setPrompt] = useState("");
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [streamedResponse, setStreamedResponse] = useState("");
+  const [uiMsgs, setUiMsgs] = useState<Message[]>([]);
+  const [building, setBuilding] = useState(false);
 
   useEffect(() => {
-    console.log("messages", messages);
     setLoading(true);
     if (messages.length === 0) {
       router.push("/");
     } else {
       setInitialLoadComplete(true);
     }
-  }, []);
+    setLoading(false);
+  }, [messages]);
 
   useEffect(() => {
     let originalFiles = [...files];
     let updateHappened = false;
 
-    steps.filter(({ status }) => status === "pending").map(step => {  
+    steps.filter(({ status }) => status === "pending").map(step => {
       updateHappened = true;
-      setCurrentStep(step.id);
 
       if (step?.type === StepType.CreateFile) {
         let parsedPath = step.path?.split("/") ?? []; // ["src", "components", "App.tsx"]    
@@ -57,12 +56,11 @@ export default function Editor() {
           currentFolder = `${currentFolder}/${parsedPath[0]}`;
           const currentFolderName = parsedPath[0];
           parsedPath = parsedPath.slice(1);
-            
+
 
           if (!parsedPath.length) {
-            // final file
             const file = currentFileStructure.find(x => x.id === currentFolder);
-            console.log("file", file);
+
             if (!file) {
               currentFileStructure.push({
                 id: currentFolder,
@@ -75,10 +73,8 @@ export default function Editor() {
               file.content = step.code;
             }
           } else {
-            /// in a folder
             const folder = currentFileStructure.find(x => x.path === currentFolder)
             if (!folder) {
-              // create the folder
               currentFileStructure.push({
                 id: currentFolder,
                 name: currentFolderName,
@@ -117,9 +113,11 @@ export default function Editor() {
   }, [steps, files]);
 
   async function send(msg: string) {
-    console.log("sending", msg);
     try {
       setIsStreaming(true);
+      setUiMsgs(prev => [...prev, { role: "user", content: msg }]);
+      setUiMsgs(prev => [...prev, { role: "assistant", content: "" }]);
+
       const response = await fetch('api/main/chat', {
         method: 'POST',
         body: JSON.stringify({
@@ -131,50 +129,81 @@ export default function Editor() {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       if (!response.body) {
         throw new Error("Response body is null");
       }
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let fullResponseText = "";
+      let visibleResponseText = "";
+      let foundXml = false;
 
       while (true) {
         const { done, value } = await reader.read();
 
         if (done) {
-          setIsStreaming(false);
           break;
         }
+
         const chunk = decoder.decode(value, { stream: true });
-        console.log("chunk", chunk);
         fullResponseText += chunk;
-        setStreamedResponse(fullResponseText);
+        if (!foundXml) {
+          if (chunk.includes("<")) {
+            foundXml = true;
+            setBuilding(true);
+          } else {
+            visibleResponseText += chunk;
+            setUiMsgs(prev => {
+              const newMsgs = [...prev];
+              newMsgs[newMsgs.length - 1].content = visibleResponseText;
+              return newMsgs;
+            });
+          }
+        }
       }
-      console.log("Response: ", fullResponseText);
-      setSteps(parseXml(fullResponseText));
+
+      addSteps(parseXml(fullResponseText));
+      setBuilding(false);
       const newMsg: Message = {
         role: "assistant",
-        content: fullResponseText
-      }
+        content: fullResponseText,
+        ignoreInUI: foundXml
+      };
       addMessage(newMsg);
+      setIsStreaming(false);
 
     } catch (e) {
       console.error("Error sending message: ", e);
       setIsStreaming(false);
     }
+
   }
 
   useEffect(() => {
     if (initialLoadComplete && messages.length > 0) {
-      send(messages[messages.length - 1].content);
+      const lastUserMessage = messages.filter(msg => msg.role === "user").pop();
+      if (lastUserMessage) {
+        send(lastUserMessage.content);
+      }
     }
   }, [initialLoadComplete]);
 
   async function handleSubmit() {
-    console.log("submitting", prompt);
+    if (prompt.trim() === "" || isStreaming) return;
+
+    const userMsg: Message = {
+      role: "user",
+      content: prompt
+    };
+
+    addMessage(userMsg);
+    send(prompt);
+    setPrompt("");
   }
 
   if (loading) {
@@ -190,14 +219,14 @@ export default function Editor() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3">
-            <StepList StepTitle="Build Steps" steps={steps} currentStep={currentStep} />
-            {messages.map((msg, idx) => (
+            {uiMsgs.map((msg, idx) => (
               <MessageComponent key={idx} message={msg} />
             ))}
           </div>
 
           <div className="p-4 border-t border-gray-800 bg-[#1e1e1e]">
-            <SendPrompt handleSubmit={() => { handleSubmit() }} prompt={prompt} setPrompt={(val) => setPrompt(val)} />
+            <StepList StepTitle="Build Steps" steps={steps} building={building} />
+            <SendPrompt handleSubmit={handleSubmit} prompt={prompt} setPrompt={setPrompt} disabled={isStreaming} />
           </div>
         </div>
 
