@@ -107,6 +107,7 @@ export default function Editor() {
     })
     if (updateHappened) {
       setFiles(originalFiles)
+      console.log("Files updated", originalFiles)
       setSteps(steps.map(step => ({ ...step, status: "completed" })))
     }
     setLoading(false);
