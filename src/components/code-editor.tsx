@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Editor, { type Monaco } from "@monaco-editor/react"
 import type { FileType } from "@/types/types"
+import { useFileStore } from "@/store/filesAtom"
 
 interface CodeEditorProps {
   file: FileType
@@ -10,6 +11,13 @@ interface CodeEditorProps {
 
 export function CodeEditor({ file }: CodeEditorProps) {
   const [mounted, setMounted] = useState(false)
+  const [editorContent, setEditorContent] = useState<string>(file.content || "")
+  const { updateFile } = useFileStore()
+
+  // Update editor content when file changes
+  useEffect(() => {
+    setEditorContent(file.content || "")
+  }, [file.id, file.content])
 
   useEffect(() => {
     setMounted(true)
@@ -26,6 +34,21 @@ export function CodeEditor({ file }: CodeEditorProps) {
     })
   }
 
+  const handleEditorChange = (value: string | undefined) => {
+    if (value !== undefined) {
+      setEditorContent(value)
+      
+      // Create updated file object with new content
+      const updatedFile: FileType = {
+        ...file,
+        content: value
+      }
+      
+      // Update the file in the store
+      updateFile(updatedFile)
+    }
+  }
+
   if (!mounted) {
     return null
   }
@@ -33,11 +56,13 @@ export function CodeEditor({ file }: CodeEditorProps) {
   return (
     <div className="h-full w-full overflow-hidden">
       <Editor
-        height="90vh"
+        key={file.id} 
+        height="80vh"
         defaultLanguage={file.language}
-        defaultValue={file.content}
+        value={editorContent} // Use controlled component
         theme="vs-dark"
         beforeMount={handleEditorWillMount}
+        onChange={handleEditorChange}
         options={{
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
@@ -50,4 +75,3 @@ export function CodeEditor({ file }: CodeEditorProps) {
     </div>
   )
 }
-

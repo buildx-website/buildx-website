@@ -40,6 +40,7 @@ export interface FileType {
     content?: string
     isOpen?: boolean
     children?: FileType[]
+    path: string
 }
 
 export enum StepType {
