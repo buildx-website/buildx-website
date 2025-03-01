@@ -7,6 +7,7 @@ import { ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FileType } from "@/types/types"
 import { useFileStore } from "@/store/filesAtom"
+import { Button } from "./ui/button"
 
 
 export function EditorInterface() {
@@ -126,15 +127,15 @@ export function EditorInterface() {
                         }}
                       >
                         <span className="mr-2">{tab.name}</span>
-                        <button
-                          className="ml-2 rounded-full hover:bg-[#3c3c3c] w-4 h-4 flex items-center justify-center"
+                        <Button
+                          variant="ghost"
                           onClick={(e) => {
                             e.stopPropagation()
                             handleTabClose(tab.id)
                           }}
                         >
                           ×
-                        </button>
+                        </Button>
                       </TabsTrigger>
                     ))}
                   </TabsList>

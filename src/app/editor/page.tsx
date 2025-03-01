@@ -85,42 +85,48 @@ export default function Editor() {
     }, [steps, files]);
 
     return (
-        <main className="min-h-screen min-w-screen grid grid-cols-3 p-3 overflow-hidden relative gap-3">
-            <div className="col-span-1 h-full flex flex-col rounded-xl shadow-lg overflow-hidden p-4">
-                <div className="flex-1 max-h-[calc(82vh-4rem)] overflow-y-auto gap-4 scrollbar-hide">
-                    <MessageComponent key={0} message={messages[2]} />
-                    <StepList steps={steps} currentStep={1} onStepClick={() => { }} />
-                    {messages.slice(3).map((msg, idx) => (
-                        <MessageComponent key={idx} message={msg} />
-                    ))}
-                </div>
+        <main className="h-screen grid grid-cols-3 p-3 gap-3 bg-[#121212] overflow-hidden">
+      <div className="col-span-1 h-full flex flex-col rounded-xl overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-lg">
+        <div className="p-4 border-b border-gray-800">
+          <h2 className="text-lg font-medium text-gray-200">Conversation</h2>
+        </div>
 
-                <div className="mt-auto">
-                    <SendPrompt handleSubmit={() => { }} prompt={""} setPrompt={() => { }} />
-                </div>
+        <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
+          <MessageComponent key={0} message={messages[2]} />
+          <StepList steps={steps} currentStep={1} onStepClick={() => {}} />
+          {messages.slice(3).map((msg, idx) => (
+            <MessageComponent key={idx} message={msg} />
+          ))}
+        </div>
+
+        <div className="p-4 border-t border-gray-800 bg-[#1e1e1e]">
+          <SendPrompt handleSubmit={() => {}} prompt={""} setPrompt={() => {}} />
+        </div>
+      </div>
+
+      <div className="col-span-2 flex flex-col bg-[#1e1e1e] text-white h-full rounded-xl overflow-hidden border border-gray-800 shadow-lg">
+        <div className="flex items-center justify-between border-b border-gray-800 p-4">
+          <h2 className="text-lg font-medium text-gray-200">{showPreview ? "Preview" : "Code"}</h2>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <span className={`text-sm ${!showPreview ? "text-gray-300" : "text-gray-500"}`}>Code</span>
+              <Switch
+                checked={showPreview}
+                onCheckedChange={setShowPreview}
+                className="data-[state=checked]:bg-gray-700 data-[state=unchecked]:bg-gray-800"
+              />
+              <span className={`text-sm ${showPreview ? "text-gray-300" : "text-gray-500"}`}>Preview</span>
             </div>
+            <Button size={"sm"} variant={"outline"} className="border-gray-700 hover:bg-gray-800">
+              <Download size={16} />
+            </Button>
+          </div>
+        </div>
 
-            <div className="col-span-2 flex flex-col bg-[#1e1e1e] text-white h-full    flex-1 rounded-xl shadow-lg overflow-hidden p-4">
-                <div className="flex items-center justify-between border-b border-gray-700 pb-2 mb-2">
-                    <h2 className="text-lg font-semibold">{
-                        showPreview ? "Preview" : "Code"
-                    }</h2>
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-400">Code</span>
-                            <Switch checked={showPreview} onCheckedChange={setShowPreview} />
-                            <span className="text-sm text-gray-400">Preview</span>
-                        </div>
-                        <Button size={'sm'} variant={'outline'}>
-                            <Download size={16} />
-                        </Button>
-                    </div>
-                </div>
-
-                <div className="flex-1">
-                    <EditorInterface />
-                </div>
-            </div>
-        </main>
+        <div className="flex-1 overflow-auto">
+          <EditorInterface />
+        </div>
+      </div>
+    </main>
     )
 }
