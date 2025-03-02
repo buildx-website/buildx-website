@@ -154,7 +154,21 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
     }
 
     const runCommands = useCallback(async () => {
-        // Only run steps that are pending or in-progress and haven't been run before
+        await forceStopAll();
+
+        steps.forEach((step) => {
+            if (step._executed) {
+                updateStep({
+                    id: step.id,
+                    status: "completed",
+                    title: step.title,
+                    description: step.description,
+                    type: step.type,
+                    _executed: true,
+                })
+            }
+        })
+
         const stepsToRun = steps.filter((step) =>
             step.type === StepType.RunScript &&
             (step.status === "pending" || step.status === "in-progress") &&
@@ -165,7 +179,6 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
         if (stepsToRun.length === 0) {
             return
         }
-
         setShowTerminal(true)
 
         for (const step of stepsToRun) {
@@ -264,6 +277,14 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                 await serverProcess.current.kill()
                 serverProcess.current = null
             }
+            const installKillPort = await webcontainer?.spawn("npm", ["install", "--save-dev", "kill-port"]);
+            const exitCode = await installKillPort?.exit;
+            if (exitCode === 0) {
+                console.log("> kill-port package installed successfully\n");
+            } else {
+                console.log(`> Failed to install kill-port package (exit code: ${exitCode})\n`);
+            }
+
             const killPortsProcess = await webcontainer?.spawn("npx", ["kill-port", "--port", "3000,3001,3002,3003,3004,3005,8000,8080,5173,5174,5175,5176,5177"])
 
             if (killPortsProcess) {
@@ -294,42 +315,6 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
             setServerStatus("stopped")
         }
     }
-
-    async function installKillPort() {
-        if (!webcontainer) return;
-
-        try {
-            setCommandOutput((prev) => prev + "\n> Installing kill-port package...\n");
-            const installProcess = await webcontainer.spawn("npm", ["install", "--save-dev", "kill-port"]);
-
-            installProcess.output.pipeTo(
-                new WritableStream({
-                    write(data) {
-                        setCommandOutput((prev) => prev + data);
-                        if (terminalRef.current) {
-                            terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-                        }
-                    },
-                })
-            );
-
-            const exitCode = await installProcess.exit;
-            if (exitCode === 0) {
-                setCommandOutput((prev) => prev + "> kill-port package installed successfully\n");
-            } else {
-                setCommandOutput((prev) => prev + `> Failed to install kill-port package (exit code: ${exitCode})\n`);
-            }
-        } catch (error) {
-            console.error("Error installing kill-port:", error);
-            setCommandOutput((prev) => prev + `> Error installing kill-port: ${error}\n`);
-        }
-    }
-
-    useEffect(() => {
-        if (webcontainer) {
-            installKillPort();
-        }
-    }, [webcontainer]);
 
     useEffect(() => {
         console.log("Steps", steps)

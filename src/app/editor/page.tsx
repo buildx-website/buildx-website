@@ -147,6 +147,31 @@ export default function Editor() {
 
   }, [files, webcontainer])
 
+  async function installKillPort() {
+    if (!webcontainer) return;
+
+    try {
+      console.log("\n> Installing kill-port package...\n");
+      const installProcess = await webcontainer.spawn("npm", ["install", "--save-dev", "kill-port"]);
+
+      const exitCode = await installProcess.exit;
+      if (exitCode === 0) {
+        console.log("> kill-port package installed successfully\n");
+      } else {
+        console.log(`> Failed to install kill-port package (exit code: ${exitCode})\n`);
+      }
+    } catch (error) {
+      console.error("Error installing kill-port:", error);
+    }
+  }
+
+  useEffect(() => {
+    if (webcontainer) {
+      installKillPort();
+    }
+  }, [webcontainer]);
+
+
   async function send(msg: string) {
     try {
       setIsStreaming(true);
@@ -191,6 +216,7 @@ export default function Editor() {
           if (chunk.includes("<")) {
             foundXml = true;
             setBuilding(true);
+            setShowPreview(false);
           } else {
             visibleResponseText += chunk;
             setUiMsgs(prev => {
@@ -210,6 +236,7 @@ export default function Editor() {
       addSteps(newStepsWithId);
 
       setBuilding(false);
+      setShowPreview(true)
       const newMsg: Message = {
         role: "assistant",
         content: fullResponseText,
@@ -297,12 +324,8 @@ export default function Editor() {
             </div>
           </div>
 
-          <div className={`flex-1 overflow-auto ${showPreview ? "hidden" : ""}`}>
-            <EditorInterface />
-          </div>
-          <div className={`flex-1 overflow-auto ${!showPreview ? "hidden" : ""}`}>
-            <Web webcontainer={webcontainer} />
-          </div>
+          {!showPreview && <EditorInterface />}
+          {showPreview && <Web webcontainer={webcontainer} />}
         </div>
       </main>
     )
