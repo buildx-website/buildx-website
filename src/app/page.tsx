@@ -43,7 +43,6 @@ export default function Home() {
         return toast.error("Try again with a different prompt");
       }
       const { prompts, uiPrompts } = data;
-      console.log(prompts)
       setSteps(parseXml(uiPrompts[0]));
       setMessages(prompts.map((prompt: string) => ({ role: "user", content: prompt, ignoreInUI: true })));
       addMessage({ role: "user", content: prompt });

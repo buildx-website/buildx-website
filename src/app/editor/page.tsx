@@ -111,8 +111,6 @@ export default function Editor() {
     })
     if (updateHappened) {
       setFiles(originalFiles)
-      // console.log("Files updated", originalFiles)
-      // set all steps to completed except for the StepType.RunScript. set it to in-progress
       const updatedSteps: Step[] = steps.map(step => {
         if (step.type === StepType.RunScript) {
           return { ...step, status: "in-progress" }
@@ -299,9 +297,11 @@ export default function Editor() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto">{
-            showPreview ? <Web webcontainer={webcontainer} /> : <EditorInterface />
-          }
+          <div className={`flex-1 overflow-auto ${showPreview ? "hidden" : ""}`}>
+            <EditorInterface />
+          </div>
+          <div className={`flex-1 overflow-auto ${!showPreview ? "hidden" : ""}`}>
+            <Web webcontainer={webcontainer} />
           </div>
         </div>
       </main>

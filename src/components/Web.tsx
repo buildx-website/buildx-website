@@ -43,6 +43,7 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                 (step.code?.includes("npm run dev") ||
                     step.code?.includes("yarn dev") ||
                     step.code?.includes("npm run start") ||
+                    step.code?.includes("npm start") ||
                     step.code?.includes("yarn start")),
         )
 
@@ -56,7 +57,6 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                     new WritableStream({
                         write(data) {
                             setCommandOutput((prev) => prev + data)
-                            console.log("%c" + data, "display: inline;")
                             if (terminalRef.current) {
                                 terminalRef.current.scrollTop = terminalRef.current.scrollHeight
                             }
@@ -155,19 +155,19 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
 
     const runCommands = useCallback(async () => {
         // Only run steps that are pending or in-progress and haven't been run before
-        const stepsToRun = steps.filter((step) => 
-            step.type === StepType.RunScript && 
+        const stepsToRun = steps.filter((step) =>
+            step.type === StepType.RunScript &&
             (step.status === "pending" || step.status === "in-progress") &&
-            !step._executed 
+            !step._executed
         )
-    
+
         console.log("Steps to run:", stepsToRun)
         if (stepsToRun.length === 0) {
             return
         }
-        
+
         setShowTerminal(true)
-    
+
         for (const step of stepsToRun) {
             console.log("Running step:", step)
             setCommandOutput((prev) => prev + `\n> Running step: ${step.title}\n`)
@@ -176,7 +176,7 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                 ...step,
                 _executed: true,
             })
-    
+
             const commands = step?.code?.split("\n") || []
             for (const command of commands) {
                 let response = ""
@@ -187,10 +187,10 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                 const cmd = data.split(" ") || []
                 console.log("Now Running:", cmd[0], cmd.slice(1))
                 setCommandOutput((prev) => prev + `\n> ${data}\n`)
-    
+
                 if (data === "npm run dev" || data === "yarn dev" || data === "npm run start" || data === "yarn start") {
                     serverProcess.current = await webcontainer?.spawn(cmd[0], cmd.slice(1))
-    
+
                     serverProcess.current.output.pipeTo(
                         new WritableStream({
                             write(data) {
@@ -202,7 +202,7 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                             },
                         }),
                     )
-    
+
                     updateStep({
                         id: step.id,
                         status: "completed",
@@ -225,7 +225,7 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                             },
                         }),
                     )
-    
+
                     const code = await run?.exit
                     console.log("code: ", code)
                     console.log("response: ", response)
@@ -255,6 +255,82 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
         }
     }, [steps, updateStep, webcontainer])
 
+    async function forceStopAll() {
+        console.log("Force stopping all processes...")
+        setCommandOutput((prev) => prev + "\n> Force stopping all processes...\n")
+
+        try {
+            if (serverProcess.current) {
+                await serverProcess.current.kill()
+                serverProcess.current = null
+            }
+            const killPortsProcess = await webcontainer?.spawn("npx", ["kill-port", "--port", "3000,3001,3002,3003,3004,3005,8000,8080,5173,5174,5175,5176,5177"])
+
+            if (killPortsProcess) {
+                killPortsProcess.output.pipeTo(
+                    new WritableStream({
+                        write(data) {
+                            setCommandOutput((prev) => prev + data)
+                            console.log("%c" + data, "display: inline;")
+                            if (terminalRef.current) {
+                                terminalRef.current.scrollTop = terminalRef.current.scrollHeight
+                            }
+                        },
+                    })
+                )
+
+                await killPortsProcess.exit
+            }
+
+            setUrl(null)
+            setServerStatus("stopped")
+            setCommandOutput((prev) => prev + "> All processes and ports forcefully stopped\n")
+            console.log("All processes forcefully stopped")
+        } catch (error) {
+            console.error("Error force stopping processes:", error)
+            setCommandOutput((prev) => prev + `> Error force stopping processes: ${error}\n`)
+
+            setUrl(null)
+            setServerStatus("stopped")
+        }
+    }
+
+    async function installKillPort() {
+        if (!webcontainer) return;
+
+        try {
+            setCommandOutput((prev) => prev + "\n> Installing kill-port package...\n");
+            const installProcess = await webcontainer.spawn("npm", ["install", "--save-dev", "kill-port"]);
+
+            installProcess.output.pipeTo(
+                new WritableStream({
+                    write(data) {
+                        setCommandOutput((prev) => prev + data);
+                        if (terminalRef.current) {
+                            terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+                        }
+                    },
+                })
+            );
+
+            const exitCode = await installProcess.exit;
+            if (exitCode === 0) {
+                setCommandOutput((prev) => prev + "> kill-port package installed successfully\n");
+            } else {
+                setCommandOutput((prev) => prev + `> Failed to install kill-port package (exit code: ${exitCode})\n`);
+            }
+        } catch (error) {
+            console.error("Error installing kill-port:", error);
+            setCommandOutput((prev) => prev + `> Error installing kill-port: ${error}\n`);
+        }
+    }
+
+    useEffect(() => {
+        if (webcontainer) {
+            installKillPort();
+        }
+    }, [webcontainer]);
+
     useEffect(() => {
         console.log("Steps", steps)
         runCommands().then(() => {
@@ -262,7 +338,7 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                 startServer()
             }
         })
-    }, [steps, url, serverStatus, runCommands, startServer])
+    }, [])
 
     const toggleTerminal = () => {
         setShowTerminal(!showTerminal)
@@ -337,6 +413,16 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                     >
                         <Square className="h-3.5 w-3.5 text-red-600" />
                         Stop Server
+                    </Button>
+                    <Button
+                        onClick={forceStopAll}
+                        disabled={!webcontainer}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-1"
+                    >
+                        <Square className="h-3.5 w-3.5 text-red-600 fill-red-600" />
+                        Force Stop
                     </Button>
                     <Button onClick={toggleTerminal} variant="outline" size="sm" className="flex items-center gap-1">
                         <Terminal className="h-3.5 w-3.5" />
