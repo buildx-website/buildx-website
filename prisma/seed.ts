@@ -29,7 +29,7 @@ async function main() {
                         description: "This is a test project",
                         ownerId: insertUser.id,
                         projectLocation: "example.com",
-                        framework: "NEXTJS",
+                        framework: "NEXT",
                         status: "CREATED"
                     }
                 })
