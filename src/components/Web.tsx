@@ -154,15 +154,29 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
     }
 
     const runCommands = useCallback(async () => {
-        const stepsToRun = steps.filter((step) => step.status !== "completed" && step.type === StepType.RunScript)
-
+        // Only run steps that are pending or in-progress and haven't been run before
+        const stepsToRun = steps.filter((step) => 
+            step.type === StepType.RunScript && 
+            (step.status === "pending" || step.status === "in-progress") &&
+            !step._executed 
+        )
+    
         console.log("Steps to run:", stepsToRun)
+        if (stepsToRun.length === 0) {
+            return
+        }
+        
         setShowTerminal(true)
-
+    
         for (const step of stepsToRun) {
             console.log("Running step:", step)
             setCommandOutput((prev) => prev + `\n> Running step: ${step.title}\n`)
 
+            updateStep({
+                ...step,
+                _executed: true,
+            })
+    
             const commands = step?.code?.split("\n") || []
             for (const command of commands) {
                 let response = ""
@@ -173,10 +187,10 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                 const cmd = data.split(" ") || []
                 console.log("Now Running:", cmd[0], cmd.slice(1))
                 setCommandOutput((prev) => prev + `\n> ${data}\n`)
-
-                if (data == "npm run dev" || data == "yarn dev" || data == "npm run start" || data == "yarn start") {
+    
+                if (data === "npm run dev" || data === "yarn dev" || data === "npm run start" || data === "yarn start") {
                     serverProcess.current = await webcontainer?.spawn(cmd[0], cmd.slice(1))
-
+    
                     serverProcess.current.output.pipeTo(
                         new WritableStream({
                             write(data) {
@@ -188,13 +202,14 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                             },
                         }),
                     )
-
+    
                     updateStep({
                         id: step.id,
                         status: "completed",
                         title: step.title,
                         description: step.description,
                         type: step.type,
+                        _executed: true,
                     })
                 } else {
                     const run = await webcontainer?.spawn(cmd[0], cmd.slice(1))
@@ -210,7 +225,7 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                             },
                         }),
                     )
-
+    
                     const code = await run?.exit
                     console.log("code: ", code)
                     console.log("response: ", response)
@@ -221,6 +236,7 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                             title: step.title,
                             description: step.description,
                             type: step.type,
+                            _executed: true,
                         })
                         setCommandOutput((prev) => prev + `\n> Command completed successfully\n`)
                     } else {
@@ -230,6 +246,7 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                             title: step.title,
                             description: step.description,
                             type: step.type,
+                            _executed: true,
                         })
                         setCommandOutput((prev) => prev + `\n> Command failed with code ${code}\n`)
                     }
@@ -241,7 +258,6 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
     useEffect(() => {
         console.log("Steps", steps)
         runCommands().then(() => {
-            // Server will be started by runCommands if there's a start command
             if (serverStatus === "starting" && !url) {
                 startServer()
             }

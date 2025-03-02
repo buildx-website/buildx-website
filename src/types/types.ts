@@ -63,6 +63,7 @@ export interface Step {
     status: "pending" | "completed" | "in-progress" | "failed";
     code?: string;
     path?: string;
+    _executed?: boolean;
 }
 
 

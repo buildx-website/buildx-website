@@ -32,8 +32,6 @@ export async function chatStream(llm: OpenAI, prompt: string, messages: Message[
         }
         messages.push({ role: 'user', content: prompt });
 
-        console.log("Messages: ", messages);
-
         const completion = await llm.chat.completions.create({
             model: "google/gemini-2.0-flash-lite-preview-02-05:free",
             messages: messages,
