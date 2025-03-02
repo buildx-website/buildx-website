@@ -276,11 +276,11 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
             {/* Terminal Panel */}
             <div
                 className={cn(
-                    "bg-black text-green-400 transition-all duration-300 ease-in-out border-t border-gray-700",
+                    "bg-black/40 transition-all duration-300 ease-in-out border-t border-zinc-700",
                     showTerminal ? "h-[200px]" : "h-0 overflow-hidden",
                 )}
             >
-                <div className="flex items-center justify-between p-2 bg-gray-900 border-b border-gray-700">
+                <div className="flex items-center justify-between p-2 bg-dark/10 border-b border-gray-700">
                     <div className="flex items-center gap-2">
                         <Terminal size={16} />
                         <span className="font-bold">Terminal</span>
@@ -307,9 +307,9 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                         disabled={serverStatus === "running" || !webcontainer}
                         variant="outline"
                         size="sm"
-                        className="text-green-600 flex items-center gap-1"
+                        className="flex items-center gap-1"
                     >
-                        <Play className="h-3.5 w-3.5" />
+                        <Play className="h-3.5 w-3.5 text-green-600" />
                         Start Server
                     </Button>
                     <Button
@@ -317,9 +317,9 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                         disabled={serverStatus !== "running" || !webcontainer}
                         variant="outline"
                         size="sm"
-                        className="text-red-600 flex items-center gap-1"
+                        className="flex items-center gap-1"
                     >
-                        <Square className="h-3.5 w-3.5" />
+                        <Square className="h-3.5 w-3.5 text-red-600" />
                         Stop Server
                     </Button>
                     <Button onClick={toggleTerminal} variant="outline" size="sm" className="flex items-center gap-1">
