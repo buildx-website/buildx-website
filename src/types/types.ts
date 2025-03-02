@@ -60,7 +60,7 @@ export interface Step {
     title: string;
     description: string;
     type: StepType
-    status: "pending" | "completed" | "in-progress";
+    status: "pending" | "completed" | "in-progress" | "failed";
     code?: string;
     path?: string;
 }

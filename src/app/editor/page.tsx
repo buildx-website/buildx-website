@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BlocksIcon, Download } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
-import { FileType, Message, StepType } from "@/types/types";
+import { FileType, Message, Step, StepType } from "@/types/types";
 import { StepList } from "@/components/StepList";
 import { MessageComponent } from "@/components/Messages";
 import { useFileStore } from "@/store/filesAtom";
@@ -111,8 +111,15 @@ export default function Editor() {
     })
     if (updateHappened) {
       setFiles(originalFiles)
-      console.log("Files updated", originalFiles)
-      setSteps(steps.map(step => ({ ...step, status: "completed" })))
+      // console.log("Files updated", originalFiles)
+      // set all steps to completed except for the StepType.RunScript. set it to in-progress
+      const updatedSteps: Step[] = steps.map(step => {
+        if (step.type === StepType.RunScript) {
+          return { ...step, status: "in-progress" }
+        }
+        return { ...step, status: "completed" }
+      })
+      setSteps(updatedSteps);
     }
     setLoading(false);
   }, [steps, files]);
@@ -137,7 +144,7 @@ export default function Editor() {
       return result;
     };
     const mountFiles = createFileSystemTree(files);
-    console.log(mountFiles);
+    // console.log(mountFiles);
     webcontainer.mount(mountFiles);
 
   }, [files, webcontainer])
@@ -197,7 +204,13 @@ export default function Editor() {
         }
       }
 
-      addSteps(parseXml(fullResponseText));
+      const newSteps = parseXml(fullResponseText);
+      let stepLength = steps.length;
+      const newStepsWithId = newSteps.map(step => {
+        return { ...step, id: stepLength++ }
+      });
+      addSteps(newStepsWithId);
+
       setBuilding(false);
       const newMsg: Message = {
         role: "assistant",

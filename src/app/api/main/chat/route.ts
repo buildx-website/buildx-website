@@ -21,8 +21,7 @@ export async function POST(req: Request) {
         const stream = new ReadableStream({
             async start(controller) {
                 await chatStream(llm(apiKey), prompt, messages, (token) => {
-                    if (token) {
-                        console.log("Token: ", token);
+                    if (token) {    
                         controller.enqueue(new TextEncoder().encode(token));
                     }
                 });
