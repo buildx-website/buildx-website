@@ -1,7 +1,7 @@
 "use client"
 
 import { type Step, StepType } from "@/types/types"
-import { SquareCheck, ChevronDown, ChevronUp, Loader2, } from "lucide-react"
+import { SquareCheck, ChevronDown, ChevronUp, Loader2, OctagonAlert, } from "lucide-react"
 import { Button } from "./ui/button"
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
 import { useState } from "react"
@@ -63,6 +63,7 @@ export function StepList({ StepTitle, steps, building, maxHeight = "400px" }: St
                                             <div className="flex-shrink-0 mt-0.5">
                                                 {step.status === "completed" && <SquareCheck size={22} className="text-green-300" />}
                                                 {step.status === "pending" && <SquareCheck size={22} className="text-gray-400" />}
+                                                {step.status === "failed" && <OctagonAlert size={22} className="text-red-400" />}
                                                 {step.status === "in-progress" && (
                                                     <div className="relative">
                                                         <Loader2 size={22} className="text-blue-400 animate-spin" />
