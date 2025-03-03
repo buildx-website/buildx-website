@@ -1,6 +1,6 @@
 "use client"
 import { useStepsStore } from "@/store/initialStepsAtom"
-import { StepType } from "@/types/types"
+import { Step, StepType } from "@/types/types"
 import type { WebContainer } from "@webcontainer/api"
 import { useEffect, useState, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
@@ -8,20 +8,49 @@ import { Input } from "@/components/ui/input"
 import { Terminal, Play, Square, ChevronUp, ChevronDown, Send, Loader2, Server } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
-    const [url, setUrl] = useState<string | null>(null)
+interface WebProps {
+    webcontainer: WebContainer | null
+    url: string | null
+    setUrl: (url: string) => void
+}
+
+export function Web({ webcontainer, url, setUrl }: WebProps) {
     const [serverStatus, setServerStatus] = useState<"starting" | "running" | "stopped">("starting")
     const [commandInput, setCommandInput] = useState("")
     const [commandOutput, setCommandOutput] = useState("")
     const [isExecuting, setIsExecuting] = useState(false)
     const [showTerminal, setShowTerminal] = useState(false)
+    const [startCommandExecuted, setStartCommandExecuted] = useState(false)
+    const [totalStepsDone, setTotalStepsDone] = useState(0);
     const { steps, updateStep } = useStepsStore()
     //   eslint-disable-next-line
     const serverProcess = useRef<any>(null)
     const terminalRef = useRef<HTMLDivElement>(null)
 
+    useEffect(() => {
+        async function installCmd() {
+            console.log("Running npm install")
+            setCommandOutput((prev) => prev + "\n> Running npm install\n")
+            await webcontainer?.spawn("npm", ["install"]);
+        }
+        installCmd()
+    }, [webcontainer])
+
     const startServer = useCallback(async () => {
-        if (!webcontainer || serverStatus === "running") return
+        if (url) {
+            console.log("Server already running at", url)
+            return;
+        }
+        if (!webcontainer || serverStatus === "running") return;
+        if (serverProcess.current) {
+            console.log("Server process already exists, stopping previous server first")
+            try {
+                await serverProcess.current.kill()
+                serverProcess.current = null
+            } catch (e) {
+                console.error("Error stopping previous server:", e)
+            }
+        }
 
         console.log("Starting server...")
         setServerStatus("starting")
@@ -35,8 +64,6 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
             setServerStatus("running")
             setCommandOutput((prev) => prev + `\n> Server ready at ${url}\n`)
         })
-
-        // Find the start command from steps
         const startStep = steps.find(
             (step) =>
                 step.type === StepType.RunScript &&
@@ -47,7 +74,8 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                     step.code?.includes("yarn start")),
         )
 
-        if (startStep) {
+        if (startStep && !startCommandExecuted) {
+            setStartCommandExecuted(true)
             const command = startStep.code?.trim().split(" ") || []
             if (command.length > 0) {
                 setCommandOutput((prev) => prev + `\n> Running ${command.join(" ")}\n`)
@@ -67,7 +95,6 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                 console.log("Server process started")
             }
         } else {
-            // Default to npm run dev if no start command found
             setCommandOutput((prev) => prev + "\n> Running npm run dev\n")
             serverProcess.current = await webcontainer.spawn("npm", ["run", "dev"])
 
@@ -85,7 +112,7 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
 
             console.log("Server process started with default command")
         }
-    }, [steps, webcontainer, serverStatus])
+    }, [steps, webcontainer, serverStatus, url])
 
     async function stopServer() {
         if (!serverProcess.current || serverStatus !== "running") return
@@ -94,10 +121,9 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
         setCommandOutput((prev) => prev + "\n> Stopping server...\n")
 
         try {
-            // Kill the server process
             await serverProcess.current.kill()
             serverProcess.current = null
-            setUrl(null)
+            setUrl("")
             setServerStatus("stopped")
             setCommandOutput((prev) => prev + "> Server stopped\n")
             console.log("Server stopped")
@@ -153,23 +179,11 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
         }
     }
 
-    const runCommands = useCallback(async () => {
-        await forceStopAll();
+    const runCommands = useCallback(async (newSteps: Step[]) => {
+        let foundServerStartCommand = false;
+        let serverStartStep = null;
 
-        steps.forEach((step) => {
-            if (step._executed) {
-                updateStep({
-                    id: step.id,
-                    status: "completed",
-                    title: step.title,
-                    description: step.description,
-                    type: step.type,
-                    _executed: true,
-                })
-            }
-        })
-
-        const stepsToRun = steps.filter((step) =>
+        const stepsToRun = newSteps.filter((step) =>
             step.type === StepType.RunScript &&
             (step.status === "pending" || step.status === "in-progress") &&
             !step._executed
@@ -177,7 +191,7 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
 
         console.log("Steps to run:", stepsToRun)
         if (stepsToRun.length === 0) {
-            return
+            return;
         }
         setShowTerminal(true)
 
@@ -192,138 +206,75 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
 
             const commands = step?.code?.split("\n") || []
             for (const command of commands) {
-                let response = ""
                 const data = command.trim()
                 if (data === "") {
                     continue
                 }
+
+                if (data === "npm run dev" || data === "yarn dev" ||
+                    data === "npm run start" || data === "yarn start" ||
+                    data === "npm start") {
+
+                    foundServerStartCommand = true;
+                    serverStartStep = step;
+                    setCommandOutput((prev) => prev + `\n> Server start command found: ${data} (will be started after other commands)\n`)
+                    continue;
+                }
+
                 const cmd = data.split(" ") || []
                 console.log("Now Running:", cmd[0], cmd.slice(1))
                 setCommandOutput((prev) => prev + `\n> ${data}\n`)
 
-                if (data === "npm run dev" || data === "yarn dev" || data === "npm run start" || data === "yarn start") {
-                    serverProcess.current = await webcontainer?.spawn(cmd[0], cmd.slice(1))
-
-                    serverProcess.current.output.pipeTo(
-                        new WritableStream({
-                            write(data) {
-                                setCommandOutput((prev) => prev + data)
-                                console.log("%c" + data, "display: inline;")
-                                if (terminalRef.current) {
-                                    terminalRef.current.scrollTop = terminalRef.current.scrollHeight
-                                }
-                            },
-                        }),
-                    )
-
-                    updateStep({
-                        id: step.id,
-                        status: "completed",
-                        title: step.title,
-                        description: step.description,
-                        type: step.type,
-                        _executed: true,
-                    })
-                } else {
-                    const run = await webcontainer?.spawn(cmd[0], cmd.slice(1))
-                    run?.output.pipeTo(
-                        new WritableStream({
-                            write(data) {
-                                response += data
-                                setCommandOutput((prev) => prev + data)
-                                console.log("%c" + data, "display: inline;")
-                                if (terminalRef.current) {
-                                    terminalRef.current.scrollTop = terminalRef.current.scrollHeight
-                                }
-                            },
-                        }),
-                    )
-
-                    const code = await run?.exit
-                    console.log("code: ", code)
-                    console.log("response: ", response)
-                    if (code === 0) {
-                        updateStep({
-                            id: step.id,
-                            status: "completed",
-                            title: step.title,
-                            description: step.description,
-                            type: step.type,
-                            _executed: true,
-                        })
-                        setCommandOutput((prev) => prev + `\n> Command completed successfully\n`)
-                    } else {
-                        updateStep({
-                            id: step.id,
-                            status: "failed",
-                            title: step.title,
-                            description: step.description,
-                            type: step.type,
-                            _executed: true,
-                        })
-                        setCommandOutput((prev) => prev + `\n> Command failed with code ${code}\n`)
-                    }
-                }
-            }
-        }
-    }, [steps, updateStep, webcontainer])
-
-    async function forceStopAll() {
-        console.log("Force stopping all processes...")
-        setCommandOutput((prev) => prev + "\n> Force stopping all processes...\n")
-
-        try {
-            if (serverProcess.current) {
-                await serverProcess.current.kill()
-                serverProcess.current = null
-            }
-            const installKillPort = await webcontainer?.spawn("npm", ["install", "--save-dev", "kill-port"]);
-            const exitCode = await installKillPort?.exit;
-            if (exitCode === 0) {
-                console.log("> kill-port package installed successfully\n");
-            } else {
-                console.log(`> Failed to install kill-port package (exit code: ${exitCode})\n`);
-            }
-
-            const killPortsProcess = await webcontainer?.spawn("npx", ["kill-port", "--port", "3000,3001,3002,3003,3004,3005,8000,8080,5173,5174,5175,5176,5177"])
-
-            if (killPortsProcess) {
-                killPortsProcess.output.pipeTo(
+                let response = ""
+                const run = await webcontainer?.spawn(cmd[0], cmd.slice(1))
+                run?.output.pipeTo(
                     new WritableStream({
                         write(data) {
+                            response += data
                             setCommandOutput((prev) => prev + data)
                             console.log("%c" + data, "display: inline;")
                             if (terminalRef.current) {
                                 terminalRef.current.scrollTop = terminalRef.current.scrollHeight
                             }
                         },
-                    })
+                    }),
                 )
 
-                await killPortsProcess.exit
+                const code = await run?.exit
+                console.log("code: ", code)
+                console.log("response: ", response)
+                if (code === 0) {
+                    setCommandOutput((prev) => prev + `\n> Command completed successfully\n`)
+                } else {
+                    setCommandOutput((prev) => prev + `\n> Command failed with code ${code}\n`)
+                }
             }
 
-            setUrl(null)
-            setServerStatus("stopped")
-            setCommandOutput((prev) => prev + "> All processes and ports forcefully stopped\n")
-            console.log("All processes forcefully stopped")
-        } catch (error) {
-            console.error("Error force stopping processes:", error)
-            setCommandOutput((prev) => prev + `> Error force stopping processes: ${error}\n`)
-
-            setUrl(null)
-            setServerStatus("stopped")
+            updateStep({
+                ...step,
+                status: "completed",
+                _executed: true,
+            })
         }
-    }
+
+        return { foundServerStartCommand, serverStartStep };
+    }, [steps, updateStep, webcontainer])
 
     useEffect(() => {
-        console.log("Steps", steps)
-        runCommands().then(() => {
-            if (serverStatus === "starting" && !url) {
+        if (steps.length === 0) {
+            return;
+        }
+        const newSteps = steps.slice(totalStepsDone);
+        console.log("New Steps: ", newSteps)
+
+        runCommands(newSteps).then((result) => {
+            setTotalStepsDone(steps.length)
+
+            if (serverStatus !== "running" && !url && result?.foundServerStartCommand) {
                 startServer()
             }
         })
-    }, [])
+    }, [steps])
 
     const toggleTerminal = () => {
         setShowTerminal(!showTerminal)
@@ -350,7 +301,6 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                 {url && <iframe src={url} height="100%" width="100%" className="border-0" />}
             </div>
 
-            {/* Terminal Panel */}
             <div
                 className={cn(
                     "bg-black/40 transition-all duration-300 ease-in-out border-t border-zinc-700",
@@ -376,7 +326,6 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                 </div>
             </div>
 
-            {/* Bottom Controls */}
             <div className="p-3 border-t bg-muted/30 flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
                     <Button
@@ -398,16 +347,6 @@ export function Web({ webcontainer }: { webcontainer: WebContainer | null }) {
                     >
                         <Square className="h-3.5 w-3.5 text-red-600" />
                         Stop Server
-                    </Button>
-                    <Button
-                        onClick={forceStopAll}
-                        disabled={!webcontainer}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-1"
-                    >
-                        <Square className="h-3.5 w-3.5 text-red-600 fill-red-600" />
-                        Force Stop
                     </Button>
                     <Button onClick={toggleTerminal} variant="outline" size="sm" className="flex items-center gap-1">
                         <Terminal className="h-3.5 w-3.5" />
