@@ -32,6 +32,7 @@ export default function Editor() {
   const [uiMsgs, setUiMsgs] = useState<Message[]>([]);
   const [building, setBuilding] = useState(false);
   const webcontainer = useWebContainer();
+  const [url, setUrl] = useState<string>("");
 
   useEffect(() => {
     setLoading(true);
@@ -43,6 +44,7 @@ export default function Editor() {
     setLoading(false);
   }, [messages]);
 
+
   useEffect(() => {
     let originalFiles = [...files];
     let updateHappened = false;
@@ -51,8 +53,8 @@ export default function Editor() {
       updateHappened = true;
 
       if (step?.type === StepType.CreateFile) {
-        let parsedPath = step.path?.split("/") ?? []; // ["src", "components", "App.tsx"]    
-        let currentFileStructure = [...originalFiles]; // {}    
+        let parsedPath = step.path?.split("/") ?? [];
+        let currentFileStructure = [...originalFiles];
         const finalAnswerRef = currentFileStructure;
 
         let currentFolder = ""
@@ -112,15 +114,19 @@ export default function Editor() {
     if (updateHappened) {
       setFiles(originalFiles)
       const updatedSteps: Step[] = steps.map(step => {
-        if (step.type === StepType.RunScript) {
-          return { ...step, status: "in-progress" }
+        if (step.status === "pending") {
+          if (step.type === StepType.RunScript) {
+            return { ...step, status: "in-progress" }
+          }
+          return { ...step, status: "completed" }
         }
-        return { ...step, status: "completed" }
+        return step;
       })
       setSteps(updatedSteps);
     }
     setLoading(false);
   }, [steps, files]);
+
 
   useEffect(() => {
     if (!webcontainer) return;
@@ -145,31 +151,17 @@ export default function Editor() {
     // console.log(mountFiles);
     webcontainer.mount(mountFiles);
 
-  }, [files, webcontainer])
+  }, [files, webcontainer]);
 
-  async function installKillPort() {
-    if (!webcontainer) return;
-
-    try {
-      console.log("\n> Installing kill-port package...\n");
-      const installProcess = await webcontainer.spawn("npm", ["install", "--save-dev", "kill-port"]);
-
-      const exitCode = await installProcess.exit;
-      if (exitCode === 0) {
-        console.log("> kill-port package installed successfully\n");
-      } else {
-        console.log(`> Failed to install kill-port package (exit code: ${exitCode})\n`);
-      }
-    } catch (error) {
-      console.error("Error installing kill-port:", error);
-    }
-  }
 
   useEffect(() => {
-    if (webcontainer) {
-      installKillPort();
+    if (initialLoadComplete && messages.length > 0) {
+      const lastUserMessage = messages.filter(msg => msg.role === "user").pop();
+      if (lastUserMessage) {
+        send(lastUserMessage.content);
+      }
     }
-  }, [webcontainer]);
+  }, [initialLoadComplete]);
 
 
   async function send(msg: string) {
@@ -252,15 +244,6 @@ export default function Editor() {
 
   }
 
-  useEffect(() => {
-    if (initialLoadComplete && messages.length > 0) {
-      const lastUserMessage = messages.filter(msg => msg.role === "user").pop();
-      if (lastUserMessage) {
-        send(lastUserMessage.content);
-      }
-    }
-  }, [initialLoadComplete]);
-
   async function handleSubmit() {
     if (prompt.trim() === "" || isStreaming) return;
 
@@ -324,8 +307,12 @@ export default function Editor() {
             </div>
           </div>
 
-          {!showPreview && <EditorInterface />}
-          {showPreview && <Web webcontainer={webcontainer} />}
+          <div className={`flex-1 ${showPreview ? "hidden" : "block"}`}>
+            <EditorInterface />
+          </div>
+          <div className={`flex-1 ${showPreview ? "block" : "hidden"}`}>
+            <Web webcontainer={webcontainer} url={url} setUrl={setUrl} />
+          </div>
         </div>
       </main>
     )
