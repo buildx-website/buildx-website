@@ -205,18 +205,22 @@ export default function Editor() {
         const chunk = decoder.decode(value, { stream: true });
         fullResponseText += chunk;
         if (!foundXml) {
-          if (chunk.includes("<")) {
+          const boltIndex = chunk.indexOf("<boltArtifact");
+
+          if (boltIndex !== -1) {
+            visibleResponseText += chunk.substring(0, boltIndex);
             foundXml = true;
             setBuilding(true);
             setShowPreview(false);
           } else {
             visibleResponseText += chunk;
-            setUiMsgs(prev => {
-              const newMsgs = [...prev];
-              newMsgs[newMsgs.length - 1].content = visibleResponseText;
-              return newMsgs;
-            });
           }
+
+          setUiMsgs(prev => {
+            const newMsgs = [...prev];
+            newMsgs[newMsgs.length - 1].content = visibleResponseText;
+            return newMsgs;
+          });
         }
       }
 
@@ -241,7 +245,6 @@ export default function Editor() {
       console.error("Error sending message: ", e);
       setIsStreaming(false);
     }
-
   }
 
   async function handleSubmit() {

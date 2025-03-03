@@ -31,7 +31,7 @@ export function MessageComponent({ message }: { message: Message }) {
       </div>
 
       <div className="message-content">
-        <p className={cn("text-base leading-relaxed whitespace-pre-wrap", isUser ? "text-blue-50" : "text-zinc-50")}>
+        <p className={cn("text-base leading-relaxed whitespace-pre-wrap font-semibold", isUser ? "text-zinc-50" : "text-zinc-50")}>
           {message.content}
         </p>
       </div>
