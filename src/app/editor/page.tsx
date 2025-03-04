@@ -17,6 +17,7 @@ import { parseXml } from "@/lib/steps";
 import { useWebContainer } from "@/hooks/useWebContainer";
 import { FileSystemTree } from "@webcontainer/api";
 import { Web } from "@/components/Web";
+import { Web2 } from "@/components/Web2";
 
 
 export default function Editor() {
@@ -314,7 +315,7 @@ export default function Editor() {
             <EditorInterface />
           </div>
           <div className={`flex-1 ${showPreview ? "block" : "hidden"}`}>
-            <Web webcontainer={webcontainer} url={url} setUrl={setUrl} />
+            <Web2 webcontainer={webcontainer} url={url} setUrl={setUrl} />
           </div>
         </div>
       </main>
