@@ -205,7 +205,7 @@ export default function Editor() {
         const chunk = decoder.decode(value, { stream: true });
         fullResponseText += chunk;
         if (!foundXml) {
-          const boltIndex = chunk.indexOf("<boltArtifact");
+          const boltIndex = chunk.indexOf("<boltArtifact") || chunk.indexOf("```");
 
           if (boltIndex !== -1) {
             visibleResponseText += chunk.substring(0, boltIndex);
@@ -266,7 +266,7 @@ export default function Editor() {
 
   if (!loading) {
     return (
-      <main className="h-screen grid grid-cols-3 p-3 gap-3 bg-[#121212] overflow-hidden">
+      <main className="h-screen grid grid-cols-4 p-3 gap-3 bg-[#121212] overflow-hidden">
         <div className="col-span-1 h-full flex flex-col rounded-xl overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-lg">
           <div className="p-4 border-b border-gray-800">
             <h2 className="text-lg font-medium text-gray-200">Conversation</h2>
@@ -284,7 +284,7 @@ export default function Editor() {
           </div>
         </div>
 
-        <div className="col-span-2 flex flex-col bg-[#1e1e1e] text-white h-full rounded-xl overflow-hidden border border-gray-800 shadow-lg">
+        <div className="col-span-3 flex flex-col bg-[#1e1e1e] text-white h-full rounded-xl overflow-hidden border border-gray-800 shadow-lg">
           <div className="flex items-center justify-between border-b border-gray-800 p-4">
             <div className="flex items-center gap-6">
               <span className="flex items-center gap-2 text-slate-200 cursor-pointer"

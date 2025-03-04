@@ -37,46 +37,52 @@ export function CodeEditor({ file }: CodeEditorProps) {
   const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined) {
       setEditorContent(value)
-    
+
       const updatedFile: FileType = {
         ...file,
         content: value
       }
-      
+
       updateFile(updatedFile)
     }
   }
 
   useEffect(() => {
     const extension = file.name.split(".").pop() || "plaintext"
-    if(extension === "js" || extension === "jsx" || extension === "tsx") {
+    if (extension === "js") {
       setLanguage("javascript")
-    } else if(extension === "ts") {
+    } else if (extension === "ts") {
       setLanguage("typescript")
-    } else if(extension === "py") {
+    } else if (extension === "py") {
       setLanguage("python")
-    } else if(extension === "java") {
+    } else if (extension === "java") {
       setLanguage("java")
-    } else if(extension === "json") {
+    } else if (extension === "json") {
       setLanguage("json")
-    } else if(extension === "xml") {
+    } else if (extension === "xml") {
       setLanguage("xml")
-    } else if(extension === "html") {
+    } else if (extension === "html") {
       setLanguage("html")
-    } else if(extension === "css") {
+    } else if (extension === "css") {
       setLanguage("css")
+    } else if (extension === "jsx") {
+      setLanguage("javascriptreact")
+    } else if (extension === "tsx") {
+      setLanguage("typescriptreact")
+    } else {
+      setLanguage("plaintext")
     }
   }, [file.name])
 
   if (!mounted) {
     return null
   }
-  
+
 
   return (
     <div className="h-full w-full overflow-hidden">
       <Editor
-        key={file.id} 
+        key={file.id}
         height="80vh"
         defaultLanguage={language}
         value={editorContent}
