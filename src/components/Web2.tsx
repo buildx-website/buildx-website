@@ -1,10 +1,13 @@
 "use client";
 
 import { WebContainer } from "@webcontainer/api";
-import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react"
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, ChevronUp, Loader2 } from "lucide-react"
 import { Step, StepType } from "@/types/types";
 import { useStepsStore } from "@/store/initialStepsAtom";
+import { Terminal } from '@xterm/xterm';
+import '@xterm/xterm/css/xterm.css';
+import { Button } from "./ui/button";
 
 interface Web2Props {
     webcontainer: WebContainer | null
@@ -19,13 +22,71 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
     const [serverStart, setServerStart] = useState(false);
     const [stepsToRun, setStepsToRun] = useState<Step[]>([]);
     const [stepsRan, setStepsRan] = useState<number>(0);
+    const terminalRef = useRef<HTMLDivElement>(null);
+    const terminalInstance = useRef<Terminal | null>(null);
+    const [isTerminalOpen, setIsTerminalOpen] = useState(true);
+
+
+    useEffect(() => {
+        if (terminalRef.current) {
+            terminalInstance.current = new Terminal({
+                cursorBlink: true,
+                fontSize: 14,
+                fontFamily: 'Fira Code, Consolas, monospace',
+                theme: {
+                    background: '#212121',
+                    foreground: '#e6e6e6',
+                    black: '#000000',
+                    red: '#ff6b6b',
+                    green: '#4ecdc4',
+                    yellow: '#ffeb3b',
+                    blue: '#5f9ea0',
+                    magenta: '#ff9ff3',
+                    cyan: '#48dbfb',
+                    white: '#ffffff',
+                    brightBlack: '#545454',
+                    brightRed: '#ff5252',
+                    brightGreen: '#34e7e4',
+                    brightYellow: '#ffd700',
+                    brightBlue: '#5f9ea0',
+                    brightMagenta: '#ff6b6b',
+                    brightCyan: '#48dbfb',
+                    brightWhite: '#ffffff'
+                }
+            });
+            terminalInstance.current.open(terminalRef.current);
+            terminalInstance.current.resize(120, 20);
+
+            return () => {
+                terminalInstance.current?.dispose();
+            };
+        }
+    }, []);
+
+    async function sendOutputToTerminal(output: string) {
+        // ignore spaces which are not new lines
+        if (output.trim() === "") {
+            return;
+        }
+        terminalInstance.current?.write(`${output}\n`);
+    }
+
+    useEffect(() => {
+        sendOutputToTerminal(`\n > ${runningCmd} \n`);
+    }, [runningCmd])
 
     useEffect(() => {
         async function run() {
             if (webcontainer && !runInitialCmd) {
                 setRunningCmd("npm i");
-                const inatall = await webcontainer.spawn("npm", ['i']);
-                await inatall.exit;
+                const install = await webcontainer.spawn("npm", ['i']);
+                install.output.pipeTo(new WritableStream({
+                    write(data) {
+                        sendOutputToTerminal(data);
+                    }
+                }));
+
+                await install.exit;
                 setRunInitialCmd(true);
             }
         }
@@ -39,6 +100,7 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                 setUrl(url);
                 setServerStart(true);
                 console.log('Server ready at', url, 'port', port);
+                sendOutputToTerminal(`\n > Server ready at ${url} \n`);
             })
         }
     }, [webcontainer, runInitialCmd]);
@@ -80,6 +142,11 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                     const { commandName, args, fullCommand } = await parseCmd(step.code || "");
                     if (commandName != "") {
                         const run = await webcontainer?.spawn(commandName, args);
+                        run?.output.pipeTo(new WritableStream({
+                            write(data) {
+                                sendOutputToTerminal(data);
+                            }
+                        }));
                         console.log("running", commandName, args);
                         if (fullCommand === "npm start" || fullCommand === "npm run start" || fullCommand === "npm run dev" || fullCommand === "npm run serve" || fullCommand === "npm run server" || fullCommand === "npm run start:dev" || fullCommand === "npm run start:serve" || fullCommand === "npm run start:server") {
                             updateStep({
@@ -122,26 +189,41 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
     }, [stepsToRun, runInitialCmd]);
 
 
+    const toggleTerminal = () => {
+        setIsTerminalOpen(!isTerminalOpen);
+    };
 
-    return (
-        <div className="flex flex-col h-full relative">
-            <div className="flex-1 relative">
-                {!url && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 gap-2">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <p className="text-lg">
-                            {runInitialCmd ? "Starting server..." : "Installing dependencies..."}
-                        </p>
-                    </div>
-                )}
-                {url && <iframe src={url} height="100%" width="100%" className="border-0" />}
-                {runningCmd && (
-                    <div className="absolute bottom-0 right-0 bg-background/80 p-2 rounded-tl-md">
-                        <p className="text-sm text-white">{runningCmd}</p>
-                        {url}
-                    </div>
-                )}
-            </div>
+    return <div className="flex flex-col h-full relative">
+        < div className="flex-1 relative">
+            {!url && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 gap-2">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-lg">
+                        {runInitialCmd ? "Starting server..." : "Installing dependencies..."}
+                    </p>
+                </div>
+            )}
+            {url && <iframe src={url} height="100%" width="100%" className="border-0" />}
         </div>
-    )
+        <div className="w-full flex flex-col gap-1 justify-between border-t p-2">
+            <div className="w-full flex items-center px-4 gap-3">
+                <div className="text-lg">
+                    Terminal Logs
+                </div>
+                <Button
+                    onClick={toggleTerminal}
+                    variant={"secondary"}
+                    size={'sm'}
+                >
+                    {isTerminalOpen ? <ChevronDown size={20} /> : <ChevronUp className="" size={20} />}
+                </Button>
+            </div>
+            <div
+                ref={terminalRef}
+                className={`w-full bg-[#212121] rounded-b-lg shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${isTerminalOpen ? 'h-[200px]' : 'h-0'
+                    }`}
+            />
+        </div>
+    </div>
+
 }

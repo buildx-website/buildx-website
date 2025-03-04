@@ -28,6 +28,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@webcontainer/api": "^1.5.1-internal.9",
+    "@xterm/xterm": "^5.5.0",
     "axios": "^1.8.1",
     "bcrypt": "^5.1.1",
     "class-variance-authority": "^0.7.1",
