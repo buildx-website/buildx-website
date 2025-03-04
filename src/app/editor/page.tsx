@@ -16,7 +16,6 @@ import { User } from "@/components/User";
 import { parseXml } from "@/lib/steps";
 import { useWebContainer } from "@/hooks/useWebContainer";
 import { FileSystemTree } from "@webcontainer/api";
-import { Web } from "@/components/Web";
 import { Web2 } from "@/components/Web2";
 
 
