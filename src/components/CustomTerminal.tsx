@@ -15,11 +15,14 @@ export const CustomTerminal = ({ webcontainer }: { webcontainer: WebContainer | 
                 cursorBlink: true,
                 fontSize: 14,
                 fontFamily: 'Fira Code, Consolas, monospace',
+                theme: {
+                    background: '#1a1a1a',
+                }
             });
             terminalInstance.current.open(terminalRef.current);
             terminalInstance.current.resize(120, 20);
 
-            terminalInstance.current.write('Welcome to Terminal!\r\n');
+            terminalInstance.current.write('Welcome to Custom Terminal!\r\n');
 
             return () => {
                 terminalInstance.current?.dispose();
@@ -97,7 +100,10 @@ export const CustomTerminal = ({ webcontainer }: { webcontainer: WebContainer | 
 
     return (
         <div className="w-full h-full flex items-center justify-center">
-            <div ref={terminalRef} className="w-96 h-96 bg-black/40 rounded-lg" />
+            <div 
+                ref={terminalRef} 
+                className="w-full h-[300px] bg-[#1a1a1a] rounded-lg shadow-md overflow-hidden p-2"
+            />
         </div>
     );
 }

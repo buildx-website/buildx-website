@@ -1,14 +1,13 @@
-"use client";
-
 import { WebContainer } from "@webcontainer/api";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, Loader2, RefreshCw } from "lucide-react"
+import { ChevronDown, ChevronUp, Code, Loader2, RefreshCw, Terminal as TerminalIcon } from "lucide-react";
 import { Step, StepType } from "@/types/types";
 import { useStepsStore } from "@/store/initialStepsAtom";
 import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 import { Button } from "./ui/button";
 import { CustomTerminal } from "./CustomTerminal";
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Web2Props {
     webcontainer: WebContainer | null
@@ -27,6 +26,7 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
     const terminalInstance = useRef<Terminal | null>(null);
     const [isTerminalOpen, setIsTerminalOpen] = useState(true);
     const iframeRef = useRef<HTMLIFrameElement>(null);
+    const [activeTab, setActiveTab] = useState('console');
 
     useEffect(() => {
         if (terminalRef.current) {
@@ -107,19 +107,16 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
     }, [webcontainer])
 
     useEffect(() => {
-        console.log("inside useeffect", runInitialCmd, serverStart, url);
         if (runInitialCmd && !serverStart) {
             webcontainer?.on('server-ready', (port, url) => {
                 setUrl(url);
                 setServerStart(true);
-                console.log('Server ready at', url, 'port', port);
                 sendOutputToTerminal(`\n > Server ready at ${url} \n`);
             })
         }
     }, [webcontainer, runInitialCmd]);
 
     useEffect(() => {
-        console.log("steps", steps);
         const oldStepsLength = stepsRan;
         const newStepsLength = steps.length;
         const diff = newStepsLength - oldStepsLength;
@@ -133,7 +130,6 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
         setStepsRan(newStepsLength);
     }, [steps]);
 
-
     async function parseCmd(cmd: string) {
         const command = cmd.split(" ") || [];
         if (command.length > 0) {
@@ -143,7 +139,6 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
             return { commandName, args, fullCommand };
         }
         return { commandName: "", args: [] };
-
     }
 
     useEffect(() => {
@@ -160,7 +155,6 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                                 sendOutputToTerminal(data);
                             }
                         }));
-                        console.log("running", commandName, args);
                         if (fullCommand === "npm start" || fullCommand === "npm run start" || fullCommand === "npm run dev" || fullCommand === "npm run serve" || fullCommand === "npm run server" || fullCommand === "npm run start:dev" || fullCommand === "npm run start:serve" || fullCommand === "npm run start:server") {
                             setUrl("")
                             await webcontainer?.spawn(commandName, args);
@@ -174,28 +168,25 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                         }
                         const exit = await run?.exit;
                         if (exit === 0) {
-                            await
-                                updateStep({
-                                    ...step,
-                                    _executed: true,
-                                    status: "completed"
-                                });
+                            await updateStep({
+                                ...step,
+                                _executed: true,
+                                status: "completed"
+                            });
                         } else {
                             sendOutputToTerminal(`\nError: ${fullCommand} failed with exit code ${exit} \n`);
-                            await
-                                updateStep({
-                                    ...step,
-                                    _executed: true,
-                                    status: "failed"
-                                });
-                        }
-                    } else {
-                        await
-                            updateStep({
+                            await updateStep({
                                 ...step,
                                 _executed: true,
                                 status: "failed"
                             });
+                        }
+                    } else {
+                        await updateStep({
+                            ...step,
+                            _executed: true,
+                            status: "failed"
+                        });
                     }
                     setStepsToRun((prev) => prev.slice(1));
                 }
@@ -205,60 +196,91 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
         }
     }, [stepsToRun, runInitialCmd]);
 
-
     const toggleTerminal = () => {
         setIsTerminalOpen(!isTerminalOpen);
     };
 
-    return <div className="flex flex-col h-full relative">
-        < div className="flex-1 relative">
-            {!url && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 gap-2">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-lg">
-                        {runInitialCmd ? "Starting server..." : "Installing dependencies..."}
-                    </p>
-                </div>
-            )}
-            {url && (
-                <div className="relative h-full w-full">
-                    <Button
-                        onClick={refreshPage}
-                        variant="outline"
-                        size="icon"
-                        className="absolute top-2 right-2 z-10 bg-background/50 hover:bg-background/80"
-                    >
-                        <RefreshCw className="h-4 w-4" />
-                    </Button>
-                    <iframe
-                        ref={iframeRef}
-                        src={url}
-                        height="100%"
-                        width="100%"
-                        className="border-0"
-                    />
-                </div>
-            )}
-        </div>
-        <div className="w-full flex flex-col gap-1 justify-between border-t p-2">
-            <div className="w-full flex items-center px-4 gap-3">
-                <div className="text-lg">
-                    Terminal Logs
-                </div>
-                <Button
-                    onClick={toggleTerminal}
-                    variant={"secondary"}
-                    size={'sm'}
-                >
-                    {isTerminalOpen ? <ChevronDown size={20} /> : <ChevronUp className="" size={20} />}
-                </Button>
+    return (
+        <div className="flex flex-col h-full relative">
+            <div className="flex-1 relative">
+                {!url && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="text-lg">
+                            {runInitialCmd ? "Starting server..." : "Installing dependencies..."}
+                        </p>
+                    </div>
+                )}
+                {url && (
+                    <div className="relative h-full w-full">
+                        <Button
+                            onClick={refreshPage}
+                            variant="outline"
+                            size="icon"
+                            className="absolute top-2 right-2 z-10 bg-background/50 hover:bg-background/80"
+                        >
+                            <RefreshCw className="h-4 w-4" />
+                        </Button>
+                        <iframe
+                            ref={iframeRef}
+                            src={url}
+                            height="100%"
+                            width="100%"
+                            className="border-0"
+                        />
+                    </div>
+                )}
             </div>
-            <div
-                ref={terminalRef}
-                className={`w-full bg-[#212121] rounded-b-lg shadow-lg overflow-hidden transition-all duration-300 ease-in-out ${isTerminalOpen ? 'h-[200px]' : 'h-0'
-                    }`}
-            />
+
+            <div className="w-full border-t">
+                <div className="flex items-center justify-between px-4 py-2 border-b">
+                    <Tabs
+                        value={activeTab}
+                        onValueChange={setActiveTab}
+                        className="w-full"
+                    >
+                        <div className="flex items-center justify-between">
+                            <TabsList className="grid w-[400px] grid-cols-2">
+                                <TabsTrigger value="console" className="flex items-center gap-2">
+                                    <Code className="h-4 w-4" /> Console Logs
+                                </TabsTrigger>
+                                <TabsTrigger value="terminal" className="flex items-center gap-2">
+                                    <TerminalIcon className="h-4 w-4" /> Custom Terminal
+                                </TabsTrigger>
+                            </TabsList>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={toggleTerminal}
+                                className="ml-2"
+                            >
+                                {isTerminalOpen ? (
+                                    <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                    <ChevronUp className="h-4 w-4" />
+                                )}
+                            </Button>
+                        </div>
+                    </Tabs>
+                </div>
+
+                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isTerminalOpen ? 'h-[300px]' : 'h-0'}`}>
+                    <Tabs>
+                        <div ref={terminalRef}
+                            className={`w-full h-full bg-[#212121] p-2 ${activeTab === 'console' ? 'block' : 'hidden'}`}>
+                        </div>
+
+                        <div className={`w-full h-full bg-[#212121] p-2 ${activeTab === 'terminal' ? 'block' : 'hidden'}`}>
+
+                            <CustomTerminal webcontainer={webcontainer} />
+                        </div>
+
+
+
+                    </Tabs>
+                </div>
+            </div>
         </div>
-        <CustomTerminal webcontainer={webcontainer} />
-    </div>
+    );
 }
+
