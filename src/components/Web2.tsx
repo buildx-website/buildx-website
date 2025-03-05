@@ -2,12 +2,13 @@
 
 import { WebContainer } from "@webcontainer/api";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, Loader2 } from "lucide-react"
+import { ChevronDown, ChevronUp, Loader2, RefreshCw } from "lucide-react"
 import { Step, StepType } from "@/types/types";
 import { useStepsStore } from "@/store/initialStepsAtom";
 import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 import { Button } from "./ui/button";
+import { CustomTerminal } from "./CustomTerminal";
 
 interface Web2Props {
     webcontainer: WebContainer | null
@@ -25,11 +26,12 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
     const terminalRef = useRef<HTMLDivElement>(null);
     const terminalInstance = useRef<Terminal | null>(null);
     const [isTerminalOpen, setIsTerminalOpen] = useState(true);
-
+    const iframeRef = useRef<HTMLIFrameElement>(null);
 
     useEffect(() => {
         if (terminalRef.current) {
             terminalInstance.current = new Terminal({
+                convertEol: true,
                 cursorBlink: true,
                 fontSize: 14,
                 fontFamily: 'Fira Code, Consolas, monospace',
@@ -63,8 +65,13 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
         }
     }, []);
 
+    const refreshPage = () => {
+        if (iframeRef.current) {
+            iframeRef.current.src = url || '';
+        }
+    };
+
     async function sendOutputToTerminal(output: string) {
-        // ignore spaces which are not new lines
         if (output.trim() === "") {
             return;
         }
@@ -72,7 +79,7 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
     }
 
     useEffect(() => {
-        sendOutputToTerminal(`\n > ${runningCmd} \n`);
+        sendOutputToTerminal(`${runningCmd}`);
     }, [runningCmd])
 
     useEffect(() => {
@@ -155,6 +162,8 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                         }));
                         console.log("running", commandName, args);
                         if (fullCommand === "npm start" || fullCommand === "npm run start" || fullCommand === "npm run dev" || fullCommand === "npm run serve" || fullCommand === "npm run server" || fullCommand === "npm run start:dev" || fullCommand === "npm run start:serve" || fullCommand === "npm run start:server") {
+                            setUrl("")
+                            await webcontainer?.spawn(commandName, args);
                             updateStep({
                                 ...step,
                                 _executed: true,
@@ -192,6 +201,7 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                 }
             }
             runStep();
+            refreshPage();
         }
     }, [stepsToRun, runInitialCmd]);
 
@@ -210,7 +220,25 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                     </p>
                 </div>
             )}
-            {url && <iframe src={url} height="100%" width="100%" className="border-0" />}
+            {url && (
+                <div className="relative h-full w-full">
+                    <Button
+                        onClick={refreshPage}
+                        variant="outline"
+                        size="icon"
+                        className="absolute top-2 right-2 z-10 bg-background/50 hover:bg-background/80"
+                    >
+                        <RefreshCw className="h-4 w-4" />
+                    </Button>
+                    <iframe
+                        ref={iframeRef}
+                        src={url}
+                        height="100%"
+                        width="100%"
+                        className="border-0"
+                    />
+                </div>
+            )}
         </div>
         <div className="w-full flex flex-col gap-1 justify-between border-t p-2">
             <div className="w-full flex items-center px-4 gap-3">
@@ -231,6 +259,6 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                     }`}
             />
         </div>
+        <CustomTerminal webcontainer={webcontainer} />
     </div>
-
 }
