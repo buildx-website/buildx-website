@@ -76,6 +76,12 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
     }, [runningCmd])
 
     useEffect(() => {
+        webcontainer?.on('error', (error) => {
+            sendOutputToTerminal(`\n >Error: ${error} \n`);
+        })
+    }, [webcontainer])
+
+    useEffect(() => {
         async function run() {
             if (webcontainer && !runInitialCmd) {
                 setRunningCmd("npm i");
@@ -166,6 +172,7 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                                     status: "completed"
                                 });
                         } else {
+                            sendOutputToTerminal(`\nError: ${fullCommand} failed with exit code ${exit} \n`);
                             await
                                 updateStep({
                                     ...step,
