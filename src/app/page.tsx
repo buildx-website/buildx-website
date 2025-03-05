@@ -2,15 +2,15 @@
 
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Spotlight } from "@/components/ui/spotlight"
+import { Spotlight } from "@/components/ui/spotlight-new"
 import { Navbar } from "@/components/navbar"
-import { useState } from "react";
+import { useState, KeyboardEvent } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useMessagesStore } from "@/store/messagesAtom";
 import { useStepsStore } from "@/store/initialStepsAtom";
 import { parseXml } from "@/lib/steps";
-import {  Sparkles } from "lucide-react";
+import { Sparkles, SendHorizontal } from "lucide-react";
 
 export default function Home() {
   const router = useRouter();
@@ -26,7 +26,6 @@ export default function Home() {
     "A fitness tracker with workout plans",
     "A recipe sharing platform with social features",
   ]
-
 
   async function handleSubmit() {
     if (!prompt.trim()) {
@@ -46,7 +45,6 @@ export default function Home() {
       body: JSON.stringify({ prompt }),
     })
 
-
     if (template.ok) {
       const data = await template.json();
       if (data.message === "Try again with a different prompt") {
@@ -64,6 +62,14 @@ export default function Home() {
         return toast.warning(data.error);
       }
       return toast.error(data.error);
+    }
+  }
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Check if Enter is pressed without Shift (to allow multiline input)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // Prevent default Enter behavior
+      handleSubmit();
     }
   }
 
@@ -90,37 +96,48 @@ export default function Home() {
           </div>
           <div className="flex flex-col gap-4 w-full max-w-4xl mx-auto">
             <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-lg blur opacity-50 group-hover:opacity-75 transition duration-1000"></div>
-              <Textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className="relative w-full min-h-[160px] p-4 text-lg rounded-lg resize-none border border-zinc-800 bg-black/50 backdrop-blur-sm shadow-inner shadow-primary/10 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 font-mono"
-                placeholder="Describe your app idea in detail..."
-              />
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-purple-300/20 rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-1000"></div>
+              <div className="relative">
+                <Textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="relative w-full min-h-[160px] p-4 text-lg rounded-lg resize-none border border-zinc-800 bg-black/50  shadow-primary/10 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 font-mono pr-14"
+                  placeholder="Describe your app idea in detail..."
+                />
+                <Button
+                  variant={"ghost"}
+                  disabled={loading}
+                  size="icon"
+                  className="absolute bottom-4 left-4 w-10 h-10"
+                >
+                  <Sparkles className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant={"outline"}
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  size="icon"
+                  className="absolute bottom-4 right-4 w-10 h-10"
+                >
+                  <SendHorizontal className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-col space-y-2">
+            <div className="flex flex-col space-y-3 mt-3">
               <p className="text-sm text-zinc-500">Need inspiration? Try one of these:</p>
               <div className="flex flex-wrap gap-2">
                 {examplePrompts.map((example, index) => (
-                  <button
+                  <Button
+                    variant="outline"
                     key={index}
                     onClick={() => setPrompt(example)}
-                    className="text-xs px-3 py-1.5 rounded-full border border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-300 transition-colors"
+                    className="text-xs rounded-full font-medium"
                   >
                     {example}
-                  </button>
+                  </Button>
                 ))}
               </div>
-            </div>
-            <div className="flex justify-end w-full mx-3">
-              <Button
-                onClick={handleSubmit}
-                size={"lg"}
-                disabled={loading}
-                className="text-lg inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors hover:bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] hover:bg-[length:220%_100%] hover:text-slate-200 outline-none"
-              >
-                Generate App
-              </Button>
             </div>
           </div>
         </main>
