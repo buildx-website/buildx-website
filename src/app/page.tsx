@@ -66,6 +66,7 @@ export default function Home() {
       setSteps(parseXml(uiPrompts[0]));
       setMessages(prompts.map((prompt: string) => ({ role: "user", content: prompt, ignoreInUI: true })));
       addMessage({ role: "user", content: prompt });
+      setPrompt("");
       router.push("/editor");
 
     } else {
