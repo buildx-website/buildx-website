@@ -266,58 +266,58 @@ export default function Editor() {
 
   if (!loading) {
     return (
-      <main className="h-screen grid grid-cols-4 p-3 gap-3 bg-[#121212] overflow-hidden">
-        <div className="col-span-1 h-full flex flex-col rounded-xl overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-lg">
-          <div className="p-4 border-b border-gray-800">
-            <h2 className="text-lg font-medium text-gray-200">Conversation</h2>
-          </div>
+      <main className="h-screen grid grid-cols-1 md:grid-cols-4 p-3 gap-3 bg-[#121212] overflow-hidden">
+  <div className="col-span-1 h-full flex flex-col rounded-xl overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-lg">
+    <div className="p-4 border-b border-gray-800">
+      <h2 className="text-lg font-medium text-gray-200">Conversation</h2>
+    </div>
 
-          <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3">
-            {uiMsgs.map((msg, idx) => (
-              <MessageComponent key={idx} message={msg} />
-            ))}
-          </div>
+    <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3">
+      {uiMsgs.map((msg, idx) => (
+        <MessageComponent key={idx} message={msg} />
+      ))}
+    </div>
 
-          <div className="p-4 border-t border-gray-800 bg-[#1e1e1e]">
-            <StepList StepTitle="Build Steps" steps={steps} building={building} />
-            <SendPrompt handleSubmit={handleSubmit} prompt={prompt} setPrompt={setPrompt} disabled={isStreaming} />
-          </div>
+    <div className="p-4 border-t border-gray-800 bg-[#1e1e1e]">
+      <StepList StepTitle="Build Steps" steps={steps} building={building} />
+      <SendPrompt handleSubmit={handleSubmit} prompt={prompt} setPrompt={setPrompt} disabled={isStreaming} />
+    </div>
+  </div>
+
+  <div className="col-span-1 md:col-span-3 flex flex-col bg-[#1e1e1e] text-white h-full rounded-xl overflow-hidden border border-gray-800 shadow-lg">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 p-4">
+      <div className="flex items-center gap-6 mb-2 sm:mb-0">
+        <span className="flex items-center gap-2 text-slate-200 cursor-pointer"
+          onClick={() => window.location.href = '/'}>
+          <BlocksIcon size={32} />
+        </span>
+        <h2 className="text-lg font-medium text-gray-200">{showPreview ? "Preview" : "Code"}</h2>
+      </div>
+      <div className="flex flex-wrap items-center gap-3 sm:gap-6">
+        <div className="flex items-center gap-2">
+          <span className={`text-sm ${!showPreview ? "text-gray-300" : "text-gray-500"}`}>Code</span>
+          <Switch
+            checked={showPreview}
+            onCheckedChange={setShowPreview}
+            className="data-[state=checked]:bg-gray-700 data-[state=unchecked]:bg-gray-800"
+          />
+          <span className={`text-sm ${showPreview ? "text-gray-300" : "text-gray-500"}`}>Preview</span>
         </div>
+        <Button size={"sm"} variant={"outline"} className="border-gray-700 hover:bg-gray-800">
+          <Download size={16} />
+        </Button>
+        <User />
+      </div>
+    </div>
 
-        <div className="col-span-3 flex flex-col bg-[#1e1e1e] text-white h-full rounded-xl overflow-hidden border border-gray-800 shadow-lg">
-          <div className="flex items-center justify-between border-b border-gray-800 p-4">
-            <div className="flex items-center gap-6">
-              <span className="flex items-center gap-2 text-slate-200 cursor-pointer"
-                onClick={() => window.location.href = '/'}>
-                <BlocksIcon size={32} />
-              </span>
-              <h2 className="text-lg font-medium text-gray-200">{showPreview ? "Preview" : "Code"}</h2>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <span className={`text-sm ${!showPreview ? "text-gray-300" : "text-gray-500"}`}>Code</span>
-                <Switch
-                  checked={showPreview}
-                  onCheckedChange={setShowPreview}
-                  className="data-[state=checked]:bg-gray-700 data-[state=unchecked]:bg-gray-800"
-                />
-                <span className={`text-sm ${showPreview ? "text-gray-300" : "text-gray-500"}`}>Preview</span>
-              </div>
-              <Button size={"sm"} variant={"outline"} className="border-gray-700 hover:bg-gray-800">
-                <Download size={16} />
-              </Button>
-              <User />
-            </div>
-          </div>
-
-          <div className={`flex-1 ${showPreview ? "hidden" : "block"}`}>
-            <EditorInterface />
-          </div>
-          <div className={`flex-1 ${showPreview ? "block" : "hidden"}`}>
-            <Web2 webcontainer={webcontainer} url={url} setUrl={setUrl} />
-          </div>
-        </div>
-      </main>
+    <div className={`flex-1 ${showPreview ? "hidden" : "block"}`}>
+      <EditorInterface />
+    </div>
+    <div className={`flex-1 ${showPreview ? "block" : "hidden"}`}>
+      <Web2 webcontainer={webcontainer} url={url} setUrl={setUrl} />
+    </div>
+  </div>
+</main>
     )
   }
 }
