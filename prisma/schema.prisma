@@ -30,7 +30,7 @@ model User {
   email      String    @unique
   name       String
   password   String
-  apiKey     String?    @default("api-key")
+  apiKey     String?   @default("api-key")
   createdAt  DateTime  @default(now())
   projects   Project[]
   last_login DateTime? @default(now())
@@ -46,4 +46,14 @@ model Project {
   framework       ProjectFramework
   projectLocation String
   status          ProjectStatus
+  messages        Messages[]
+}
+
+model Messages {
+  id        String   @id @default(cuid())
+  message   String
+  role      String
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String
 }
