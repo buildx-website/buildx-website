@@ -204,16 +204,25 @@ export default function Editor() {
 
         const chunk = decoder.decode(value, { stream: true });
         fullResponseText += chunk;
-        if (!foundXml) {
-          const boltIndex = chunk.indexOf("<boltArtifact") || chunk.indexOf("```");
 
-          if (boltIndex !== -1) {
-            visibleResponseText += chunk.substring(0, boltIndex);
+        if (!foundXml) {
+          const combinedText = visibleResponseText + chunk;
+          const boltIndex = combinedText.indexOf("<boltArtifact");
+          const codeBlockIndex = combinedText.indexOf("```");
+          
+          let cutoffIndex = -1;
+          if (boltIndex !== -1) cutoffIndex = boltIndex;
+          if (codeBlockIndex !== -1 && (cutoffIndex === -1 || codeBlockIndex < cutoffIndex)) {
+            cutoffIndex = codeBlockIndex;
+          }
+
+          if (cutoffIndex !== -1) {
+            visibleResponseText = combinedText.substring(0, cutoffIndex);
             foundXml = true;
             setBuilding(true);
             setShowPreview(false);
           } else {
-            visibleResponseText += chunk;
+            visibleResponseText = combinedText;
           }
 
           setUiMsgs(prev => {
