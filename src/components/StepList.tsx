@@ -4,7 +4,7 @@ import { type Step, StepType } from "@/types/types"
 import { SquareCheck, ChevronDown, ChevronUp, Loader2, OctagonAlert, } from "lucide-react"
 import { Button } from "./ui/button"
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 
 interface StepsListProps {
@@ -16,6 +16,13 @@ interface StepsListProps {
 
 export function StepList({ StepTitle, steps, building, maxHeight = "400px" }: StepsListProps) {
     const [isOpen, setIsOpen] = useState(false)
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
+        }
+    }, [steps])
 
     return (
         <div className="w-full p-3">
@@ -43,10 +50,12 @@ export function StepList({ StepTitle, steps, building, maxHeight = "400px" }: St
                         </div>
                     </div>
                     <CollapsibleContent>
-                        <div className={cn(
-                            "mt-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent pr-1",
-                            maxHeight && `max-h-[${maxHeight}]`,
-                        )}
+                        <div 
+                            ref={scrollContainerRef}
+                            className={cn(
+                                "mt-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent pr-1",
+                                maxHeight && `max-h-[${maxHeight}]`,
+                            )}
                             style={{ maxHeight }}
                         >
                             <ul className="flex flex-col gap-2 scrollbar-hide"> {steps.map((step) => (

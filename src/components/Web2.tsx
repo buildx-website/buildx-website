@@ -57,13 +57,97 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                 }
             });
             terminalInstance.current.open(terminalRef.current);
-            terminalInstance.current.resize(120, 20);
+            terminalInstance.current.resize(120, 12);
+            terminalInstance.current.write('$ ');
+
+            let commandBuffer = '';
+            interface SpawnProcess {
+                kill: () => void;
+                output: ReadableStream;
+                exit: Promise<number>;
+            }
+            let currentProcess: { process: SpawnProcess | null; killed: boolean } | null = null;
+
+            terminalInstance.current.onData(async (data) => {
+                if (currentProcess?.killed) {
+                    currentProcess = null;
+                }
+
+                if (data === '\x7f') {
+                    if (commandBuffer.length > 0) {
+                        commandBuffer = commandBuffer.slice(0, -1);
+                        terminalInstance.current?.write('\b \b');
+                    }
+                    return;
+                }
+
+                if (data === '\x03') {
+                    terminalInstance.current?.write('^C\r\n$ ');
+                    if (currentProcess?.process) {
+                        try {
+                            await currentProcess.process.kill();
+                            currentProcess.killed = true;
+                        } catch (error) {
+                            console.error('Failed to kill process:', error);
+                        }
+                    }
+                    commandBuffer = '';
+                    return;
+                }
+
+                if (data === '\r') {
+                    const trimmedCommand = commandBuffer.trim();
+                    terminalInstance.current?.write('\r\n');
+
+                    if (trimmedCommand) {
+                        const parts = trimmedCommand.split(' ');
+                        const cmd = parts[0];
+                        const args = parts.slice(1);
+
+                        if (cmd === 'clear' || cmd === 'cls') {
+                            terminalInstance.current?.clear();
+                            commandBuffer = '';
+                            terminalInstance.current?.write('$ ');
+                            return;
+                        }
+
+                        try {
+                            const process = await webcontainer?.spawn(cmd, args);
+                            if (process) {
+                                currentProcess = { process, killed: false };
+
+                                process.output.pipeTo(new WritableStream({
+                                    write(data) {
+                                        terminalInstance.current?.write(data);
+                                    }
+                                }));
+
+                                await process.exit;
+                                if (!currentProcess.killed) {
+                                    terminalInstance.current?.write('\r\n$ ');
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error spawning process:', error)
+                            terminalInstance.current?.write(`\r\nCommand not found: ${cmd}\r\n$ `);
+                        }
+                    } else {
+                        terminalInstance.current?.write('$ ');
+                    }
+
+                    commandBuffer = '';
+                    return;
+                }
+
+                commandBuffer += data;
+                terminalInstance.current?.write(data);
+            });
 
             return () => {
                 terminalInstance.current?.dispose();
             };
         }
-    }, []);
+    }, [webcontainer]);
 
     const refreshPage = () => {
         if (iframeRef.current) {
@@ -264,19 +348,15 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                     </Tabs>
                 </div>
 
-                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isTerminalOpen ? 'h-[300px]' : 'h-0'}`}>
-                    <Tabs>
-                        <div ref={terminalRef}
-                            className={`w-full h-full bg-[#212121] p-2 ${activeTab === 'console' ? 'block' : 'hidden'}`}>
-                        </div>
-
+                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isTerminalOpen ? 'h-[200px]' : 'h-0'}`}>
+                    <Tabs defaultValue={activeTab} value={activeTab}>
+                        <div
+                            ref={terminalRef}
+                            className={`w-full h-full bg-[#212121] p-2 ${activeTab === 'console' ? 'block' : 'hidden'}`}
+                        />
                         <div className={`w-full h-full bg-[#212121] p-2 ${activeTab === 'terminal' ? 'block' : 'hidden'}`}>
-
                             <CustomTerminal webcontainer={webcontainer} />
                         </div>
-
-
-
                     </Tabs>
                 </div>
             </div>

@@ -4,6 +4,12 @@ import {  WebContainer } from "@webcontainer/api";
 import { Terminal } from "@xterm/xterm";
 import { useEffect, useRef } from "react";
 
+interface SpawnProcess {
+    kill: () => void;
+    output: ReadableStream;
+    exit: Promise<number>;
+}
+
 export const CustomTerminal = ({ webcontainer }: { webcontainer: WebContainer | null }) => {
     const terminalRef = useRef<HTMLDivElement>(null);
     const terminalInstance = useRef<Terminal | null>(null);
@@ -22,7 +28,7 @@ export const CustomTerminal = ({ webcontainer }: { webcontainer: WebContainer | 
             terminalInstance.current.open(terminalRef.current);
             terminalInstance.current.resize(120, 20);
 
-            terminalInstance.current.write('Welcome to Custom Terminal!\r\n');
+            terminalInstance.current.write('$ '); // Add prompt
 
             return () => {
                 terminalInstance.current?.dispose();
@@ -30,17 +36,20 @@ export const CustomTerminal = ({ webcontainer }: { webcontainer: WebContainer | 
         }
     }, []);
 
-
     async function talkToWebContainer() {
         if (!webcontainer || !terminalInstance.current) {
             return;
         }
     
         let commandBuffer = '';
-        let lastProcess: ReturnType<WebContainer['spawn']> | null = null;
+        let currentProcess: { process: SpawnProcess | null; killed: boolean } | null = null;
     
         terminalInstance.current.onData(async (data) => {
-            if (data === '\x7f') { // backspace
+            if (currentProcess?.killed) {
+                currentProcess = null;
+            }
+
+            if (data === '\x7f') { // Backspace
                 if (commandBuffer.length > 0) {
                     commandBuffer = commandBuffer.slice(0, -1);
                     terminalInstance.current?.write('\b \b');
@@ -49,44 +58,63 @@ export const CustomTerminal = ({ webcontainer }: { webcontainer: WebContainer | 
             }
     
             if (data === '\x03') { // Ctrl+C
-                terminalInstance.current?.write('^C\r\n');
-                commandBuffer = '';
-    
-                if (lastProcess) {
-                    const process = await lastProcess;
-                    process.kill();
-                    lastProcess = null;
+                terminalInstance.current?.write('^C\r\n$ ');
+                if (currentProcess?.process) {
+                    try {
+                        await currentProcess.process.kill();
+                        currentProcess.killed = true;
+                    } catch (error) {
+                        console.error('Failed to kill process:', error);
+                    }
                 }
-    
+                commandBuffer = '';
                 return;
             }
     
-            if (data === '\r') {
+            if (data === '\r') { // Enter
                 const trimmedCommand = commandBuffer.trim();
                 terminalInstance.current?.write('\r\n');
     
                 if (trimmedCommand) {
-                    const cmd = trimmedCommand.split(' ')[0];
+                    const parts = trimmedCommand.split(' ');
+                    const cmd = parts[0];
+                    const args = parts.slice(1);
     
-                    if (cmd === 'clear') {
+                    if (cmd === 'clear' || cmd === 'cls') {
                         terminalInstance.current?.clear();
                         commandBuffer = '';
+                        terminalInstance.current?.write('$ ');
                         return;
                     }
     
-                    lastProcess = webcontainer.spawn(cmd, trimmedCommand.split(' ').slice(1));
-                    (await lastProcess)?.output.pipeTo(new WritableStream({
-                        write(data) {
-                            terminalInstance.current?.write(data);
+                    try {
+                        const process = await webcontainer.spawn(cmd, args);
+                        currentProcess = { process, killed: false };
+                        
+                        process.output.pipeTo(new WritableStream({
+                            write(data) {
+                                terminalInstance.current?.write(data);
+                            }
+                        }));
+
+                        await process.exit;
+                        if (!currentProcess.killed) {
+                            terminalInstance.current?.write('\r\n$ ');
                         }
-                    }));
+                    } catch (error) {
+                        console.error('Command execution failed:', error);
+                        terminalInstance.current?.write(`\r\nCommand not found: ${cmd}\r\n$ `);
+                    }
+                } else {
+                    terminalInstance.current?.write('$ ');
                 }
     
-                commandBuffer = ''; 
+                commandBuffer = '';
                 return;
             }
     
-            commandBuffer += data; 
+            // Handle normal input
+            commandBuffer += data;
             terminalInstance.current?.write(data);
         });
     }
