@@ -89,7 +89,9 @@ export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
                         <Input
                             id="apiKey"
                             type={isApiKeyVisible ? "text" : "password"}
-                            value={loading ? "Loading..." : apiKey}
+                            value={loading ? "Loading..." : apiKey || ""}
+                            readOnly={loading}
+                            autoComplete="off"
                             onChange={(e) => setApiKey(e.target.value)}
                             disabled={loading}
                             className="w-full pr-10 transition-all"

@@ -15,11 +15,9 @@ export async function POST(req: Request) {
         }
         const { prompt } = parsedData.data;
         const userId = req.headers.get('X-User-Id') || '';
-        const apiKey = await getApiKey(userId) || '';
+        let apiKey = await getApiKey(userId) || '';
         if (!apiKey) {
-            return new Response(JSON.stringify({
-                error: "No API key found",
-            }), { status: 401 });
+            apiKey = process.env.OPENROUTER_API_KEY || '';
         }
 
         const response = await chat(llm(apiKey), prompt);

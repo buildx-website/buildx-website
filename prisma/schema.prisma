@@ -30,7 +30,7 @@ model User {
   email      String    @unique
   name       String
   password   String
-  apiKey     String?   @default("api-key")
+  apiKey     String?   @default("")
   createdAt  DateTime  @default(now())
   projects   Project[]
   last_login DateTime? @default(now())

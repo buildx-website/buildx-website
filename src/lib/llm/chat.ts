@@ -33,7 +33,7 @@ export async function chatStream(llm: OpenAI, prompt: string, messages: Message[
         messages.push({ role: 'user', content: prompt });
 
         const completion = await llm.chat.completions.create({
-            model: "google/gemini-2.0-flash-lite-preview-02-05:free",
+            model: "deepseek/deepseek-chat-v3-0324:free",
             messages: messages,
             stream: true,
         });
