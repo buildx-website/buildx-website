@@ -27,14 +27,16 @@ export const CustomTerminal = ({ webcontainer }: { webcontainer: WebContainer | 
             });
             terminalInstance.current.open(terminalRef.current);
             terminalInstance.current.resize(120, 20);
-
             terminalInstance.current.write('$ '); // Add prompt
+
+            // Call the function to talk to the web container only if terminalInstance is defined
+            talkToWebContainer();
 
             return () => {
                 terminalInstance.current?.dispose();
             };
         }
-    }, []);
+    }, [webcontainer]);
 
     async function talkToWebContainer() {
         if (!webcontainer || !terminalInstance.current) {
