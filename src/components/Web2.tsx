@@ -175,8 +175,8 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
     useEffect(() => {
         async function run() {
             if (webcontainer && !runInitialCmd) {
-                setRunningCmd("npm i");
-                const install = await webcontainer.spawn("npm", ['i']);
+                setRunningCmd("npm i --yes");
+                const install = await webcontainer.spawn("npm", ['i', '--yes']);
                 install.output.pipeTo(new WritableStream({
                     write(data) {
                         sendOutputToTerminal(data);
@@ -219,7 +219,16 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
         if (command.length > 0) {
             const commandName = command[0];
             const args = command.slice(1);
-            const fullCommand = command.join(" ");
+            if (commandName === 'npm' && (args.includes('install') || args.includes('i'))) {
+                args.push('--yes');
+            }
+            if (commandName === 'npx') {
+                const fullCommand = `echo 'y' | ${command.join(" ")}`;
+                return { commandName: 'sh', args: ['-c', fullCommand], fullCommand };
+            }
+
+            const fullCommand = [commandName, ...args].join(" ");
+            console.log(`Parsed command: ${fullCommand}`);
             return { commandName, args, fullCommand };
         }
         return { commandName: "", args: [] };
@@ -235,7 +244,7 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                     if (commandName != "") {
                         const run = await webcontainer?.spawn(commandName, args);
                         let errorOutput = '';
-                        
+
                         run?.output.pipeTo(new WritableStream({
                             write(data) {
                                 if (data.includes('Error') || data.includes('error')) {
