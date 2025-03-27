@@ -64,6 +64,7 @@ export interface Step {
     code?: string;
     path?: string;
     _executed?: boolean;
+    error?: string;
 }
 
 
