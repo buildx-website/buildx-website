@@ -1,6 +1,8 @@
 # Builder - Create Web Apps using AI
 Builder is a prompt-to-app web application that allows you to create web applications using natural language prompts. It is designed to be user-friendly and accessible to everyone, regardless of their technical background.
 
+![image](https://github.com/user-attachments/assets/fb6f6e1c-222c-452c-b4fb-2b34442059e4)
+
 ## Features
 - **Natural Language Interface**: Interact with the app using natural language prompts.
 - **Supports Typescript**: Write your app in TypeScript for better type safety and developer experience.
