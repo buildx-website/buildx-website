@@ -234,11 +234,17 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                     const { commandName, args, fullCommand } = await parseCmd(step.code || "");
                     if (commandName != "") {
                         const run = await webcontainer?.spawn(commandName, args);
+                        let errorOutput = '';
+                        
                         run?.output.pipeTo(new WritableStream({
                             write(data) {
+                                if (data.includes('Error') || data.includes('error')) {
+                                    errorOutput += data;
+                                }
                                 sendOutputToTerminal(data);
                             }
                         }));
+
                         if (fullCommand === "npm start" || fullCommand === "npm run start" || fullCommand === "npm run dev" || fullCommand === "npm run serve" || fullCommand === "npm run server" || fullCommand === "npm run start:dev" || fullCommand === "npm run start:serve" || fullCommand === "npm run start:server") {
                             setUrl("")
                             await webcontainer?.spawn(commandName, args);
@@ -250,6 +256,7 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                             setStepsToRun((prev) => prev.slice(1));
                             return;
                         }
+
                         const exit = await run?.exit;
                         if (exit === 0) {
                             await updateStep({
@@ -258,18 +265,19 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                                 status: "completed"
                             });
                         } else {
-                            sendOutputToTerminal(`\nError: ${fullCommand} failed with exit code ${exit} \n`);
                             await updateStep({
                                 ...step,
                                 _executed: true,
-                                status: "failed"
+                                status: "failed",
+                                error: errorOutput || `Command failed with exit code ${exit}`
                             });
                         }
                     } else {
                         await updateStep({
                             ...step,
                             _executed: true,
-                            status: "failed"
+                            status: "failed",
+                            error: `Invalid command: '${step.code}'`
                         });
                     }
                     setStepsToRun((prev) => prev.slice(1));

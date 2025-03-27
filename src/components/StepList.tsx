@@ -1,26 +1,45 @@
 "use client"
 
 import { type Step, StepType } from "@/types/types"
-import { SquareCheck, ChevronDown, ChevronUp, Loader2, OctagonAlert, } from "lucide-react"
+import { SquareCheck, ChevronDown, ChevronUp, Loader2, OctagonAlert } from "lucide-react"
 import { Button } from "./ui/button"
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
 import { useState, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 interface StepsListProps {
     StepTitle: string
     steps: Step[]
     building?: boolean
     maxHeight?: string
+    prompt?: string
+    setPrompt: React.Dispatch<React.SetStateAction<string>>
 }
 
-export function StepList({ StepTitle, steps, building, maxHeight = "400px" }: StepsListProps) {
+export function StepList({ StepTitle, steps, building, maxHeight = "400px", setPrompt }: StepsListProps) {
     const [isOpen, setIsOpen] = useState(false)
     const scrollContainerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         if (scrollContainerRef.current) {
             scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
+        }
+    }, [steps])
+
+    useEffect(() => {
+        const failedStep = steps.find(step => step.status === "failed")
+        if (failedStep) {
+            toast.error("Build Step Failed", {
+                description: failedStep.title,
+                action: {
+                    label: "Ask AI for help",
+                    onClick: () => {
+                        setPrompt(`Hey I'm having an issue with my build step: ${failedStep.title}\n\nCan you help me fix it?\nOnly fix this step and don't change anything else.\n\nHere is the code:\n ${failedStep.code}\n\nHere is the error:\n${failedStep.error}`)
+
+                    }
+                }
+            })
         }
     }, [steps])
 
@@ -50,7 +69,7 @@ export function StepList({ StepTitle, steps, building, maxHeight = "400px" }: St
                         </div>
                     </div>
                     <CollapsibleContent>
-                        <div 
+                        <div
                             ref={scrollContainerRef}
                             className={cn(
                                 "mt-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent pr-1",
@@ -72,7 +91,11 @@ export function StepList({ StepTitle, steps, building, maxHeight = "400px" }: St
                                             <div className="flex-shrink-0 mt-0.5">
                                                 {step.status === "completed" && <SquareCheck size={22} className="text-green-300" />}
                                                 {step.status === "pending" && <SquareCheck size={22} className="text-gray-400" />}
-                                                {step.status === "failed" && <OctagonAlert size={22} className="text-red-400" />}
+                                                {step.status === "failed" && (
+                                                    <div className="flex items-center gap-2">
+                                                        <OctagonAlert size={22} className="text-red-400" />
+                                                    </div>
+                                                )}
                                                 {step.status === "in-progress" && (
                                                     <div className="relative">
                                                         <Loader2 size={22} className="text-blue-400 animate-spin" />
@@ -98,6 +121,20 @@ export function StepList({ StepTitle, steps, building, maxHeight = "400px" }: St
                                                         </div>
                                                     </div>
                                                 )}
+                                                {step.status === 'failed' && <>
+                                                    <div className="flex justify-end gap-2 mt-2 items-end">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="text-gray-200 hover:bg-gray-800/50"
+                                                            onClick={() => {
+                                                                setPrompt(`Hey I'm having an issue with my build step: ${step.title}\n\nCan you help me fix it?\nOnly fix this step and don't change anything else.\n\nHere is the code:\n ${step.code}\n\nHere is the error:\n${step.error}`)
+                                                            }}
+                                                        >
+                                                            Fix using AI
+                                                        </Button>
+                                                    </div>
+                                                </>}
                                             </div>
                                         </div>
                                     </div>

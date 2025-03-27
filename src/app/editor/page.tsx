@@ -288,7 +288,7 @@ export default function Editor() {
           </div>
 
           <div className="p-4 border-t border-gray-800 bg-[#1e1e1e]">
-            <StepList StepTitle="Build Steps" steps={steps} building={building} />
+            <StepList StepTitle="Build Steps" steps={steps} building={building} setPrompt={setPrompt} />
             <SendPrompt handleSubmit={handleSubmit} prompt={prompt} setPrompt={setPrompt} disabled={isStreaming} />
           </div>
         </div>
