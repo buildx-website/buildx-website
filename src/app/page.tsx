@@ -86,6 +86,38 @@ export default function Home() {
     }
   }
 
+  async function handleRefinePrompt() {
+    if (!prompt.trim()) {
+      return toast.error("Please write your idea first");
+    }
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return toast.error("You need to login first");
+    }
+    setLoading(true);
+    const refinePrompt = await fetch("/api/main/refine-prompt", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ prompt }),
+    });
+    if (refinePrompt.ok) {
+      const data = await refinePrompt.json();
+      if (data.zodErr) {
+        return toast.error("Error parsing data");
+      }
+      if (data.refinedPrompt) {
+        setPrompt(data.refinedPrompt);
+        toast.success("Prompt refined successfully");
+      }
+    } else {
+      toast.error("Error refining prompt");
+    }
+    setLoading(false);
+  }
+
   return (
     <div className="overflow-hidden relative bg-gradient-to-t from-black to-zinc-900 min-h-screen">
       <Spotlight />
@@ -120,7 +152,7 @@ export default function Home() {
                   placeholder="Describe your app idea in detail..."
                 />
                 <div className="absolute bottom-4 right-4 flex space-x-2 z-20">
-                  <Button variant="ghost" disabled={loading} size="icon" className="w-10 h-10">
+                  <Button variant="ghost" disabled={loading} size="icon" className="w-10 h-10" onClick={handleRefinePrompt}>
                     <Sparkles className="w-5 h-5" />
                   </Button>
                   <Button variant="outline" onClick={handleSubmit} disabled={loading} size="icon" className="w-10 h-10">

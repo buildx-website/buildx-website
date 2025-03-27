@@ -75,3 +75,6 @@ export interface MessagesState {
     clearMessages: () => void;
 }
 
+export const refinePromptTypes = z.object({
+    prompt: z.string().min(5)
+})
