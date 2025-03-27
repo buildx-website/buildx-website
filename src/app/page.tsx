@@ -116,30 +116,21 @@ export default function Home() {
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="z-10 relative w-full min-h-[120px] sm:min-h-[160px] p-4 text-sm sm:text-lg rounded-lg resize-none border border-zinc-800 bg-black/50 shadow-primary/10 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 font-mono pr-14"
+                  className="z-10 relative w-full min-h-[120px] sm:min-h-[160px] p-4 text-sm sm:text-lg rounded-lg resize-none border border-zinc-800 bg-black/50 shadow-primary/10 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 font-mono pr-24"
                   placeholder="Describe your app idea in detail..."
                 />
-                <Button
-                  variant="ghost"
-                  disabled={loading}
-                  size="icon"
-                  className="absolute bottom-4 left-4 w-10 h-10 z-20"
-                >
-                  <Sparkles className="w-5 h-5" />
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  size="icon"
-                  className="absolute bottom-4 right-4 w-10 h-10 z-20"
-                >
-                  {loading ? (
-                    <div className="h-5 w-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
-                  ) : (
-                    <SendHorizontal className="w-5 h-5" />
-                  )}
-                </Button>
+                <div className="absolute bottom-4 right-4 flex space-x-2 z-20">
+                  <Button variant="ghost" disabled={loading} size="icon" className="w-10 h-10">
+                    <Sparkles className="w-5 h-5" />
+                  </Button>
+                  <Button variant="outline" onClick={handleSubmit} disabled={loading} size="icon" className="w-10 h-10">
+                    {loading ? (
+                      <div className="h-5 w-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
+                    ) : (
+                      <SendHorizontal className="w-5 h-5" />
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
 
