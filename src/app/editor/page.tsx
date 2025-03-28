@@ -182,6 +182,8 @@ export default function Editor() {
         }
       });
 
+      console.log("Response of Chat endpoint: ", response);
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
