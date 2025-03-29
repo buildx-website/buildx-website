@@ -37,9 +37,12 @@ export function Navbar() {
     return (
         <>
             <nav className="w-full row-start-1 flex items-center px-4 sm:px-0 py-4 justify-between">
-                <span className="flex items-center gap-2 text-slate-200 cursor-pointer"
-                onClick={() => window.location.href = '/'}>
-                    <BlocksIcon size={32} />
+                <span className="flex items-center gap-2 text-slate-200 cursor-pointer my-auto"
+                    onClick={() => window.location.href = '/'}>
+                    <BlocksIcon size={32} className="my-auto"/>
+                    <span className="text-xl font-bold text-slate-200 my-auto">
+                        Builder
+                    </span>
                 </span>
                 <Button
                     variant="outline"

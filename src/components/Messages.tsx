@@ -1,9 +1,9 @@
 import type { Message } from "@/types/types"
-import { BotMessageSquare, UserRoundIcon } from "lucide-react"
+import { BotMessageSquare, UserRoundIcon, Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
-export function MessageComponent({ message }: { message: Message }) {
+export function MessageComponent({ message, loading }: { message: Message, loading: boolean }) {
 
   if (!message || message.ignoreInUI) return null
 
@@ -22,18 +22,26 @@ export function MessageComponent({ message }: { message: Message }) {
       <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-800/70">
         <div className="flex items-center gap-3">
           {isUser ? <UserRoundIcon className="" size={18} /> : <BotMessageSquare className="" size={18} />}
-          <div>
+          <div className="flex items-center gap-2">
             <span className={cn("font-semibold")}>
               {isUser ? "You" : "Assistant"}
             </span>
+            {!isUser && loading && <Loader2 className="w-3 h-3 animate-spin" />}
           </div>
         </div>
       </div>
 
       <div className="message-content">
-        <p className={cn("text-base leading-relaxed whitespace-pre-wrap font-semibold", isUser ? "text-zinc-50" : "text-zinc-50")}>
-          {message.content}
-        </p>
+        {message.loading ? (
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Thinking...</span>
+          </div>
+        ) : (
+          <p className={cn("text-base leading-relaxed whitespace-pre-wrap font-semibold", isUser ? "text-zinc-50" : "text-zinc-50")}>
+            {message.content}
+          </p>
+        )}
       </div>
     </motion.div>
   )

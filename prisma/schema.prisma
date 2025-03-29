@@ -1,9 +1,7 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -26,14 +24,15 @@ enum ProjectStatus {
 }
 
 model User {
-  id         String    @id @default(cuid())
-  email      String    @unique
+  id         String      @id @default(cuid())
+  email      String      @unique
   name       String
   password   String
-  apiKey     String?   @default("")
-  createdAt  DateTime  @default(now())
+  apiKey     String?     @default("")
+  createdAt  DateTime    @default(now())
   projects   Project[]
-  last_login DateTime? @default(now())
+  last_login DateTime?   @default(now())
+  userModel  UserModels?
 }
 
 model Project {
@@ -56,4 +55,21 @@ model Messages {
   createdAt DateTime @default(now())
   project   Project  @relation(fields: [projectId], references: [id])
   projectId String
+}
+
+model Models {
+  id          String       @id @default(cuid())
+  displayName String?
+  name        String
+  userModels  UserModels[]
+  default     Boolean? @default(false)
+}
+
+model UserModels {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @unique
+  model     Models   @relation(fields: [modelId], references: [id])
+  modelId   String
+  createdAt DateTime @default(now())
 }

@@ -23,6 +23,7 @@ export interface Message {
     role: 'user' | 'assistant' | 'system';
     content: string;
     ignoreInUI?: boolean;
+    loading?: boolean;
 }
 
 export const chatBodyTypes = z.object({
@@ -77,4 +78,8 @@ export interface MessagesState {
 
 export const refinePromptTypes = z.object({
     prompt: z.string().min(5)
+})
+
+export const setModelTypes = z.object({
+    modelId: z.string(),
 })

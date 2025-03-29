@@ -23,12 +23,24 @@ export async function POST(req: Request) {
 
         const salt = await bcrypt.genSalt(10);
         const pwHash = await bcrypt.hash(parsedData.data.password, salt);
+        const defaultModel = await db.models.findFirst({
+            where: {
+                default: true
+            }
+        })
 
         const user = await db.user.create({
             data: {
                 email: parsedData.data.email,
                 password: pwHash,
                 name: parsedData.data.name,
+            }
+        });
+
+        await db.userModels.create({
+            data: {
+                userId: user.id,
+                modelId: defaultModel!.id,
             }
         });
 
