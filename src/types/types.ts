@@ -23,6 +23,7 @@ export interface Message {
     role: 'user' | 'assistant' | 'system';
     content: string;
     ignoreInUI?: boolean;
+    loading?: boolean;
 }
 
 export const chatBodyTypes = z.object({

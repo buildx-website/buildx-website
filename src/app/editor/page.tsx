@@ -4,7 +4,7 @@ import { useStepsStore } from "@/store/initialStepsAtom";
 import { useMessagesStore } from "@/store/messagesAtom";
 import { useRouter } from "next/navigation";
 import { Switch } from "@/components/ui/switch"
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { BlocksIcon, Download } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
@@ -33,6 +33,7 @@ export default function Editor() {
   const [building, setBuilding] = useState(false);
   const webcontainer = useWebContainer();
   const [url, setUrl] = useState<string>("");
+  const conversationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -164,11 +165,18 @@ export default function Editor() {
   }, [initialLoadComplete]);
 
 
+  useEffect(() => {
+    if (conversationRef.current) {
+      conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
+    }
+  }, [uiMsgs]);
+
+
   async function send(msg: string) {
     try {
       setIsStreaming(true);
       setUiMsgs(prev => [...prev, { role: "user", content: msg }]);
-      setUiMsgs(prev => [...prev, { role: "assistant", content: "" }]);
+      setUiMsgs(prev => [...prev, { role: "assistant", content: "", loading: true }]);
 
       const response = await fetch('api/main/chat', {
         method: 'POST',
@@ -182,7 +190,6 @@ export default function Editor() {
         }
       });
 
-      console.log("Response of Chat endpoint: ", response);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -229,7 +236,11 @@ export default function Editor() {
 
           setUiMsgs(prev => {
             const newMsgs = [...prev];
-            newMsgs[newMsgs.length - 1].content = visibleResponseText;
+            newMsgs[newMsgs.length - 1] = {
+              ...newMsgs[newMsgs.length - 1],
+              content: visibleResponseText,
+              loading: false
+            };
             return newMsgs;
           });
         }
@@ -253,6 +264,13 @@ export default function Editor() {
       setIsStreaming(false);
 
     } catch (e) {
+      setUiMsgs(prev => {
+        const newMsgs = [...prev];
+        if (newMsgs.length > 0) {
+          newMsgs[newMsgs.length - 1].loading = false;
+        }
+        return newMsgs;
+      });
       console.error("Error sending message: ", e);
       setIsStreaming(false);
     }
@@ -283,9 +301,9 @@ export default function Editor() {
             <h2 className="text-lg font-medium text-gray-200">Conversation</h2>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3">
+          <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
             {uiMsgs.map((msg, idx) => (
-              <MessageComponent key={idx} message={msg} />
+              <MessageComponent key={idx} message={msg} loading={isStreaming || false} />
             ))}
           </div>
 
