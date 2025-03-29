@@ -25,7 +25,7 @@ export default function Home() {
   const addMessage = useMessagesStore((state) => state.addMessage);
   const setSteps = useStepsStore((state) => state.setSteps);
   const [loading, setLoading] = useState(false);
-  const [allModels, setAllModels] = useState<{id: string, name: string}[]>([]);
+  const [allModels, setAllModels] = useState<{ id: string, name: string, displayName: string }[]>([]);
   const [model, setModel] = useState<string | null>(null);
 
   useEffect(() => {
@@ -266,16 +266,16 @@ export default function Home() {
                       <SelectContent className="bg-zinc-900 border-zinc-800">
                         {allModels.map((model) => (
                           <SelectItem key={model.id} value={model.id}>
-                            {model.name}
+                            {model.displayName}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <Button 
-                      variant="ghost" 
-                      disabled={loading} 
-                      size="icon" 
-                      className="w-10 h-10" 
+                    <Button
+                      variant="ghost"
+                      disabled={loading}
+                      size="icon"
+                      className="w-10 h-10"
                       onClick={handleRefinePrompt}
                     >
                       <Sparkles className="w-5 h-5" />
