@@ -25,15 +25,17 @@ export async function chat(llm: OpenAI, prompt: string) {
     }
 }
 
-export async function chatStream(llm: OpenAI, prompt: string, messages: Message[], response: (token: string) => void) {
+export async function chatStream(llm: OpenAI, prompt: string, messages: Message[], modelName: string, response: (token: string) => void) {
     try {
         if (!messages.some(msg => msg.role === "system")) {
             messages.unshift({ role: "system", content: getSystemPrompt() });
         }
         messages.push({ role: 'user', content: prompt });
 
+        console.log("Model name: ", modelName);
+
         const completion = await llm.chat.completions.create({
-            model: "deepseek/deepseek-chat-v3-0324:free",
+            model: modelName,
             messages: messages,
             stream: true,
         });
