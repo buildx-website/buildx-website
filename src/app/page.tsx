@@ -10,6 +10,13 @@ import { useMessagesStore } from "@/store/messagesAtom";
 import { useStepsStore } from "@/store/initialStepsAtom";
 import { parseXml } from "@/lib/steps";
 import { Sparkles, SendHorizontal, Rocket, Zap, Code, LayoutDashboard, ShieldCheck, BlocksIcon } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function Home() {
   const router = useRouter();
@@ -18,6 +25,8 @@ export default function Home() {
   const addMessage = useMessagesStore((state) => state.addMessage);
   const setSteps = useStepsStore((state) => state.setSteps);
   const [loading, setLoading] = useState(false);
+  const [allModels, setAllModels] = useState<{id: string, name: string}[]>([]);
+  const [model, setModel] = useState<string | null>(null);
 
   useEffect(() => {
     const getPrompt = localStorage.getItem("prompt");
@@ -29,6 +38,11 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem("prompt", prompt);
   }, [prompt]);
+
+  useEffect(() => {
+    getModels();
+    getUserModel();
+  }, []);
 
   const examplePrompts: string[] = [
     "A task management app with Kanban boards",
@@ -59,6 +73,48 @@ export default function Home() {
       description: "Built-in security best practices for your applications"
     }
   ]
+
+  async function getModels() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return toast.error("You need to login first");
+    }
+    const models = await fetch("/api/main/models", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (models.ok) {
+      const data = await models.json();
+      setAllModels(data);
+    } else {
+      const data = await models.json();
+      toast.error(data.error);
+    }
+  }
+
+  async function getUserModel() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return toast.error("You need to login first");
+    }
+    const userModel = await fetch("/api/main/user-model", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (userModel.ok) {
+      const data = await userModel.json();
+      setModel(data.id);
+    } else {
+      const data = await userModel.json();
+      toast.error(data.error);
+    }
+  }
 
   async function handleSubmit() {
     if (!prompt.trim()) {
@@ -138,6 +194,35 @@ export default function Home() {
     setLoading(false);
   }
 
+  async function handleModelChange(modelId: string) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return toast.error("You need to login first");
+    }
+
+    try {
+      const response = await fetch("/api/main/user-model", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ modelId }),
+      });
+
+      if (response.ok) {
+        setModel(modelId);
+        toast.success("Model updated successfully");
+      } else {
+        const data = await response.json();
+        toast.error(data.error);
+      }
+    } catch (error) {
+      console.error("Error updating model: ", error);
+      toast.error("Failed to update model");
+    }
+  }
+
   return (
     <div className="overflow-hidden relative bg-gradient-to-t from-black to-zinc-900 min-h-screen">
       <Spotlight />
@@ -174,7 +259,25 @@ export default function Home() {
                     placeholder="Describe your app idea in detail..."
                   />
                   <div className="absolute bottom-4 right-4 flex space-x-2 z-20">
-                    <Button variant="ghost" disabled={loading} size="icon" className="w-10 h-10" onClick={handleRefinePrompt}>
+                    <Select value={model || ''} onValueChange={handleModelChange}>
+                      <SelectTrigger className="w-[140px] bg-black/50 border-zinc-800">
+                        <SelectValue placeholder="Select Model" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-zinc-800">
+                        {allModels.map((model) => (
+                          <SelectItem key={model.id} value={model.id}>
+                            {model.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button 
+                      variant="ghost" 
+                      disabled={loading} 
+                      size="icon" 
+                      className="w-10 h-10" 
+                      onClick={handleRefinePrompt}
+                    >
                       <Sparkles className="w-5 h-5" />
                     </Button>
                     <Button variant="outline" onClick={handleSubmit} disabled={loading} size="icon" className="w-10 h-10">

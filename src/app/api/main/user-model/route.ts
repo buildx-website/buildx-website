@@ -11,11 +11,20 @@ export async function GET(req: Request) {
             where: {
                 userId: userId,
             },
+            include: {
+                model: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                }
+            }
         })
+        console.log("Model: ", model);
         if (!model) {
             return new Response(JSON.stringify({ error: "Model not found" }), { status: 404 });
         }
-        return new Response(JSON.stringify(model), { status: 200 });
+        return new Response(JSON.stringify(model.model), { status: 200 });
     } catch (error) {
         console.log("Error occurred getting Model: ", error);
         return new Response(JSON.stringify({ error: "An unknown error occurred" }), { status: 500 });
