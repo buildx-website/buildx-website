@@ -148,7 +148,9 @@ export default function Home() {
             <div className="flex flex-col gap-4 items-center text-center w-full">
               <div className="inline-flex items-center px-3 py-1 rounded-full border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm mb-4">
                 <Sparkles className="w-4 h-4 mr-2 text-primary" />
-                <span className="text-sm font-medium text-zinc-400">Build faster than ever</span>
+                <span className="text-sm font-bold text-zinc-300">
+                  V1 is here! Try it out!
+                </span>
               </div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-500">
