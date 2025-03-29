@@ -58,9 +58,10 @@ model Messages {
 }
 
 model Models {
-  id         String       @id @default(cuid())
-  name       String
-  userModels UserModels[]
+  id          String       @id @default(cuid())
+  displayName String?
+  name        String
+  userModels  UserModels[]
 }
 
 model UserModels {
