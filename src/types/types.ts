@@ -78,3 +78,7 @@ export interface MessagesState {
 export const refinePromptTypes = z.object({
     prompt: z.string().min(5)
 })
+
+export const setModelTypes = z.object({
+    modelId: z.string(),
+})

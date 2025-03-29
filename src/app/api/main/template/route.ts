@@ -21,8 +21,6 @@ export async function POST(req: Request) {
         }
 
         const response = await chat(llm(apiKey), prompt);
-        console.log("Resp: ", response);
-        console.log("Response: ", response.content);
 
         if (response.content === "react") {
             return new Response(JSON.stringify({
