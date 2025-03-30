@@ -17,6 +17,8 @@ import { parseXml } from "@/lib/steps";
 import { useWebContainer } from "@/hooks/useWebContainer";
 import { FileSystemTree } from "@webcontainer/api";
 import { Web2 } from "@/components/Web2";
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 
 export default function Editor() {
@@ -289,6 +291,29 @@ export default function Editor() {
     setPrompt("");
   }
 
+  const handleDownload = async () => {
+    const zip = new JSZip();
+
+    // Helper function to add files recursively
+    const addFilesToZip = (files: FileType[], currentPath: string = '') => {
+      files.forEach(file => {
+        const filePath = `${currentPath}${file.name}`;
+        if (file.type === 'file') {
+          zip.file(filePath, file.content || '');
+        } else if (file.type === 'directory' && file.children) {
+          addFilesToZip(file.children, `${filePath}/`);
+        }
+      });
+    };
+
+    // Add all files to zip
+    addFilesToZip(files);
+
+    // Generate and download the zip file
+    const content = await zip.generateAsync({ type: 'blob' });
+    saveAs(content, 'project.zip');
+  };
+
   if (loading) {
     return <div>Loading...</div>
   }
@@ -332,7 +357,12 @@ export default function Editor() {
                 />
                 <span className={`text-sm ${showPreview ? "text-gray-300" : "text-gray-500"}`}>Preview</span>
               </div>
-              <Button size={"sm"} variant={"outline"} className="border-gray-700 hover:bg-gray-800">
+              <Button 
+                size={"sm"} 
+                variant={"outline"} 
+                className="border-gray-700 hover:bg-gray-800"
+                onClick={handleDownload}
+              >
                 <Download size={16} />
               </Button>
               <User />
