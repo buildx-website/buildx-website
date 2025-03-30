@@ -20,7 +20,6 @@ export async function GET(req: Request) {
                 }
             }
         })
-        console.log("Model: ", model);
         if (!model) {
             return new Response(JSON.stringify({ error: "Model not found" }), { status: 404 });
         }
