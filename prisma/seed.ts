@@ -1,51 +1,35 @@
 import { db } from '../src/db'
 import { Prisma } from '@prisma/client';
 
-const userData: Prisma.UserCreateInput[] = [{
-    email: 'test@test.com',
-    name: 'Test User',
-    password: 'password',
+const modelData: Prisma.ModelsCreateInput[] = [{
+    name: 'google/gemini-2.5-pro-exp-03-25:free',
+    displayName: "Gemini 2.5 Pro",
 }, {
-    email: 'alice@gmail.com',
-    name: 'Alice',
-    password: 'password',
+    name: "deepseek/deepseek-chat-v3-0324:free",
+    displayName: "DeepSeek Chat v3",
+    default: true,
+}, {
+    name: "deepseek/deepseek-r1-zero:free",
+    displayName: "DeepSeek R1 Zero",
+}, {
+    name: "mistralai/mistral-nemo:free",
+    displayName: "Mistral Nemo",
 }]
 
 
 async function main() {
     try {
         await Promise.all(
-            userData.map(async (user) => {
-                const insertUser = await db.user.upsert({
-                    where: { email: user.email },
+            modelData.map(model => db.models.upsert(
+                {
+                    where: { name: model.name },
                     update: {},
-                    create: user
-                })
-                console.log("User created with id: ", insertUser.id)
-                // create new Project
-                const newProject = await db.project.create({
-                    data: {
-                        name: "Test Project" + Math.random(),
-                        description: "This is a test project",
-                        ownerId: insertUser.id,
-                        projectLocation: "example.com",
-                        framework: "NEXT",
-                        status: "CREATED"
-                    }
-                })
-                console.log("Project created with id: ", newProject.id);
-                // update project
-                const updatedProject = await db.project.update({
-                    where: { id: newProject.id },
-                    data: {
-                        status: "ARCHIVED"
-                    }
-                })
-                console.log("Project updated with status: ", updatedProject.status);    
-            })
+                    create: model,
+                }
+            )),
         )
     } catch (error) {
-        console.error("Error creating user: ", error)
+        console.error("Error during seed: ", error)
     }
 }
 
