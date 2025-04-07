@@ -26,7 +26,7 @@ export const CustomTerminal = ({ webcontainer }: { webcontainer: WebContainer | 
                 }
             });
             terminalInstance.current.open(terminalRef.current);
-            terminalInstance.current.resize(120, 20);
+            terminalInstance.current.resize(120, 10);
             terminalInstance.current.write('$ '); // Add prompt
 
             // Call the function to talk to the web container only if terminalInstance is defined
@@ -132,7 +132,7 @@ export const CustomTerminal = ({ webcontainer }: { webcontainer: WebContainer | 
         <div className="w-full h-full flex items-center justify-center">
             <div 
                 ref={terminalRef} 
-                className="w-full h-[300px] bg-[#1a1a1a] rounded-lg shadow-md overflow-hidden p-2"
+                className="w-full h-[300px] bg-[#1a1a1a] rounded-lg shadow-md overflow-auto"
             />
         </div>
     );

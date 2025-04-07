@@ -57,7 +57,7 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                 }
             });
             terminalInstance.current.open(terminalRef.current);
-            terminalInstance.current.resize(120, 12);
+            terminalInstance.current.resize(120, 10);
             terminalInstance.current.write('$ ');
 
             if (terminalInstance.current) {
