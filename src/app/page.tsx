@@ -69,6 +69,9 @@ export default function Home() {
     "An e-commerce site for handmade jewelry",
     "A fitness tracker with workout plans",
     "A recipe sharing platform with social features",
+    "A dashboard for my SaaS product",
+    "A blog with a custom CMS",
+    "A portfolio site for a photographer",
   ]
 
   const features = [
@@ -399,8 +402,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-
 
         <section className="py-20 w-full">
           <div className="max-w-4xl mx-auto text-center">
