@@ -39,7 +39,7 @@ export default nextConfig;
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+  "dev": "__NEXT_DISABLE_MEMORY_WATCHER=false next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -430,6 +430,9 @@ export default config;
 <boltAction type="shell">
 npm install
 
+</boltAction>
+<boltAction type="shell">
+npm run dev
 </boltAction>
 <boltAction type="shell">
 npm run dev
