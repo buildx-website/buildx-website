@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { useMessagesStore } from "@/store/messagesAtom";
 import { useStepsStore } from "@/store/initialStepsAtom";
 import { parseXml } from "@/lib/steps";
-import { Sparkles, SendHorizontal, Rocket, Zap, Code, LayoutDashboard, ShieldCheck, BlocksIcon } from "lucide-react";
+import { Sparkles, Rocket, Zap, Code, LayoutDashboard, ShieldCheck, BlocksIcon, Paperclip, ArrowUp, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Card, CardContent } from "@/components/ui/card"
 
 export default function Home() {
   const router = useRouter();
@@ -27,6 +28,25 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [allModels, setAllModels] = useState<{ id: string, name: string, displayName: string }[]>([]);
   const [model, setModel] = useState<string | null>(null);
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setImage(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImage(null);
+    setImagePreview(null);
+  };
 
   useEffect(() => {
     const getPrompt = localStorage.getItem("prompt");
@@ -49,6 +69,9 @@ export default function Home() {
     "An e-commerce site for handmade jewelry",
     "A fitness tracker with workout plans",
     "A recipe sharing platform with social features",
+    "A dashboard for my SaaS product",
+    "A blog with a custom CMS",
+    "A portfolio site for a photographer",
   ]
 
   const features = [
@@ -223,6 +246,7 @@ export default function Home() {
     }
   }
 
+
   return (
     <div className="overflow-hidden relative bg-gradient-to-t from-black to-zinc-900 min-h-screen">
       <Spotlight />
@@ -238,7 +262,7 @@ export default function Home() {
                 </span>
               </div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-500">
+                <span className="bg-clip-text">
                   What do you want to build today?
                 </span>
               </h1>
@@ -255,12 +279,12 @@ export default function Home() {
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="z-10 relative w-full min-h-[120px] sm:min-h-[160px] p-4 text-sm sm:text-lg rounded-lg resize-none border border-zinc-800 bg-black/50 shadow-primary/10 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 font-mono pr-24"
+                    className="z-10 relative w-full min-h-[120px] sm:min-h-[160px] p-4 text-sm sm:text-lg rounded-lg border border-zinc-800 bg-black/50 shadow-primary/10 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 font-mono pr-24"
                     placeholder="Describe your app idea in detail..."
                   />
-                  <div className="absolute bottom-4 right-4 flex space-x-2 z-20">
+                  <div className="absolute bottom-4 right-4 flex space-x-1 z-20">
                     <Select value={model || ''} onValueChange={handleModelChange}>
-                      <SelectTrigger className="w-[140px] bg-black/50 border-zinc-800">
+                      <SelectTrigger className="w-[160px] bg-black/50 border-zinc-800">
                         <SelectValue placeholder="Select Model" />
                       </SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-zinc-800">
@@ -271,6 +295,21 @@ export default function Home() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                      id="image-input"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-10 h-10"
+                      onClick={() => document.getElementById('image-input')?.click()}
+                    >
+                      <Paperclip className="w-5 h-5" />
+                    </Button>
                     <Button
                       variant="ghost"
                       disabled={loading}
@@ -280,16 +319,45 @@ export default function Home() {
                     >
                       <Sparkles className="w-5 h-5" />
                     </Button>
-                    <Button variant="outline" onClick={handleSubmit} disabled={loading} size="icon" className="w-10 h-10">
+                    <Button onClick={handleSubmit} disabled={loading || prompt.trim() === ""} className="w-10 h-10">
                       {loading ? (
                         <div className="h-5 w-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
                       ) : (
-                        <SendHorizontal className="w-5 h-5" />
+                        <ArrowUp className="w-5 h-5" />
                       )}
                     </Button>
                   </div>
                 </div>
               </div>
+              {imagePreview && (
+                <div className="flex justify-left">
+                  <Card className="">
+                    <CardContent className="flex items-center p-4 gap-4">
+                      <div className="relative">
+                        <img
+                          src={imagePreview}
+                          alt="Uploaded preview"
+                          className="w-16 h-16 rounded-md object-cover border border-zinc-800"
+                        />
+                        <button
+                          onClick={handleRemoveImage}
+                          className="absolute -top-2 -right-2 bg-zinc-800 rounded-full p-1 hover:bg-zinc-700 transition-colors"
+                        >
+                          <X className="w-4 h-4 text-zinc-400" />
+                        </button>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-zinc-200 truncate">
+                          {image?.name}
+                        </p>
+                        <p className="text-xs text-zinc-500">
+                          {(image?.size ? (image.size / 1024).toFixed(1) : 0)} KB
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
 
               <div className="flex flex-col space-y-3 mt-3">
                 <p className="text-sm text-zinc-500">Need inspiration? Try one of these:</p>
@@ -334,8 +402,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-
 
         <section className="py-20 w-full">
           <div className="max-w-4xl mx-auto text-center">

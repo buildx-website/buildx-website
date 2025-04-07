@@ -9,7 +9,7 @@ export async function chat(llm: OpenAI, prompt: string) {
             max_tokens: 200,
             messages: [{
                 role: "system",
-                content: "Return either node or react based on what do you think this project should be. Only return a single word either 'node' or 'react'. Do not return anything extra."
+                content: "Return either node or react or nextjs based on what do you think this project should be. Only return a single word either 'node' or 'react' or 'nextjs'. Do not return anything extra."
             }, {
                 role: "user",
                 content: prompt
