@@ -1,8 +1,8 @@
-export const basePrompt = `<boltArtifact id="project-import" title="Project Files"><boltAction type="file" filePath="../nextJS14/.eslintrc.json">{
+export const basePrompt = `<boltArtifact id="project-import" title="Project Files"><boltAction type="file" filePath=".eslintrc.json">{
   "extends": ["next/core-web-vitals", "next/typescript"]
 }
 </boltAction>
-<boltAction type="file" filePath="../nextJS14/components.json">{
+<boltAction type="file" filePath="components.json">{
   "$schema": "https://ui.shadcn.com/schema.json",
   "style": "new-york",
   "rsc": true,
@@ -23,18 +23,18 @@ export const basePrompt = `<boltArtifact id="project-import" title="Project File
   },
   "iconLibrary": "lucide"
 }</boltAction>
-<boltAction type="file" filePath="../nextJS14/next-env.d.ts">/// <reference types="next" />
+<boltAction type="file" filePath="next-env.d.ts">/// <reference types="next" />
 /// <reference types="next/image-types/global" />
 
 // NOTE: This file should not be edited
 // see https://nextjs.org/docs/app/building-your-application/configuring/typescript for more information.
 </boltAction>
-<boltAction type="file" filePath="../nextJS14/next.config.mjs">/** @type {import('next').NextConfig} */
+<boltAction type="file" filePath="next.config.mjs">/** @type {import('next').NextConfig} */
 const nextConfig = {};
 
 export default nextConfig;
 </boltAction>
-<boltAction type="file" filePath="../nextJS14/package.json">{
+<boltAction type="file" filePath="package.json">{
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
@@ -67,7 +67,7 @@ export default nextConfig;
   }
 }
 </boltAction>
-<boltAction type="file" filePath="../nextJS14/postcss.config.mjs">/** @type {import('postcss-load-config').Config} */
+<boltAction type="file" filePath="postcss.config.mjs">/** @type {import('postcss-load-config').Config} */
 const config = {
   plugins: {
     tailwindcss: {},
@@ -76,7 +76,7 @@ const config = {
 
 export default config;
 </boltAction>
-<boltAction type="file" filePath="../nextJS14/src/app/globals.css">@tailwind base;
+<boltAction type="file" filePath="src/app/globals.css">@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -145,7 +145,7 @@ export default config;
   }
 }
 </boltAction>
-<boltAction type="file" filePath="../nextJS14/src/app/layout.tsx">import type { Metadata } from "next";
+<boltAction type="file" filePath="src/app/layout.tsx">import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -167,7 +167,7 @@ export default function RootLayout({
   );
 }
 </boltAction>
-<boltAction type="file" filePath="../nextJS14/src/app/page.tsx">import { Button } from "@/components/ui/button";
+<boltAction type="file" filePath="src/app/page.tsx">import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
 
@@ -194,7 +194,7 @@ export default function Home() {
   );
 }
 </boltAction>
-<boltAction type="file" filePath="../nextJS14/src/components/ui/button.tsx">import * as React from "react"
+<boltAction type="file" filePath="src/components/ui/button.tsx">import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -252,7 +252,7 @@ Button.displayName = "Button"
 
 export { Button, buttonVariants }
 </boltAction>
-<boltAction type="file" filePath="../nextJS14/src/components/ui/card.tsx">import * as React from "react"
+<boltAction type="file" filePath="src/components/ui/card.tsx">import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -329,14 +329,14 @@ CardFooter.displayName = "CardFooter"
 
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
 </boltAction>
-<boltAction type="file" filePath="../nextJS14/src/lib/utils.ts">import { clsx, type ClassValue } from "clsx"
+<boltAction type="file" filePath="src/lib/utils.ts">import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 </boltAction>
-<boltAction type="file" filePath="../nextJS14/tailwind.config.ts">import type { Config } from "tailwindcss";
+<boltAction type="file" filePath="tailwind.config.ts">import type { Config } from "tailwindcss";
 
 const config: Config = {
     darkMode: ["class"],
@@ -400,7 +400,7 @@ const config: Config = {
 };
 export default config;
 </boltAction>
-<boltAction type="file" filePath="../nextJS14/tsconfig.json">{
+<boltAction type="file" filePath="tsconfig.json">{
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
