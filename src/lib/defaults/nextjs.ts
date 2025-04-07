@@ -1,4 +1,4 @@
-export const basePrompt = `<boltArtifact id="project-import" title="Project Files"><boltAction type="file" filePath=".eslintrc.json">{
+export const baseNextPrompt = `<boltArtifact id="project-import" title="Project Files"><boltAction type="file" filePath=".eslintrc.json">{
   "extends": ["next/core-web-vitals", "next/typescript"]
 }
 </boltAction>
