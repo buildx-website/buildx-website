@@ -1,4 +1,4 @@
-export const baseReactPrompt = `<boltArtifact id="project-import" title="React + ShadCN"><boltAction type="file" filePath="components.json">{
+export const baseReactPrompt = `<boltArtifact id="project-import" title="React + ShadCN + Framer Motion Project"><boltAction type="file" filePath="components.json">{
     "$schema": "https://ui.shadcn.com/schema.json",
     "style": "new-york",
     "rsc": false,
@@ -77,9 +77,11 @@ export const baseReactPrompt = `<boltArtifact id="project-import" title="React +
       "@radix-ui/react-slot": "^1.1.2",
       "class-variance-authority": "^0.7.1",
       "clsx": "^2.1.1",
+      "framer-motion": "^12.6.3",
       "lucide-react": "^0.487.0",
       "react": "^19.0.0",
       "react-dom": "^19.0.0",
+      "react-router-dom": "^7.5.0",
       "tailwind-merge": "^3.2.0",
       "tailwindcss-animate": "^1.0.7"
     },

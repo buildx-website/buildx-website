@@ -65,7 +65,6 @@ export default function Home() {
   }, []);
 
   const examplePrompts: string[] = [
-    "A task management app with Kanban boards",
     "An e-commerce site for handmade jewelry",
     "A fitness tracker with workout plans",
     "A recipe sharing platform with social features",
@@ -321,7 +320,7 @@ export default function Home() {
                     </Button>
                     <Button onClick={handleSubmit} disabled={loading || prompt.trim() === ""} className="w-10 h-10">
                       {loading ? (
-                        <div className="h-5 w-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
+                        <div className="h-5 w-5 border-2 border-t-transparent border-black rounded-full animate-spin" />
                       ) : (
                         <ArrowUp className="w-5 h-5" />
                       )}
