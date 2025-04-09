@@ -1,15 +1,15 @@
 "use client"
+
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Spotlight } from "@/components/ui/spotlight-new"
 import { Navbar } from "@/components/navbar"
-import { useState, KeyboardEvent, useEffect } from "react";
+import { useState, KeyboardEvent, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useMessagesStore } from "@/store/messagesAtom";
 import { useStepsStore } from "@/store/initialStepsAtom";
 import { parseXml } from "@/lib/steps";
-import { Sparkles, Rocket, Zap, Code, LayoutDashboard, ShieldCheck, BlocksIcon, Paperclip, ArrowUp, X } from "lucide-react";
+import { Sparkles, BlocksIcon, Paperclip, ArrowUp, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
+import { Spotlight } from "@/components/ui/spotlight-new";
 
 export default function Home() {
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function Home() {
   const [model, setModel] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -65,35 +67,9 @@ export default function Home() {
   }, []);
 
   const examplePrompts: string[] = [
-    "An e-commerce site for handmade jewelry",
-    "A fitness tracker with workout plans",
-    "A recipe sharing platform with social features",
+    "An e-commerce site for selling sports equipment",
+    "A social media platform for pet lovers",
     "A dashboard for my SaaS product",
-    "A blog with a custom CMS",
-    "A portfolio site for a photographer",
-  ]
-
-  const features = [
-    {
-      icon: <Rocket className="w-6 h-6 text-primary" />,
-      title: "Lightning Fast",
-      description: "Generate working prototypes in minutes instead of weeks"
-    },
-    {
-      icon: <Code className="w-6 h-6 text-primary" />,
-      title: "No Code Required",
-      description: "Build complex applications without writing a single line of code"
-    },
-    {
-      icon: <LayoutDashboard className="w-6 h-6 text-primary" />,
-      title: "Beautiful UI",
-      description: "Professional, responsive designs generated automatically"
-    },
-    {
-      icon: <ShieldCheck className="w-6 h-6 text-primary" />,
-      title: "Secure by Default",
-      description: "Built-in security best practices for your applications"
-    }
   ]
 
   async function getModels() {
@@ -247,42 +223,44 @@ export default function Home() {
 
 
   return (
-    <div className="overflow-hidden relative bg-gradient-to-t from-black to-zinc-900 min-h-screen">
-      <Spotlight />
-      <div className="flex flex-col py-8 px-4 sm:px-6 lg:px-8 container mx-auto">
-        <div className="flex flex-col md:flex-col items-center justify-between min-h-screen">
+    <div className="relative min-h-screen bg-gradient-to-b from-black to-zinc-950 overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Spotlight/>
+        <div className="flex flex-col min-h-screen">
           <Navbar />
-          <main className="flex-1 flex flex-col gap-8 items-center justify-center mt-8 md:mt-0 max-w-6xl mx-auto w-full">
-            <div className="flex flex-col gap-4 items-center text-center w-full">
-              <div className="inline-flex items-center px-3 py-1 rounded-full border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm mb-4">
-                <Sparkles className="w-4 h-4 mr-2 text-primary" />
-                <span className="text-sm font-bold text-zinc-300">
-                  V1 is here! Try it out!
-                </span>
+          <main className="flex-1 flex flex-col items-center justify-center py-12 md:py-24">
+            {/* Hero Section */}
+            <div className="flex flex-col gap-6 items-center text-center w-full max-w-4xl">
+              <div className="inline-flex items-center px-3 py-1 rounded-full border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm">
+                <Sparkles className="w-4 h-4 mr-2 text-slate-500" />
+                <span className="text-sm font-bold text-zinc-300">V1 is here! Try it out!</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-                <span className="bg-clip-text">
-                  What do you want to build today?
-                </span>
+
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-300 leading-tight">
+                What do you want to build today?
               </h1>
-              <p className="text-base sm:text-lg text-zinc-400 max-w-xl mx-auto">
+
+              <p className="text-lg text-zinc-400 max-w-2xl">
                 Transform your ideas into working MVPs within minutes. No coding required.
               </p>
             </div>
 
-            <div className="flex flex-col gap-4 w-full max-w-4xl mx-auto">
+            {/* Textarea Section */}
+            <div className="w-full max-w-3xl mt-12">
               <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-purple-300/20 rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-1000"></div>
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-slate-500/20 to-slate-400/20 rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-1000"></div>
                 <div className="relative">
                   <Textarea
+                    ref={textareaRef}
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="z-10 relative w-full min-h-[120px] sm:min-h-[160px] p-4 text-sm sm:text-lg rounded-lg border border-zinc-800 bg-black/50 shadow-primary/10 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 font-mono pr-24"
+                    className="z-10 relative w-full min-h-[180px] p-6 text-base rounded-xl border border-zinc-800 bg-black/50 shadow-slate-500/10 focus:ring-slate-500/50 focus:border-slate-500/50 transition-all duration-200 font-mono pr-32"
                     placeholder="Describe your app idea in detail..."
+                    style={{ resize: 'none' }}
                   />
-                  <div className="absolute bottom-4 right-4 flex space-x-1 z-20">
-                    <Select value={model || ''} onValueChange={handleModelChange}>
+                  <div className="absolute bottom-5 right-5 flex space-x-2 z-20">
+                    <Select value={model || ""} onValueChange={handleModelChange}>
                       <SelectTrigger className="w-[160px] bg-black/50 border-zinc-800">
                         <SelectValue placeholder="Select Model" />
                       </SelectTrigger>
@@ -304,8 +282,8 @@ export default function Home() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="w-10 h-10"
-                      onClick={() => document.getElementById('image-input')?.click()}
+                      className="w-10 h-10 hover:bg-zinc-800/50"
+                      onClick={() => document.getElementById("image-input")?.click()}
                     >
                       <Paperclip className="w-5 h-5" />
                     </Button>
@@ -313,14 +291,18 @@ export default function Home() {
                       variant="ghost"
                       disabled={loading}
                       size="icon"
-                      className="w-10 h-10"
+                      className="w-10 h-10 hover:bg-zinc-800/50"
                       onClick={handleRefinePrompt}
                     >
                       <Sparkles className="w-5 h-5" />
                     </Button>
-                    <Button onClick={handleSubmit} disabled={loading || prompt.trim() === ""} className="w-10 h-10">
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={loading || prompt.trim() === ""}
+                      className="w-10 h-10 bg-slate-500 hover:bg-slate-600 transition-colors"
+                    >
                       {loading ? (
-                        <div className="h-5 w-5 border-2 border-t-transparent border-black rounded-full animate-spin" />
+                        <div className="h-5 w-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
                       ) : (
                         <ArrowUp className="w-5 h-5" />
                       )}
@@ -328,9 +310,10 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+
               {imagePreview && (
-                <div className="flex justify-left">
-                  <Card className="">
+                <div className="mt-4">
+                  <Card className="bg-zinc-900/50 border-zinc-800 w-full">
                     <CardContent className="flex items-center p-4 gap-4">
                       <div className="relative">
                         <img
@@ -346,11 +329,9 @@ export default function Home() {
                         </button>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-zinc-200 truncate">
-                          {image?.name}
-                        </p>
+                        <p className="text-sm font-medium text-zinc-200 truncate">{image?.name}</p>
                         <p className="text-xs text-zinc-500">
-                          {(image?.size ? (image.size / 1024).toFixed(1) : 0)} KB
+                          {image?.size ? (image.size / 1024).toFixed(1) : 0} KB
                         </p>
                       </div>
                     </CardContent>
@@ -358,15 +339,15 @@ export default function Home() {
                 </div>
               )}
 
-              <div className="flex flex-col space-y-3 mt-3">
-                <p className="text-sm text-zinc-500">Need inspiration? Try one of these:</p>
+              <div className="mt-6">
+                <p className="text-sm text-zinc-500 mb-3">Need inspiration? Try one of these:</p>
                 <div className="flex flex-wrap gap-2">
                   {examplePrompts.map((example, index) => (
                     <Button
                       variant="outline"
                       key={index}
                       onClick={() => setPrompt(example)}
-                      className="text-xs rounded-full font-medium border-zinc-800 bg-zinc-900/30 hover:bg-zinc-800/50"
+                      className="text-xs rounded-full font-medium border-zinc-800 bg-zinc-900/30 hover:bg-zinc-800/50 transition-colors"
                     >
                       {example}
                     </Button>
@@ -375,94 +356,33 @@ export default function Home() {
               </div>
             </div>
           </main>
-        </div>
 
-        <section className="py-20 w-full">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-                Turn Ideas Into Reality
-              </h2>
-              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
-                Our AI-powered platform handles the heavy lifting so you can focus on your vision
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {features.map((feature, index) => (
-                <div key={index} className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 hover:bg-zinc-900/70 transition-all duration-300">
-                  <div className="flex items-center mb-4">
-                    {feature.icon}
-                    <h3 className="text-lg font-semibold text-white ml-3">{feature.title}</h3>
-                  </div>
-                  <p className="text-zinc-400">{feature.description}</p>
+          <footer className="py-8 border-t border-zinc-800 mt-12">
+            <div className="max-w-6xl mx-auto">
+              <div className="flex flex-col md:flex-row justify-between items-center">
+                <div className="flex items-center space-x-2 mb-4 md:mb-0">
+                  <BlocksIcon className="w-6 h-6 text-slate-500" />
+                  <span className="text-white font-medium">Builder</span>
                 </div>
-              ))}
+                <div className="flex space-x-6">
+                  <a href="#" className="text-zinc-400 hover:text-white transition-colors">
+                    Terms
+                  </a>
+                  <a href="#" className="text-zinc-400 hover:text-white transition-colors">
+                    Privacy
+                  </a>
+                  <a href="#" className="text-zinc-400 hover:text-white transition-colors">
+                    Contact
+                  </a>
+                </div>
+              </div>
             </div>
-          </div>
-        </section>
-
-        <section className="py-20 w-full">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center px-3 py-1 rounded-full border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm mb-6">
-              <Zap className="w-4 h-4 mr-2 text-primary" />
-              <span className="text-sm font-medium text-zinc-400">Ready to build?</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-              Start Creating in Seconds
-            </h2>
-            <p className="text-lg text-zinc-400 mb-8 max-w-2xl mx-auto">
-              No credit card required. Get started with your first prototype today.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-blue-900 to-purple-900 hover:from-primary/90 hover:to-purple-600/90 text-white"
-                onClick={handleSubmit}
-                disabled={loading}
-              >
-                {loading ? (
-                  <div className="h-5 w-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Rocket className="w-5 h-5 mr-2" />
-                    Launch Your Idea
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-zinc-700 hover:bg-zinc-800/50"
-                onClick={handleRefinePrompt}
-                disabled={loading}
-              >
-                <Sparkles className="w-5 h-5 mr-2" />
-                Refine Prompt
-              </Button>
-            </div>
-          </div>
-        </section>
+          </footer>
+        </div>
       </div>
 
-      <footer className="py-8 border-t border-zinc-800">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <BlocksIcon className="w-6 h-6 text-primary" />
-              <span className="text-white font-medium">Builder</span>
-            </div>
-            <div className="flex space-x-6">
-              <a href="#" className="text-zinc-400 hover:text-white transition">Terms</a>
-              <a href="#" className="text-zinc-400 hover:text-white transition">Privacy</a>
-              <a href="#" className="text-zinc-400 hover:text-white transition">Contact</a>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      <div className="absolute top-1/4 -left-64 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-1/3 -right-64 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+      <div className="absolute top-1/4 -left-64 w-96 h-96 bg-slate-500/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-1/3 -right-64 w-96 h-96 bg-slate-400/10 rounded-full blur-3xl"></div>
     </div>
   )
 }
