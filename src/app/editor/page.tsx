@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Switch } from "@/components/ui/switch"
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { BlocksIcon, Download } from "lucide-react";
+import { BlocksIcon, Download, Loader2 } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
 import { FileType, Message, Step, StepType } from "@/types/types";
 import { StepList } from "@/components/StepList";
@@ -381,11 +381,15 @@ export default function Editor() {
   };
 
   if (loading) {
-    return <div>Loading...</div>
+    return <>
+      <div className="h-full w-full flex items-center justify-center bg-[#1E1E1E]">
+        <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+      </div>
+    </>
   }
 
   if (!loading) {
-    
+
     return (
       <main className="h-screen flex flex-col md:grid md:grid-cols-4 gap-3 p-3 bg-[#121212] overflow-hidden">
 
