@@ -9,16 +9,11 @@ import { useRouter } from "next/navigation";
 import { useMessagesStore } from "@/store/messagesAtom";
 import { useStepsStore } from "@/store/initialStepsAtom";
 import { parseXml } from "@/lib/steps";
-import { Sparkles, BlocksIcon, Paperclip, ArrowUp, X } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Sparkles, BlocksIcon, Paperclip, ArrowUp, X, Github } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { Spotlight } from "@/components/ui/spotlight-new";
+import { motion } from "framer-motion";
 
 export default function Home() {
   const router = useRouter();
@@ -221,41 +216,100 @@ export default function Home() {
     }
   }
 
+  // Define animation variants
+  const fadeIn = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.6 } }
+  };
+
+  const slideUp = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const buttonHover = {
+    hover: { scale: 1.05, transition: { duration: 0.2 } }
+  };
+
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-black to-zinc-950 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <Spotlight/>
+        <Spotlight />
         <div className="flex flex-col min-h-screen">
           <Navbar />
           <main className="flex-1 flex flex-col items-center justify-center py-12 md:py-24">
             {/* Hero Section */}
-            <div className="flex flex-col gap-6 items-center text-center w-full max-w-4xl">
-              <div className="inline-flex items-center px-3 py-1 rounded-full border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm">
+            <motion.div
+              className="flex flex-col gap-6 items-center text-center w-full max-w-4xl"
+              initial="hidden"
+              animate="visible"
+              variants={fadeIn}
+            >
+              <motion.div
+                className="inline-flex items-center px-3 py-1 rounded-full border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm"
+                variants={slideUp}
+              >
                 <Sparkles className="w-4 h-4 mr-2 text-slate-500" />
-                <span className="text-sm font-bold text-zinc-300">V1 is here! Try it out!</span>
-              </div>
+                <span className="text-sm text-zinc-300 font-heading italic">V1 is here! Try it out!</span>
+              </motion.div>
 
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-300 leading-tight">
+              <motion.h1
+                className="text-balance text-center font-heading text-4xl font-bold sm:text-5xl lg:text-6xl leading-tight text-zinc-200"
+                variants={slideUp}
+              >
                 What do you want to build today?
-              </h1>
+              </motion.h1>
 
-              <p className="text-lg text-zinc-400 max-w-2xl">
+
+              <motion.p
+                className="text-zinc-400 max-w-lg text-center text-lg text-muted-foreground sm:text-lg tracking-wide text-balance"
+                variants={slideUp}
+              >
                 Transform your ideas into working MVPs within minutes. No coding required.
-              </p>
-            </div>
+              </motion.p>
+            </motion.div>
 
             {/* Textarea Section */}
-            <div className="w-full max-w-3xl mt-12">
+            <motion.div
+              className="w-full max-w-3xl mt-12"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
               <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-slate-500/20 to-slate-400/20 rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-1000"></div>
+                <motion.div
+                  className="absolute -inset-0.5 bg-gradient-to-r from-slate-500/20 to-slate-400/20 rounded-xl blur opacity-50 group-hover:opacity-75 transition duration-1000"
+                  animate={{
+                    background: [
+                      "linear-gradient(to right, rgba(100,116,139,0.2), rgba(148,163,184,0.2))",
+                      "linear-gradient(to right, rgba(148,163,184,0.2), rgba(100,116,139,0.2))",
+                      "linear-gradient(to right, rgba(100,116,139,0.2), rgba(148,163,184,0.2))"
+                    ]
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    repeatType: "reverse"
+                  }}
+                ></motion.div>
                 <div className="relative">
                   <Textarea
                     ref={textareaRef}
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="z-10 relative w-full min-h-[180px] p-6 text-base rounded-xl border border-zinc-800 bg-black/50 shadow-slate-500/10 focus:ring-slate-500/50 focus:border-slate-500/50 transition-all duration-200 font-mono pr-32"
+                    className="z-10 relative w-full min-h-[180px] p-6 text-base rounded-xl border border-zinc-800 bg-black/50 shadow-slate-500/10 focus:ring-slate-500/50 focus:border-slate-500/50 transition-all duration-200 font-heading pr-32"
                     placeholder="Describe your app idea in detail..."
                     style={{ resize: 'none' }}
                   />
@@ -279,40 +333,56 @@ export default function Home() {
                       className="hidden"
                       id="image-input"
                     />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-10 h-10 hover:bg-zinc-800/50"
-                      onClick={() => document.getElementById("image-input")?.click()}
-                    >
-                      <Paperclip className="w-5 h-5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      disabled={loading}
-                      size="icon"
-                      className="w-10 h-10 hover:bg-zinc-800/50"
-                      onClick={handleRefinePrompt}
-                    >
-                      <Sparkles className="w-5 h-5" />
-                    </Button>
-                    <Button
-                      onClick={handleSubmit}
-                      disabled={loading || prompt.trim() === ""}
-                      className="w-10 h-10 bg-slate-500 hover:bg-slate-600 transition-colors"
-                    >
-                      {loading ? (
-                        <div className="h-5 w-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
-                      ) : (
-                        <ArrowUp className="w-5 h-5" />
-                      )}
-                    </Button>
+                    <motion.div whileHover="hover" variants={buttonHover}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="w-10 h-10 hover:bg-zinc-800/50"
+                        onClick={() => document.getElementById("image-input")?.click()}
+                      >
+                        <Paperclip className="w-5 h-5" />
+                      </Button>
+                    </motion.div>
+                    <motion.div whileHover="hover" variants={buttonHover}>
+                      <Button
+                        variant="ghost"
+                        disabled={loading}
+                        size="icon"
+                        className="w-10 h-10 hover:bg-zinc-800/50"
+                        onClick={handleRefinePrompt}
+                      >
+                        <Sparkles className="w-5 h-5" />
+                      </Button>
+                    </motion.div>
+                    <motion.div whileHover="hover" variants={buttonHover}>
+                      <Button
+                        onClick={handleSubmit}
+                        disabled={loading || prompt.trim() === ""}
+                        className="w-10 h-10 bg-slate-500 hover:bg-slate-600 transition-colors"
+                      >
+                        {loading ? (
+                          <motion.div
+                            className="h-5 w-5 border-2 border-t-transparent border-white rounded-full"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          />
+                        ) : (
+                          <ArrowUp className="w-5 h-5" />
+                        )}
+                      </Button>
+                    </motion.div>
                   </div>
                 </div>
               </div>
 
               {imagePreview && (
-                <div className="mt-4">
+                <motion.div
+                  className="mt-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
                   <Card className="bg-zinc-900/50 border-zinc-800 w-full">
                     <CardContent className="flex items-center p-4 gap-4">
                       <div className="relative">
@@ -321,12 +391,14 @@ export default function Home() {
                           alt="Uploaded preview"
                           className="w-16 h-16 rounded-md object-cover border border-zinc-800"
                         />
-                        <button
+                        <motion.button
                           onClick={handleRemoveImage}
                           className="absolute -top-2 -right-2 bg-zinc-800 rounded-full p-1 hover:bg-zinc-700 transition-colors"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
                         >
                           <X className="w-4 h-4 text-zinc-400" />
-                        </button>
+                        </motion.button>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-zinc-200 truncate">{image?.name}</p>
@@ -336,53 +408,127 @@ export default function Home() {
                       </div>
                     </CardContent>
                   </Card>
-                </div>
+                </motion.div>
               )}
 
-              <div className="mt-6">
-                <p className="text-sm text-zinc-500 mb-3">Need inspiration? Try one of these:</p>
+              <motion.div
+                className="mt-6"
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+              >
+                <motion.p
+                  className="text-sm text-zinc-500 mb-3 italic"
+                  variants={slideUp}
+                >
+                  Need inspiration? Try one of these:
+                </motion.p>
                 <div className="flex flex-wrap gap-2">
                   {examplePrompts.map((example, index) => (
-                    <Button
-                      variant="outline"
+                    <motion.div
                       key={index}
-                      onClick={() => setPrompt(example)}
-                      className="text-xs rounded-full font-medium border-zinc-800 bg-zinc-900/30 hover:bg-zinc-800/50 transition-colors"
+                      variants={slideUp}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      {example}
-                    </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setPrompt(example)}
+                        className="text-xs border-zinc-800 bg-zinc-900/30 hover:bg-zinc-800/50 transition-colors tracking-tight font-heading"
+                      >
+                        {example}
+                      </Button>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </main>
+          <motion.footer
+            className="py-8 border-t border-zinc-800 mt-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+          >
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                <motion.div
+                  className="flex items-center space-x-2"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <BlocksIcon className="w-6 h-6 text-slate-400" />
+                  <span className="text-white font-medium font-heading">Builder</span>
+                </motion.div>
 
-          <footer className="py-8 border-t border-zinc-800 mt-12">
-            <div className="max-w-6xl mx-auto">
-              <div className="flex flex-col md:flex-row justify-between items-center">
-                <div className="flex items-center space-x-2 mb-4 md:mb-0">
-                  <BlocksIcon className="w-6 h-6 text-slate-500" />
-                  <span className="text-white font-medium">Builder</span>
+                <div className="flex flex-wrap gap-3 justify-center">
+                  <div
+                  >
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="bg-zinc-900/50 border border-zinc-700 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white transition-all duration-200 gap-2 px-4 py-2 rounded-lg"
+                      onClick={() => window.open("https://github.com/tsahil01/builder", "_blank")}
+                    >
+                      <Github className="w-4 h-4" />
+                      <span className="font-heading tracking-tighter">Builder</span>
+                    </Button>
+                  </div>
+
+                  <div
+                  >
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="bg-zinc-900/50 border border-zinc-700 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white transition-all duration-200 gap-2 px-4 py-2 rounded-lg"
+                      onClick={() => window.open("https://github.com/tsahil01/builder-templates", "_blank")}
+                    >
+                      <Github className="w-4 h-4" />
+                      <span className="font-heading tracking-tighter">Builder Template</span>
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex space-x-6">
-                  <a href="#" className="text-zinc-400 hover:text-white transition-colors">
-                    Terms
-                  </a>
-                  <a href="#" className="text-zinc-400 hover:text-white transition-colors">
-                    Privacy
-                  </a>
-                  <a href="#" className="text-zinc-400 hover:text-white transition-colors">
-                    Contact
-                  </a>
-                </div>
+
               </div>
+
+              <motion.div
+                className="md:hidden flex justify-center mt-6 text-xs text-zinc-500"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+              >
+                <span>© {new Date().getFullYear()} Builder. All rights reserved.</span>
+              </motion.div>
             </div>
-          </footer>
+          </motion.footer>
         </div>
       </div>
 
-      <div className="absolute top-1/4 -left-64 w-96 h-96 bg-slate-500/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-1/3 -right-64 w-96 h-96 bg-slate-400/10 rounded-full blur-3xl"></div>
+      <motion.div
+        className="absolute top-1/4 -left-64 w-96 h-96 bg-slate-500/10 rounded-full blur-3xl"
+        animate={{
+          x: [0, 20, 0],
+          opacity: [0.5, 0.7, 0.5]
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          repeatType: "reverse"
+        }}
+      ></motion.div>
+      <motion.div
+        className="absolute bottom-1/3 -right-64 w-96 h-96 bg-slate-400/10 rounded-full blur-3xl"
+        animate={{
+          x: [0, -20, 0],
+          opacity: [0.5, 0.7, 0.5]
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          repeatType: "reverse",
+          delay: 2
+        }}
+      ></motion.div>
     </div>
   )
 }
