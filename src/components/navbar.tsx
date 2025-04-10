@@ -40,12 +40,13 @@ export function Navbar() {
                 <span className="flex items-center gap-2 text-slate-200 cursor-pointer my-auto"
                     onClick={() => window.location.href = '/'}>
                     <BlocksIcon size={32} className="my-auto"/>
-                    <span className="text-xl font-bold text-slate-200 my-auto">
+                    <span className="text-xl font-bold text-slate-200 my-auto font-heading">
                         Builder
                     </span>
                 </span>
                 <Button
                     variant="outline"
+                    className="bg-zinc-900/50 border border-zinc-700 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white transition-all duration-200 gap-2 px-4 py-2 rounded-lg font-heading"
                     onClick={handleClick}
                 >
                     {loading && <svg
