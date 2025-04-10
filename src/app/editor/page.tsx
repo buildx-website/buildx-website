@@ -395,7 +395,7 @@ export default function Editor() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
-            {uiMsgs.map((msg: any, idx: number) => (
+            {uiMsgs.map((msg: Message, idx: number) => (
               <MessageComponent key={idx} message={msg} loading={isStreaming} />
             ))}
           </div>
