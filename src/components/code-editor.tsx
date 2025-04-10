@@ -19,6 +19,7 @@ export function CodeEditor({ file }: CodeEditorProps) {
   const [language, setLanguage] = useState("")
   const [lineCount, setLineCount] = useState(0)
   const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 })
+  const [themeReady, setThemeReady] = useState(false)
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
   const monaco = useMonaco()
   const { updateFile } = useFileStore()
@@ -28,39 +29,9 @@ export function CodeEditor({ file }: CodeEditorProps) {
     setEditorContent(file.content || "")
   }, [file.id, file.content])
 
-  // Set mounted state
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  // Configure Monaco editor
+  // Configure Monaco editor theme before mounting
   useEffect(() => {
     if (monaco) {
-      // Configure TypeScript/JavaScript compiler options
-      monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-        target: monaco.languages.typescript.ScriptTarget.ESNext,
-        allowNonTsExtensions: true,
-        moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-        module: monaco.languages.typescript.ModuleKind.ESNext,
-        noEmit: true,
-        esModuleInterop: true,
-        jsx: monaco.languages.typescript.JsxEmit.React,
-        reactNamespace: "React",
-        allowJs: true,
-        typeRoots: ["node_modules/@types"],
-      })
-
-      // Add React types
-      fetch("https://unpkg.com/@types/react@18.2.0/index.d.ts")
-        .then((response) => response.text())
-        .then((types) => {
-          monaco.languages.typescript.typescriptDefaults.addExtraLib(
-            types,
-            "file:///node_modules/@types/react/index.d.ts",
-          )
-        })
-        .catch((error) => console.error("Failed to fetch React types", error))
-
       // Define custom theme with better syntax highlighting
       monaco.editor.defineTheme("premium-dark", {
         base: "vs-dark",
@@ -89,10 +60,50 @@ export function CodeEditor({ file }: CodeEditorProps) {
           "editor.inactiveSelectionBackground": "#3A3D41",
           "editorIndentGuide.background": "#404040",
         },
+      });
+      
+      // Set default theme
+      monaco.editor.setTheme("premium-dark");
+      
+      setThemeReady(true);
+      
+      // Configure TypeScript/JavaScript compiler options
+      monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+        noSemanticValidation: true,
+        noSyntaxValidation: true,
+      });
+      monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+        target: monaco.languages.typescript.ScriptTarget.ESNext,
+        allowNonTsExtensions: true,
+        moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+        module: monaco.languages.typescript.ModuleKind.ESNext,
+        noEmit: true,
+        esModuleInterop: true,
+        jsx: monaco.languages.typescript.JsxEmit.React,
+        reactNamespace: "React",
+        allowJs: true,
+        typeRoots: ["node_modules/@types"],
       })
+
+      // Add React types
+      fetch("https://unpkg.com/@types/react@18.2.0/index.d.ts")
+        .then((response) => response.text())
+        .then((types) => {
+          monaco.languages.typescript.typescriptDefaults.addExtraLib(
+            types,
+            "file:///node_modules/@types/react/index.d.ts",
+          )
+        })
+        .catch((error) => console.error("Failed to fetch React types", error))
     }
   }, [monaco])
 
+  // Set mounted state once theme is ready
+  useEffect(() => {
+    if (themeReady) {
+      setMounted(true);
+    }
+  }, [themeReady]);
 
   const handleEditorDidMount = (editor: editor.IStandaloneCodeEditor) => {
     editorRef.current = editor
@@ -188,7 +199,7 @@ export function CodeEditor({ file }: CodeEditorProps) {
     setLanguage(languageMap[extension] || "plaintext")
   }, [file.name])
 
-  if (!mounted) {
+  if (!mounted || !themeReady) {
     return (
       <div className="h-full w-full flex items-center justify-center bg-[#1E1E1E]">
         <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
@@ -231,12 +242,16 @@ export function CodeEditor({ file }: CodeEditorProps) {
       {/* Editor */}
       <div className="flex-1 overflow-hidden">
         <Editor
-          key={file.id}
+          key={`${file.id}-${themeReady}`}
           height="90%"
           defaultLanguage={language}
           language={language}
           value={editorContent}
           theme="premium-dark"
+          beforeMount={(monaco) => {
+            // Make sure theme is set again right before mount
+            monaco.editor.setTheme("premium-dark");
+          }}
           onMount={handleEditorDidMount}
           onChange={handleEditorChange}
           options={{
@@ -284,4 +299,3 @@ export function CodeEditor({ file }: CodeEditorProps) {
     </div>
   )
 }
-
