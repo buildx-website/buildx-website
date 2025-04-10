@@ -173,7 +173,6 @@ export default function Editor() {
     }
   }, [uiMsgs]);
 
-
   async function send(msg: string) {
     try {
       setIsStreaming(true);
@@ -192,7 +191,6 @@ export default function Editor() {
         }
       });
 
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -205,16 +203,51 @@ export default function Editor() {
       let fullResponseText = "";
       let visibleResponseText = "";
       let foundXml = false;
+      let artifactProcessed = false;
+      let contentAfterXml = "";
 
       while (true) {
         const { done, value } = await reader.read();
 
-        if (done) {
-          break;
-        }
+        if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
         fullResponseText += chunk;
+
+        if (!artifactProcessed) {
+          const closingTagIndex = fullResponseText.lastIndexOf("</boltArtifact>");
+
+          if (closingTagIndex !== -1 && closingTagIndex + "</boltArtifact>".length <= fullResponseText.length) {
+            contentAfterXml = fullResponseText.substring(closingTagIndex + "</boltArtifact>".length);
+
+            if (contentAfterXml.trim().length > 0) {
+              setUiMsgs(prev => {
+                const newMsgs = [...prev];
+                newMsgs[newMsgs.length - 1] = {
+                  ...newMsgs[newMsgs.length - 1],
+                  content: contentAfterXml.trim(),
+                  loading: false
+                };
+                return newMsgs;
+              });
+
+              artifactProcessed = true;
+            }
+          }
+        } else {
+          const closingTagIndex = fullResponseText.lastIndexOf("</boltArtifact>");
+          contentAfterXml = fullResponseText.substring(closingTagIndex + "</boltArtifact>".length);
+
+          setUiMsgs(prev => {
+            const newMsgs = [...prev];
+            newMsgs[newMsgs.length - 1] = {
+              ...newMsgs[newMsgs.length - 1],
+              content: contentAfterXml.trim(),
+              loading: false
+            };
+            return newMsgs;
+          });
+        }
 
         if (!foundXml) {
           const combinedText = visibleResponseText + chunk;
@@ -232,19 +265,33 @@ export default function Editor() {
             foundXml = true;
             setBuilding(true);
             setShowPreview(false);
+
+            if (visibleResponseText.trim() === "") {
+              visibleResponseText = "Okay, Building it...";
+            }
+
+            setUiMsgs(prev => {
+              const newMsgs = [...prev];
+              newMsgs[newMsgs.length - 1] = {
+                ...newMsgs[newMsgs.length - 1],
+                content: visibleResponseText,
+                loading: false
+              };
+              return newMsgs;
+            });
           } else {
             visibleResponseText = combinedText;
-          }
 
-          setUiMsgs(prev => {
-            const newMsgs = [...prev];
-            newMsgs[newMsgs.length - 1] = {
-              ...newMsgs[newMsgs.length - 1],
-              content: visibleResponseText,
-              loading: false
-            };
-            return newMsgs;
-          });
+            setUiMsgs(prev => {
+              const newMsgs = [...prev];
+              newMsgs[newMsgs.length - 1] = {
+                ...newMsgs[newMsgs.length - 1],
+                content: visibleResponseText,
+                loading: false
+              };
+              return newMsgs;
+            });
+          }
         }
       }
 
@@ -256,11 +303,30 @@ export default function Editor() {
       addSteps(newStepsWithId);
 
       setBuilding(false);
-      setShowPreview(true)
+      setShowPreview(true);
+
+      if (!artifactProcessed) {
+        const closingTagIndex = fullResponseText.lastIndexOf("</boltArtifact>");
+        if (closingTagIndex !== -1) {
+          contentAfterXml = fullResponseText.substring(closingTagIndex + "</boltArtifact>".length);
+          if (contentAfterXml.trim().length > 0) {
+            setUiMsgs(prev => {
+              const newMsgs = [...prev];
+              newMsgs[newMsgs.length - 1] = {
+                ...newMsgs[newMsgs.length - 1],
+                content: contentAfterXml.trim(),
+                loading: false
+              };
+              return newMsgs;
+            });
+          }
+        }
+      }
+
       const newMsg: Message = {
         role: "assistant",
         content: fullResponseText,
-        ignoreInUI: foundXml
+        ignoreInUI: foundXml && contentAfterXml.trim().length === 0
       };
       addMessage(newMsg);
       setIsStreaming(false);
@@ -319,16 +385,18 @@ export default function Editor() {
   }
 
   if (!loading) {
+    
     return (
-      <main className="h-screen grid grid-cols-1 md:grid-cols-4 p-3 gap-3 bg-[#121212] overflow-hidden">
-        <div className="col-span-1 h-full flex flex-col rounded-xl overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-lg">
+      <main className="h-screen flex flex-col md:grid md:grid-cols-4 gap-3 p-3 bg-[#121212] overflow-hidden">
+
+        <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col rounded-xl overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-lg">
           <div className="p-4 border-b border-gray-800">
             <h2 className="text-lg font-medium text-gray-200">Conversation</h2>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
-            {uiMsgs.map((msg, idx) => (
-              <MessageComponent key={idx} message={msg} loading={isStreaming || false} />
+            {uiMsgs.map((msg: any, idx: number) => (
+              <MessageComponent key={idx} message={msg} loading={isStreaming} />
             ))}
           </div>
 
@@ -338,15 +406,20 @@ export default function Editor() {
           </div>
         </div>
 
-        <div className="col-span-1 md:col-span-3 flex flex-col bg-[#1e1e1e] text-white h-full rounded-xl overflow-hidden border border-gray-800 shadow-lg">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 p-4">
-            <div className="flex items-center gap-6 mb-2 sm:mb-0">
-              <span className="flex items-center gap-2 text-slate-200 cursor-pointer"
-                onClick={() => window.location.href = '/'}>
+        <div className="flex-1 md:col-span-3 flex flex-col bg-[#1e1e1e] text-white rounded-xl overflow-hidden border border-gray-800 shadow-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 p-4 gap-4">
+            <div className="flex items-center gap-3 sm:gap-6">
+              <span
+                className="flex items-center gap-2 text-slate-200 cursor-pointer"
+                onClick={() => window.location.href = '/'}
+              >
                 <BlocksIcon size={32} />
               </span>
-              <h2 className="text-lg font-medium text-gray-200">{showPreview ? "Preview" : "Code"}</h2>
+              <h2 className="text-lg font-medium text-gray-200">
+                {showPreview ? "Preview" : "Code"}
+              </h2>
             </div>
+
             <div className="flex flex-wrap items-center gap-3 sm:gap-6">
               <div className="flex items-center gap-2">
                 <span className={`text-sm ${!showPreview ? "text-gray-300" : "text-gray-500"}`}>Code</span>
@@ -357,9 +430,9 @@ export default function Editor() {
                 />
                 <span className={`text-sm ${showPreview ? "text-gray-300" : "text-gray-500"}`}>Preview</span>
               </div>
-              <Button 
-                size={"sm"} 
-                variant={"outline"} 
+              <Button
+                size="sm"
+                variant="outline"
                 className="border-gray-700 hover:bg-gray-800"
                 onClick={handleDownload}
               >
@@ -369,14 +442,16 @@ export default function Editor() {
             </div>
           </div>
 
-          <div className={`flex-1 ${showPreview ? "hidden" : "block"}`}>
+          <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
             <EditorInterface />
           </div>
-          <div className={`flex-1 ${showPreview ? "block" : "hidden"}`}>
+
+          <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
             <Web2 webcontainer={webcontainer} url={url} setUrl={setUrl} />
           </div>
         </div>
+
       </main>
-    )
+    );
   }
 }

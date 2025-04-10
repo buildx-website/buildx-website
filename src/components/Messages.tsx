@@ -19,7 +19,7 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
         "bg-black/40 border-zinc-800",
       )}
     >
-      <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-800/70">
+      <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-800/70 font-heading">
         <div className="flex items-center gap-3">
           {isUser ? <UserRoundIcon className="" size={18} /> : <BotMessageSquare className="" size={18} />}
           <div className="flex items-center gap-2">
@@ -35,10 +35,10 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
         {message.loading ? (
           <div className="flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Thinking...</span>
+            <span className="italic font-heading">Thinking...</span>
           </div>
         ) : (
-          <p className={cn("text-base leading-relaxed whitespace-pre-wrap font-semibold", isUser ? "text-zinc-50" : "text-zinc-50")}>
+          <p className={cn("tracking-tight font-heading", isUser ? "text-zinc-50" : "text-zinc-50")}>
             {message.content}
           </p>
         )}
