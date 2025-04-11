@@ -1,13 +1,40 @@
-import type { Message } from "@/types/types"
+import type { Content, Message } from "@/types/types"
 import { BotMessageSquare, UserRoundIcon, Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
+import ReactMarkdown from "react-markdown"
+import rehypeHighlight from "rehype-highlight"
+import remarkGfm from "remark-gfm"
 
 export function MessageComponent({ message, loading }: { message: Message, loading: boolean }) {
 
   if (!message || message.ignoreInUI) return null
 
   const isUser = message.role === "user"
+
+  const renderContent = (content: Content) => {
+    if (content.type === "text") {
+      return (
+        <ReactMarkdown
+          // className="prose prose-invert max-w-none"
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeHighlight]}
+        >
+          {content.text}
+        </ReactMarkdown>
+      )
+    }
+    else if (content.type === "image_url") {
+      return (
+        <img
+          src={content.image_url?.url}
+          alt="Input Image"
+          className="rounded-lg shadow-lg mt-5"
+        />
+      )
+    }
+    return null
+  }
 
   return (
     <motion.div
@@ -38,28 +65,15 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
             <span className="italic font-heading">Thinking...</span>
           </div>
         ) : (
-          <p className={cn("tracking-tight font-heading", isUser ? "text-zinc-50" : "text-zinc-50")}>
-            {message.content.map((content, index) => {
-              if (content.type === "text") {
-                return <span key={index} className="text-zinc-50">{content.text}</span>
-              }
-              else if (content.type === "image_url") {
-                return (
-                  <img
-                    key={index}
-                    src={content.image_url?.url}
-                    alt="Input Image"
-                    className="rounded-lg shadow-lg mt-2"
-                  />
-                )
-              }
-              return null
-            }
-            )}
-          </p>
+          <div className={cn("tracking-tight font-heading", isUser ? "text-zinc-50" : "text-zinc-50")}>
+            {message.content.map((content, index) => (
+              <div key={index}>
+                {renderContent(content)}
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </motion.div>
   )
 }
-

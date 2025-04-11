@@ -15,8 +15,6 @@ export async function POST(req: Request) {
         }
 
         const apiKey = (await getApiKey(userId)) || "";
-
-        const prompt = parsedData.data.prompt;
         const messages = parsedData.data.messages;
         const model = await db.userModels.findFirst({
             where: {
@@ -35,7 +33,7 @@ export async function POST(req: Request) {
 
         const stream = new ReadableStream({
             async start(controller) {
-                await chatStream(llm(apiKey), prompt, messages, modelName, (token) => {
+                await chatStream(llm(apiKey), messages, modelName, (token) => {
                     if (token) {
                         controller.enqueue(new TextEncoder().encode(token));
                     }
