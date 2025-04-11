@@ -21,15 +21,29 @@ export const apiKeyTypes = z.object({
 
 export interface Message {
     role: 'user' | 'assistant' | 'system';
-    content: string;
+    content: Content[];
     ignoreInUI?: boolean;
     loading?: boolean;
+}
+
+export interface Content {
+    type: "text" | "image_url";
+    text?: string;
+    image_url?: {
+        url: string;
+    };
 }
 
 export const chatBodyTypes = z.object({
     messages: z.array(z.object({
         role: z.enum(['user', 'assistant', 'system']),
-        content: z.string()
+        content: z.array(z.object({
+            type: z.enum(['text', 'image_url']),
+            text: z.string().optional(),
+            image_url: z.object({
+                url: z.string().url(),
+            }).optional()
+        })),
     })),
     prompt: z.string(),
 })

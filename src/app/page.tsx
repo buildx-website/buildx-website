@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card"
 import { Spotlight } from "@/components/ui/spotlight-new";
 import { motion } from "framer-motion";
+import { Content } from "@/types/types";
 
 export default function Home() {
   const router = useRouter();
@@ -130,6 +131,15 @@ export default function Home() {
     }
   }
 
+  function getBase64(file: File) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file); // this gives you base64 with data prefix
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  }
+
   async function handleSubmit() {
     if (!prompt.trim()) {
       return toast.error("Please write your idea first");
@@ -155,8 +165,28 @@ export default function Home() {
       }
       const { prompts, uiPrompts } = data;
       setSteps(parseXml(uiPrompts[0]));
-      setMessages(prompts.map((prompt: string) => ({ role: "user", content: prompt, ignoreInUI: true })));
-      addMessage({ role: "user", content: prompt });
+
+      setMessages(prompts.map((prompt: string) => ({ role: "user", content: [{
+        type: "text",
+        text: prompt,
+      }], ignoreInUI: true })));
+      if (image) {
+        const base64 = await getBase64(image);
+        const content: Content[] = [
+          { type: "text", text: prompt! },
+          { type: "image_url", image_url: { url: base64 as string } }
+        ];
+
+        addMessage({ role: "user", content: content, ignoreInUI: true });
+        setImage(null);
+      } else {
+        addMessage({
+          role: "user", content: [{
+            type: "text",
+            text: prompt,
+          }]
+        });
+      }
       setPrompt("");
       router.push("/editor");
 

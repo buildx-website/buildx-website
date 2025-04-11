@@ -39,7 +39,23 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
           </div>
         ) : (
           <p className={cn("tracking-tight font-heading", isUser ? "text-zinc-50" : "text-zinc-50")}>
-            {message.content}
+            {message.content.map((content, index) => {
+              if (content.type === "text") {
+                return <span key={index} className="text-zinc-50">{content.text}</span>
+              }
+              else if (content.type === "image_url") {
+                return (
+                  <img
+                    key={index}
+                    src={content.image_url?.url}
+                    alt="Input Image"
+                    className="rounded-lg shadow-lg mt-2"
+                  />
+                )
+              }
+              return null
+            }
+            )}
           </p>
         )}
       </div>

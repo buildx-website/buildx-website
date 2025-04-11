@@ -8,7 +8,7 @@ import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { BlocksIcon, Download, Loader2 } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
-import { FileType, Message, Step, StepType } from "@/types/types";
+import { Content, FileType, Message, Step, StepType } from "@/types/types";
 import { StepList } from "@/components/StepList";
 import { MessageComponent } from "@/components/Messages";
 import { useFileStore } from "@/store/filesAtom";
@@ -173,17 +173,18 @@ export default function Editor() {
     }
   }, [uiMsgs]);
 
-  async function send(msg: string) {
+  async function send(content: Content[]) {
     try {
       setIsStreaming(true);
-      setUiMsgs(prev => [...prev, { role: "user", content: msg }]);
-      setUiMsgs(prev => [...prev, { role: "assistant", content: "", loading: true }]);
+      setUiMsgs(prev => [...prev, { role: "user", content: content }]);
+      setUiMsgs(prev => [...prev, { role: "assistant", content: [], loading: true }]);
 
+      console.log("Sending message: ", messages);
       const response = await fetch('api/main/chat', {
         method: 'POST',
         body: JSON.stringify({
           messages: messages, 
-          prompt: msg
+          prompt: prompt
         }),
         headers: {
           'Content-Type': 'application/json',
@@ -225,7 +226,10 @@ export default function Editor() {
                 const newMsgs = [...prev];
                 newMsgs[newMsgs.length - 1] = {
                   ...newMsgs[newMsgs.length - 1],
-                  content: contentAfterXml.trim(),
+                  content: [{
+                    type: "text",
+                    text: contentAfterXml.trim()
+                  }],
                   loading: false
                 };
                 return newMsgs;
@@ -242,7 +246,10 @@ export default function Editor() {
             const newMsgs = [...prev];
             newMsgs[newMsgs.length - 1] = {
               ...newMsgs[newMsgs.length - 1],
-              content: contentAfterXml.trim(),
+              content: [{
+                type: "text",
+                text: contentAfterXml.trim()
+              }],
               loading: false
             };
             return newMsgs;
@@ -274,7 +281,10 @@ export default function Editor() {
               const newMsgs = [...prev];
               newMsgs[newMsgs.length - 1] = {
                 ...newMsgs[newMsgs.length - 1],
-                content: visibleResponseText,
+                content: [{
+                  type: "text",
+                  text: visibleResponseText
+                }],
                 loading: false
               };
               return newMsgs;
@@ -286,7 +296,10 @@ export default function Editor() {
               const newMsgs = [...prev];
               newMsgs[newMsgs.length - 1] = {
                 ...newMsgs[newMsgs.length - 1],
-                content: visibleResponseText,
+                content: [{
+                  type: "text",
+                  text: visibleResponseText
+                }],
                 loading: false
               };
               return newMsgs;
@@ -314,7 +327,10 @@ export default function Editor() {
               const newMsgs = [...prev];
               newMsgs[newMsgs.length - 1] = {
                 ...newMsgs[newMsgs.length - 1],
-                content: contentAfterXml.trim(),
+                content: [{
+                  type: "text",
+                  text: contentAfterXml.trim()
+                }],
                 loading: false
               };
               return newMsgs;
@@ -325,7 +341,10 @@ export default function Editor() {
 
       const newMsg: Message = {
         role: "assistant",
-        content: fullResponseText,
+        content: [{
+          type: "text",
+          text: contentAfterXml.trim()
+        }],
         ignoreInUI: foundXml && contentAfterXml.trim().length === 0
       };
       addMessage(newMsg);
@@ -349,11 +368,14 @@ export default function Editor() {
 
     const userMsg: Message = {
       role: "user",
-      content: prompt
+      content: [{
+        type: "text",
+        text: prompt
+      }]
     };
 
     addMessage(userMsg);
-    send(prompt);
+    send(userMsg.content);
     setPrompt("");
   }
 
