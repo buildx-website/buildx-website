@@ -41,9 +41,6 @@ export async function chatStream(llm: OpenAI, prompt: string, messages: Message[
             }]
         });
 
-        console.log("Messages: ", messages);
-
-
         const completion = await llm.chat.completions.create({
             model: modelName,
             messages: messages,
