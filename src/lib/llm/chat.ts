@@ -27,14 +27,27 @@ export async function chat(llm: OpenAI, prompt: string) {
 export async function chatStream(llm: OpenAI, prompt: string, messages: Message[], modelName: string, response: (token: string) => void) {
     try {
         if (!messages.some(msg => msg.role === "system")) {
-            messages.unshift({ role: "system", content: getSystemPrompt() });
+            messages.unshift({
+                role: "system", content: [{
+                    type: "text",
+                    text: getSystemPrompt(modelName)
+                }]
+            });
         }
-        messages.push({ role: 'user', content: prompt });
+        messages.push({
+            role: 'user', content: [{
+                type: "text",
+                text: prompt
+            }]
+        });
+
+        console.log("Messages: ", messages);
+
 
         const completion = await llm.chat.completions.create({
             model: modelName,
             messages: messages,
-            stream: true,
+            stream: true
         });
 
         let fullContent = "";
@@ -46,7 +59,12 @@ export async function chatStream(llm: OpenAI, prompt: string, messages: Message[
 
     } catch (error) {
         console.error("Error: ", error);
-        messages.push({ role: "assistant", content: "Error occurred while processing the request" });
+        messages.push({
+            role: "assistant", content: [{
+                type: "text",
+                text: "Error occurred while processing the request"
+            }]
+        });
         response("Error occurred while processing the request");
         return "Error occurred while processing the request";
     }
