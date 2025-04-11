@@ -16,3 +16,5 @@ Builder is a prompt-to-app web application that allows you to create web applica
 - **Frontend**: Next.js, TypeScript, Tailwind CSS, Shadcn UI, Aceternity UI, zustand
 - **Backend**: Next.js, OpenAI API, OpenRouter API
 - **Database**: PostgreSQL (using Prisma)
+
+[Builder Templates](https://github.com/tsahil01/builder-templates)
