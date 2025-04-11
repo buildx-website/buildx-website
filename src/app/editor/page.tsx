@@ -182,7 +182,7 @@ export default function Editor() {
       const response = await fetch('api/main/chat', {
         method: 'POST',
         body: JSON.stringify({
-          messages: messages.slice(0, -1),
+          messages: messages, 
           prompt: msg
         }),
         headers: {

@@ -28,6 +28,25 @@ export default function Home() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  const autoResize = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+
+      const maxHeight = 250; // Set your desired max height in pixels
+      const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+      textarea.style.height = `${newHeight}px`;
+
+      // Add overflow-y when content exceeds max height
+      textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
+    }
+  };
+
+  useEffect(() => {
+    autoResize();
+  }, [prompt]);
+
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -63,8 +82,10 @@ export default function Home() {
 
   const examplePrompts: string[] = [
     "An e-commerce site for selling sports equipment",
+    "A blog platform for tech enthusiasts",
     "A social media platform for pet lovers",
     "A dashboard for my SaaS product",
+    "Backend for note-taking app",
   ]
 
   async function getModels() {
@@ -303,17 +324,21 @@ export default function Home() {
                     repeatType: "reverse"
                   }}
                 ></motion.div>
-                <div className="relative">
+                <div className="flex flex-col gap-3 text-base rounded-xl border border-zinc-800 bg-black/50 shadow-slate-500/10 transition-all duration-200 font-heading p-4">
                   <Textarea
                     ref={textareaRef}
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="z-10 relative w-full min-h-[180px] p-6 text-base rounded-xl border border-zinc-800 bg-black/50 shadow-slate-500/10 focus:ring-slate-500/50 focus:border-slate-500/50 transition-all duration-200 font-heading pr-32"
+                    className="relative w-full border-none outline-none focus:outline-none focus:border-none focus:ring-0 focus:ring-opacity-0 bg-transparent text-white resize-none"
                     placeholder="Describe your app idea in detail..."
-                    style={{ resize: 'none' }}
+                    style={{
+                      resize: 'none',
+                      minHeight: '100px',
+                      maxHeight: '200px'
+                    }}
                   />
-                  <div className="absolute bottom-5 right-5 flex space-x-2 z-20">
+                  <div className="flex space-x-2 z-20 justify-end">
                     <Select value={model || ""} onValueChange={handleModelChange}>
                       <SelectTrigger className="w-[160px] bg-black/50 border-zinc-800">
                         <SelectValue placeholder="Select Model" />
@@ -357,12 +382,12 @@ export default function Home() {
                     <motion.div whileHover="hover" variants={buttonHover}>
                       <Button
                         onClick={handleSubmit}
+                        variant="default"
                         disabled={loading || prompt.trim() === ""}
-                        className="w-10 h-10 bg-slate-500 hover:bg-slate-600 transition-colors"
                       >
                         {loading ? (
                           <motion.div
-                            className="h-5 w-5 border-2 border-t-transparent border-white rounded-full"
+                            className="h-5 w-5 border-2 border-t-transparent border-black rounded-full animate-spin"
                             animate={{ rotate: 360 }}
                             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                           />
