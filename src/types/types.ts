@@ -27,7 +27,7 @@ export interface Message {
 }
 
 export interface Content {
-    type: "text" | "image_url";
+    type: 'text' | 'image_url';
     text?: string;
     image_url?: {
         url: string;

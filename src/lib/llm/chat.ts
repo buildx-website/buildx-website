@@ -1,4 +1,5 @@
 import { Message } from "@/types/types";
+import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import OpenAI from "openai";
 import { getSystemPrompt } from "../prompts";
 
@@ -24,7 +25,7 @@ export async function chat(llm: OpenAI, prompt: string) {
     }
 }
 
-export async function chatStream(llm: OpenAI, prompt: string, messages: Message[], modelName: string, response: (token: string) => void) {
+export async function chatStream(llm: OpenAI, messages: Message[], modelName: string, response: (token: string) => void) {
     try {
         if (!messages.some(msg => msg.role === "system")) {
             messages.unshift({
@@ -34,16 +35,10 @@ export async function chatStream(llm: OpenAI, prompt: string, messages: Message[
                 }]
             });
         }
-        messages.push({
-            role: 'user', content: [{
-                type: "text",
-                text: prompt
-            }]
-        });
 
         const completion = await llm.chat.completions.create({
             model: modelName,
-            messages: messages,
+            messages: messages as ChatCompletionMessageParam[],
             stream: true
         });
 
