@@ -17,4 +17,5 @@ Builder is a prompt-to-app web application that allows you to create web applica
 - **Backend**: Next.js, OpenAI API, OpenRouter API
 - **Database**: PostgreSQL (using Prisma)
 
+[BuildX Worker](https://github.com/tsahil01/buildx-worker)
 [Builder Templates](https://github.com/tsahil01/builder-templates)
