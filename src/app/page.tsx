@@ -207,7 +207,7 @@ export default function Home() {
       }
 
       setPrompt("");
-      router.push("/editor");
+      router.push(`/editor/${project.id}`);
 
     } else {
       const data = await template.json();
