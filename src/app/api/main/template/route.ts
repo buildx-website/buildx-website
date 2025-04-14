@@ -27,6 +27,7 @@ export async function POST(req: Request) {
             return new Response(JSON.stringify({
                 prompts: [BASE_PROMPT, `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${baseReactPrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`],
                 uiPrompts: [baseReactPrompt],
+                framework: "react"
             }))
         }
 
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
             return new Response(JSON.stringify({
                 prompts: [BASE_PROMPT, `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${baseNextPrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`],
                 uiPrompts: [baseNextPrompt],
+                framework: "nextjs"
             }))
         }
 
@@ -41,6 +43,7 @@ export async function POST(req: Request) {
             return new Response(JSON.stringify({
                 prompts: [`Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${baseNodePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`],
                 uiPrompts: [baseNodePrompt],
+                framework: "node"
             }))
         }
 

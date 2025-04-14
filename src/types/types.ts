@@ -97,3 +97,8 @@ export const refinePromptTypes = z.object({
 export const setModelTypes = z.object({
     modelId: z.string(),
 })
+
+export const createProjectTypes = z.object({
+    prompt: z.string().min(5),
+    framework: z.string(),
+})
