@@ -47,7 +47,6 @@ export default function Home() {
     autoResize();
   }, [prompt]);
 
-
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -166,10 +165,12 @@ export default function Home() {
       const { prompts, uiPrompts } = data;
       setSteps(parseXml(uiPrompts[0]));
 
-      setMessages(prompts.map((prompt: string) => ({ role: "user", content: [{
-        type: "text",
-        text: prompt,
-      }], ignoreInUI: true })));
+      setMessages(prompts.map((prompt: string) => ({
+        role: "user", content: [{
+          type: "text",
+          text: prompt,
+        }], ignoreInUI: true
+      })));
       if (image) {
         const base64 = await getBase64(image);
         const content: Content[] = [
@@ -187,8 +188,26 @@ export default function Home() {
           }]
         });
       }
+
+      const createProject = await fetch("/api/main/create-project", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          prompt, framework: data.framework,
+        }),
+      });
+
+      const project = await createProject.json();
+      console.log("Project: ", project);
+      if (createProject.status != 200) {
+        return toast.error(project.error);
+      }
+
       setPrompt("");
-      router.push("/editor");
+      router.push(`/editor/${project.id}`);
 
     } else {
       const data = await template.json();

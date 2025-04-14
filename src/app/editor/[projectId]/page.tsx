@@ -2,7 +2,7 @@
 import { EditorInterface } from "@/components/editor-interface"
 import { useStepsStore } from "@/store/initialStepsAtom";
 import { useMessagesStore } from "@/store/messagesAtom";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Switch } from "@/components/ui/switch"
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,15 +17,15 @@ import { parseXml } from "@/lib/steps";
 import { useWebContainer } from "@/hooks/useWebContainer";
 import { FileSystemTree } from "@webcontainer/api";
 import { Web2 } from "@/components/Web2";
-import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
+import { extractAndParseStepsFromMessages } from "@/lib/extract-parse-steps";
+import { handleDownload } from "@/lib/download-project";
 
 
 export default function Editor() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showPreview, setShowPreview] = useState<boolean>(false);
-  const { messages, addMessage } = useMessagesStore();
+  const { messages, addMessage, setMessages } = useMessagesStore();
   const { steps, setSteps, addSteps } = useStepsStore();
   const { files, setFiles } = useFileStore();
   const [prompt, setPrompt] = useState("");
@@ -36,17 +36,68 @@ export default function Editor() {
   const webcontainer = useWebContainer();
   const [url, setUrl] = useState<string>("");
   const conversationRef = useRef<HTMLDivElement>(null);
+  const [validationError, setValidationError] = useState<string>("");
+
+  const params = useParams()
+  const projectId = params.projectId as string
 
   useEffect(() => {
-    setLoading(true);
-    if (messages.length === 0) {
+    if (!projectId) {
       router.push("/");
-    } else {
-      setInitialLoadComplete(true);
+      return;
     }
-    setLoading(false);
-  }, [messages]);
+    const validateAndLoadProject = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setValidationError("Authentication required");
+          router.push("/");
+          return;
+        }
 
+        const response = await fetch(`/api/main/project/${projectId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          setValidationError(data.message || 'Invalid project ID or access denied');
+          router.push("/");
+          return;
+        }
+        const projectData = await response.json();
+
+        console.log("Project", projectData)
+
+        if (projectData.messages && projectData.messages.length > 0) {
+          setMessages(projectData.messages);
+
+          const extractedSteps = extractAndParseStepsFromMessages(projectData.messages);
+          console.log("Extracted steps", extractedSteps);
+          setSteps(extractedSteps);
+
+          const displayMessages = projectData.messages.filter(
+            (msg: Message) => !msg.ignoreInUI
+          ) || [];
+          setUiMsgs(displayMessages);
+        }
+
+        setInitialLoadComplete(true);
+      } catch (error) {
+        console.error("Error validating project:", error);
+        setValidationError('Error loading project data');
+        // router.push("/");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    validateAndLoadProject();
+  }, [projectId, router, setMessages, setFiles, setSteps]);
 
   useEffect(() => {
     let originalFiles = [...files];
@@ -127,9 +178,7 @@ export default function Editor() {
       })
       setSteps(updatedSteps);
     }
-    setLoading(false);
-  }, [steps, files]);
-
+  }, [steps, files, setFiles, setSteps]);
 
   useEffect(() => {
     if (!webcontainer) return;
@@ -158,16 +207,6 @@ export default function Editor() {
 
 
   useEffect(() => {
-    if (initialLoadComplete && messages.length > 0) {
-      const lastUserMessage = messages.filter(msg => msg.role === "user").pop();
-      if (lastUserMessage) {
-        send(lastUserMessage.content);
-      }
-    }
-  }, [initialLoadComplete]);
-
-
-  useEffect(() => {
     if (conversationRef.current) {
       conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
     }
@@ -180,10 +219,10 @@ export default function Editor() {
       setUiMsgs(prev => [...prev, { role: "assistant", content: [], loading: true }]);
 
       console.log("Sending message: ", messages);
-      const response = await fetch('api/main/chat', {
+      const response = await fetch('/api/main/chat', {
         method: 'POST',
         body: JSON.stringify({
-          messages: messages, 
+          messages: messages,
           prompt: prompt
         }),
         headers: {
@@ -209,9 +248,7 @@ export default function Editor() {
 
       while (true) {
         const { done, value } = await reader.read();
-
         if (done) break;
-
         const chunk = decoder.decode(value, { stream: true });
         fullResponseText += chunk;
 
@@ -343,12 +380,29 @@ export default function Editor() {
         role: "assistant",
         content: [{
           type: "text",
-          text: contentAfterXml.trim()
+          text: fullResponseText
         }],
         ignoreInUI: foundXml && contentAfterXml.trim().length === 0
       };
       addMessage(newMsg);
       setIsStreaming(false);
+
+      // Save conversation state to the backend
+      try {
+        await fetch(`/api/main/save-project`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            projectId,
+            messages: [...messages, newMsg],
+          })
+        });
+      } catch (error) {
+        console.error("Error saving project state:", error);
+      }
 
     } catch (e) {
       setUiMsgs(prev => {
@@ -364,7 +418,7 @@ export default function Editor() {
   }
 
   async function handleSubmit() {
-    if (prompt.trim() === "" || isStreaming) return;
+    if (prompt.trim() === "" || isStreaming || building || !initialLoadComplete) return
 
     const userMsg: Message = {
       role: "user",
@@ -379,105 +433,96 @@ export default function Editor() {
     setPrompt("");
   }
 
-  const handleDownload = async () => {
-    const zip = new JSZip();
-
-    // Helper function to add files recursively
-    const addFilesToZip = (files: FileType[], currentPath: string = '') => {
-      files.forEach(file => {
-        const filePath = `${currentPath}${file.name}`;
-        if (file.type === 'file') {
-          zip.file(filePath, file.content || '');
-        } else if (file.type === 'directory' && file.children) {
-          addFilesToZip(file.children, `${filePath}/`);
-        }
-      });
-    };
-
-    // Add all files to zip
-    addFilesToZip(files);
-
-    // Generate and download the zip file
-    const content = await zip.generateAsync({ type: 'blob' });
-    saveAs(content, 'project.zip');
-  };
-
   if (loading) {
-    return <>
+    return (
       <div className="h-full w-full flex items-center justify-center bg-[#1E1E1E]">
         <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
       </div>
-    </>
-  }
-
-  if (!loading) {
-
-    return (
-      <main className="h-screen flex flex-col md:grid md:grid-cols-4 gap-3 p-3 bg-[#121212] overflow-hidden">
-
-        <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col rounded-xl overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-lg">
-          <div className="p-4 border-b border-gray-800">
-            <h2 className="text-lg font-medium text-gray-200">Conversation</h2>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
-            {uiMsgs.map((msg: Message, idx: number) => (
-              <MessageComponent key={idx} message={msg} loading={isStreaming} />
-            ))}
-          </div>
-
-          <div className="p-4 border-t border-gray-800 bg-[#1e1e1e]">
-            <StepList StepTitle="Build Steps" steps={steps} building={building} setPrompt={setPrompt} />
-            <SendPrompt handleSubmit={handleSubmit} prompt={prompt} setPrompt={setPrompt} disabled={isStreaming} />
-          </div>
-        </div>
-
-        <div className="flex-1 md:col-span-3 flex flex-col bg-[#1e1e1e] text-white rounded-xl overflow-hidden border border-gray-800 shadow-lg">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 p-4 gap-4">
-            <div className="flex items-center gap-3 sm:gap-6">
-              <span
-                className="flex items-center gap-2 text-slate-200 cursor-pointer"
-                onClick={() => window.location.href = '/'}
-              >
-                <BlocksIcon size={32} />
-              </span>
-              <h2 className="text-lg font-medium text-gray-200">
-                {showPreview ? "Preview" : "Code"}
-              </h2>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 sm:gap-6">
-              <div className="flex items-center gap-2">
-                <span className={`text-sm ${!showPreview ? "text-gray-300" : "text-gray-500"}`}>Code</span>
-                <Switch
-                  checked={showPreview}
-                  onCheckedChange={setShowPreview}
-                  className="data-[state=checked]:bg-gray-700 data-[state=unchecked]:bg-gray-800"
-                />
-                <span className={`text-sm ${showPreview ? "text-gray-300" : "text-gray-500"}`}>Preview</span>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-gray-700 hover:bg-gray-800"
-                onClick={handleDownload}
-              >
-                <Download size={16} />
-              </Button>
-              <User />
-            </div>
-          </div>
-
-          <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
-            <EditorInterface />
-          </div>
-
-          <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
-            <Web2 webcontainer={webcontainer} url={url} setUrl={setUrl} />
-          </div>
-        </div>
-
-      </main>
     );
   }
+
+  if (validationError) {
+    return (
+      <div className="h-full w-full flex flex-col items-center justify-center bg-[#1E1E1E] text-white">
+        <h2 className="text-xl font-medium mb-4">Project Error</h2>
+        <p className="text-red-400">{validationError}</p>
+        <Button
+          className="mt-6"
+          onClick={() => router.push("/")}
+        >
+          Return to Projects
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <main className="h-screen flex flex-col md:grid md:grid-cols-4 gap-3 p-3 bg-[#121212] overflow-hidden">
+      {/* <h1>Editor for project: {projectId}</h1> */}
+
+      <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col rounded-xl overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-lg">
+        <div className="p-4 border-b border-gray-800">
+          <h2 className="text-lg font-medium text-gray-200">Conversation</h2>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
+          {uiMsgs.map((msg: Message, idx: number) => (
+            <MessageComponent key={idx} message={msg} loading={isStreaming} />
+          ))}
+        </div>
+
+        <div className="p-4 border-t border-gray-800 bg-[#1e1e1e]">
+          <StepList StepTitle="Build Steps" steps={steps} building={building} setPrompt={setPrompt} />
+          <SendPrompt handleSubmit={handleSubmit} prompt={prompt} setPrompt={setPrompt} disabled={isStreaming} />
+        </div>
+      </div>
+
+      <div className="flex-1 md:col-span-3 flex flex-col bg-[#1e1e1e] text-white rounded-xl overflow-hidden border border-gray-800 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 p-4 gap-4">
+          <div className="flex items-center gap-3 sm:gap-6">
+            <span
+              className="flex items-center gap-2 text-slate-200 cursor-pointer"
+              onClick={() => window.location.href = '/'}
+            >
+              <BlocksIcon size={32} />
+            </span>
+            <h2 className="text-lg font-medium text-gray-200">
+              {showPreview ? "Preview" : "Code"}
+            </h2>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6">
+            <div className="flex items-center gap-2">
+              <span className={`text-sm ${!showPreview ? "text-gray-300" : "text-gray-500"}`}>Code</span>
+              <Switch
+                checked={showPreview}
+                onCheckedChange={setShowPreview}
+                className="data-[state=checked]:bg-gray-700 data-[state=unchecked]:bg-gray-800"
+              />
+              <span className={`text-sm ${showPreview ? "text-gray-300" : "text-gray-500"}`}>Preview</span>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-gray-700 hover:bg-gray-800"
+              onClick={() => {
+                handleDownload(files, projectId);
+              }}
+            >
+              <Download size={16} />
+            </Button>
+            <User />
+          </div>
+        </div>
+
+        <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
+          <EditorInterface />
+        </div>
+
+        <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
+          <Web2 webcontainer={webcontainer} url={url} setUrl={setUrl} />
+        </div>
+      </div>
+    </main>
+  );
 }
