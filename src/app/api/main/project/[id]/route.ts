@@ -1,8 +1,9 @@
 import { db } from "@/db";
 import { Content, Message } from "@/types/types";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-    const { id } = params;
+export async function GET(req: Request) {
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
 
     console.log("Fetching project with ID:", id);
 
@@ -11,6 +12,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     if (!userId || !email) {
         return new Response("User not found", { status: 404 });
+    }
+
+    if (!id) {
+        return new Response("Project ID is required", { status: 400 });
     }
 
     try {
