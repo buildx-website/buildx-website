@@ -24,7 +24,7 @@ import { handleDownload } from "@/lib/download-project";
 export default function Editor() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [showPreview, setShowPreview] = useState<boolean>(false);
+  const [showPreview, setShowPreview] = useState<boolean>(true);
   const { messages, addMessage, setMessages } = useMessagesStore();
   const { steps, setSteps, addSteps } = useStepsStore();
   const { files, setFiles } = useFileStore();
@@ -70,8 +70,16 @@ export default function Editor() {
           return;
         }
         const projectData = await response.json();
-
         console.log("Project", projectData)
+
+        if (projectData.messages.length === 0) {
+          await saveMsg(messages.slice(0, messages.length - 1));
+          const lastUserMessage = messages.filter(msg => msg.role === "user").pop();
+          if (lastUserMessage) {
+            console.log("Sending last user message: ", lastUserMessage);
+            send(lastUserMessage.content);
+          }
+        }
 
         if (projectData.messages && projectData.messages.length > 0) {
           setMessages(projectData.messages);
@@ -80,24 +88,39 @@ export default function Editor() {
           console.log("Extracted steps", extractedSteps);
           setSteps(extractedSteps);
 
-          const displayMessages = projectData.messages.filter(
-            (msg: Message) => !msg.ignoreInUI
-          ) || [];
+          const displayMessages = projectData.messages
+            .filter((msg: Message) => !msg.ignoreInUI)
+            .map((msg: Message) => {
+              if (msg.role === "assistant" && msg.content.length > 0) {
+                return {
+                  ...msg,
+                  content: msg.content.map((content: Content) => ({
+                    ...content,
+                    text: (content.text ?? "")
+                      .replace(/<boltArtifact[\s\S]*?<\/boltArtifact>/g, "")
+                  }))
+                };
+              }
+              return msg;
+            }) || [];
+
           setUiMsgs(displayMessages);
+
+
         }
 
         setInitialLoadComplete(true);
       } catch (error) {
         console.error("Error validating project:", error);
         setValidationError('Error loading project data');
-        // router.push("/");
+        router.push("/");
       } finally {
         setLoading(false);
       }
     };
 
     validateAndLoadProject();
-  }, [projectId, router, setMessages, setFiles, setSteps]);
+  }, [projectId]);
 
   useEffect(() => {
     let originalFiles = [...files];
@@ -212,8 +235,31 @@ export default function Editor() {
     }
   }, [uiMsgs]);
 
+  async function saveMsg(msg: Message[]) {
+    try {
+      await fetch(`/api/main/save-project`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          projectId,
+          messages: msg,
+        })
+      });
+    } catch (error) {
+      console.error("Error saving project state:", error);
+    }
+  }
+
   async function send(content: Content[]) {
     try {
+      await saveMsg([{
+        role: "user",
+        content: content,
+        ignoreInUI: false
+      }])
       setIsStreaming(true);
       setUiMsgs(prev => [...prev, { role: "user", content: content }]);
       setUiMsgs(prev => [...prev, { role: "assistant", content: [], loading: true }]);
@@ -388,21 +434,7 @@ export default function Editor() {
       setIsStreaming(false);
 
       // Save conversation state to the backend
-      try {
-        await fetch(`/api/main/save-project`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({
-            projectId,
-            messages: [...messages, newMsg],
-          })
-        });
-      } catch (error) {
-        console.error("Error saving project state:", error);
-      }
+      await saveMsg([newMsg]);
 
     } catch (e) {
       setUiMsgs(prev => {
@@ -467,7 +499,7 @@ export default function Editor() {
 
         <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
           {uiMsgs.map((msg: Message, idx: number) => (
-            <MessageComponent key={idx} message={msg} loading={isStreaming} />
+            <MessageComponent key={idx} message={(msg)} loading={isStreaming} />
           ))}
         </div>
 
