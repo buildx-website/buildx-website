@@ -6,7 +6,7 @@ import { FileExplorer } from "@/components/file-explorer"
 import { CodeEditor } from "@/components/code-editor"
 import { ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { BlocksIcon } from "lucide-react"
-import { getFileTree } from "@/lib/config"
+import { getFileTree } from "@/lib/worker-config"
 import { FileType } from "@/types/types"
 
 

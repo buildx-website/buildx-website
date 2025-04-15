@@ -5,7 +5,7 @@ import Editor, { useMonaco } from "@monaco-editor/react"
 import { Loader2, Save, Copy, FileCode2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { editor } from 'monaco-editor'
-import { fetchFileContent, saveOrCreateFileContent } from "@/lib/config"
+import { fetchFileContent, saveOrCreateFileContent } from "@/lib/worker-config"
 import { FileType } from "@/types/types"
 
 interface CodeEditorProps {
