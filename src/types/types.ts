@@ -102,3 +102,13 @@ export const createProjectTypes = z.object({
     prompt: z.string().min(5),
     framework: z.string(),
 })
+
+export interface getChatsTypes {
+    id: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    ownerId: string;
+    frameWork: string;
+} 

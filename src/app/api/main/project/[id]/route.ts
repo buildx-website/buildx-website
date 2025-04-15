@@ -1,9 +1,8 @@
 import { db } from "@/db";
 import { Content, Message } from "@/types/types";
 
-export async function GET(req: Request) {
-    const url = new URL(req.url);
-    const id = url.searchParams.get("id");
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+    const { id } = params;
 
     console.log("Fetching project with ID:", id);
 
