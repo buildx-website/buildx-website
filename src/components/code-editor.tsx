@@ -287,7 +287,7 @@ export function CodeEditor({ file, containerId }: CodeEditorProps) {
           </div>
         ) : (
           <Editor
-            height="90%"
+            height="100%"
             defaultLanguage={language}
             language={language}
             value={editorContent?.fileContent}

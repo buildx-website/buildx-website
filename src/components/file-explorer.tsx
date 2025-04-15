@@ -192,7 +192,7 @@ export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedF
   }
 
   return (
-    <div className="h-full bg-[#1e1e1e] overflow-y-auto border-r border-[#333333] flex flex-col">
+    <div className="h-full bg-[#1e1e1e] overflow-y-auto flex flex-col">
       <div className="p-3 text-sm font-semibold text-gray-300 border-b border-[#333333] bg-[#252526] sticky top-0 z-10 flex items-center justify-between">
         <span>EXPLORER</span>
       </div>
