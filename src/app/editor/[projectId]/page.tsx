@@ -19,6 +19,7 @@ import { FileSystemTree } from "@webcontainer/api";
 import { Web2 } from "@/components/Web2";
 import { extractAndParseStepsFromMessages } from "@/lib/extract-parse-steps";
 import { handleDownload } from "@/lib/download-project";
+import Sidebar from "@/components/Sidebar";
 
 
 export default function Editor() {
@@ -489,9 +490,9 @@ export default function Editor() {
   }
 
   return (
-    <main className="h-screen flex flex-col md:grid md:grid-cols-4 gap-3 p-3 bg-[#121212] overflow-hidden">
-      {/* <h1>Editor for project: {projectId}</h1> */}
-
+    <div className="flex flex-row h-screen">
+      <Sidebar />
+    <main className="h-screen flex flex-col md:grid md:grid-cols-4 gap-3 p-3 bg-[#121212] overflow-hidden w-full">
       <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col rounded-xl overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-lg">
         <div className="p-4 border-b border-gray-800">
           <h2 className="text-lg font-medium text-gray-200">Conversation</h2>
@@ -513,6 +514,7 @@ export default function Editor() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 p-4 gap-4">
           <div className="flex items-center gap-3 sm:gap-6">
             <span
+    
               className="flex items-center gap-2 text-slate-200 cursor-pointer"
               onClick={() => window.location.href = '/'}
             >
@@ -556,5 +558,6 @@ export default function Editor() {
         </div>
       </div>
     </main>
+    </div>
   );
 }
