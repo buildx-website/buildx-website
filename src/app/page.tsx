@@ -2,7 +2,6 @@
 
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Navbar } from "@/components/navbar"
 import { useState, KeyboardEvent, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -12,9 +11,9 @@ import { parseXml } from "@/lib/steps";
 import { Sparkles, BlocksIcon, Paperclip, ArrowUp, X, Github } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
-import { Spotlight } from "@/components/ui/spotlight-new";
 import { motion } from "framer-motion";
 import { Content } from "@/types/types";
+import { Spotlight } from "@/components/ui/spotlight-new";
 
 export default function Home() {
   const router = useRouter();
@@ -313,12 +312,10 @@ export default function Home() {
 
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-black to-zinc-950 overflow-hidden">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Spotlight />
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
+    <>
+
           <main className="flex-1 flex flex-col items-center justify-center py-12 md:py-24">
+            <Spotlight />
             {/* Hero Section */}
             <motion.div
               className="flex flex-col gap-6 items-center text-center w-full max-w-4xl"
@@ -575,8 +572,6 @@ export default function Home() {
               </motion.div>
             </div>
           </motion.footer>
-        </div>
-      </div>
 
       <motion.div
         className="absolute top-1/4 -left-64 w-96 h-96 bg-slate-500/10 rounded-full blur-3xl"
@@ -603,6 +598,6 @@ export default function Home() {
           delay: 2
         }}
       ></motion.div>
-    </div>
+    </>
   )
 }
