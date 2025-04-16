@@ -78,8 +78,6 @@ export class ArtifactParser {
             const actionStartIdx = this.content.indexOf("<boltAction");
             const actionEndIdx = this.content.indexOf("</boltAction>");
 
-            console.log("actionStartIdx: ", actionStartIdx)
-            console.log("actionEndIdx: ", actionEndIdx)
 
             if (actionStartIdx === -1 || actionEndIdx === -1) {
                 break;
@@ -91,7 +89,7 @@ export class ArtifactParser {
         }
     }
 
-    sendAction() {
+    getStep() {
         if (this.actions.length === 0) return;
         const action = this.actions.shift(); // rmove the first action
         if (!action) return;
