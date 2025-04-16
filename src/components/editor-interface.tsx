@@ -12,6 +12,20 @@ export function EditorInterface({ containerId }: { containerId: string }) {
   const [files, setFiles] = useState<FileType[]>([])
   const [selectedFile, setSelectedFile] = useState<FileType | null>(null)
 
+  async function reloadFileTree() {
+    if (!containerId) return
+    try {
+      const response = await getFileTree(containerId, "/app")
+
+      if (response && response.files) {
+        const processedFiles = processFileStructure(response.files, "/app")
+        setFiles(processedFiles)
+      }
+    } catch (error) {
+      console.error("Error fetching file tree:", error)
+    }
+  }
+
   useEffect(() => {
     async function fetchFileTree() {
       if (!containerId) return
@@ -127,6 +141,7 @@ export function EditorInterface({ containerId }: { containerId: string }) {
                 onFileSelect={handleFileSelect}
                 onToggleDirectory={handleDirectoryToggle}
                 selectedFile={selectedFile}
+                reloadFileTree={reloadFileTree}
               />
             </ResizablePanel>
             <ResizableHandle />
@@ -149,7 +164,7 @@ export function EditorInterface({ containerId }: { containerId: string }) {
 
           <ResizableHandle />
 
-          <ResizablePanel defaultSize={30} minSize={5} maxSize={50}>
+          <ResizablePanel defaultSize={30} minSize={5} maxSize={90}>
           <TerminalComponent containerId={containerId} />
           </ResizablePanel>
 

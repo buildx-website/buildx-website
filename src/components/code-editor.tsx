@@ -328,7 +328,7 @@ export function CodeEditor({ file, containerId }: CodeEditorProps) {
       </div>
 
       {/* Status Bar */}
-      <div className="flex items-center justify-between px-4 py-1 bg-[#007ACC] text-white text-xs">
+      <div className="flex items-center justify-between px-4 py-1 bg-zinc-950 text-white text-xs">
         <div className="flex items-center space-x-4">
           <span>{language.charAt(0).toUpperCase() + language.slice(1)}</span>
           <span>UTF-8</span>

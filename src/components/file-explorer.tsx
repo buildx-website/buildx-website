@@ -19,20 +19,23 @@ import {
   FileBarChart2,
   FileType2,
   MoreVertical,
-  Loader2
+  Loader2,
+  RotateCcw
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { FileType } from "@/types/types"
+import { Button } from "./ui/button"
 
 interface FileExplorerProps {
   files: FileType[]
   onFileSelect: (file: FileType) => void
   onToggleDirectory: (file: FileType) => void
   selectedFile: FileType | null
+  reloadFileTree: () => void
 }
 
-export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedFile }: FileExplorerProps) {
+export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedFile, reloadFileTree }: FileExplorerProps) {
   const [hoveredPath, setHoveredPath] = useState<string | null>(null)
   const [loadingPaths, setLoadingPaths] = useState<Set<string>>(new Set())
 
@@ -192,9 +195,18 @@ export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedF
   }
 
   return (
-    <div className="h-full bg-[#1e1e1e] overflow-y-auto flex flex-col">
-      <div className="p-3 text-sm font-semibold text-gray-300 border-b border-[#333333] bg-[#252526] sticky top-0 z-10 flex items-center justify-between">
+    <div className="h-full bg-black/40 overflow-y-auto flex flex-col">
+      <div className="p-3 text-sm font-semibold text-gray-300 border-b border-[#333333] bg-black/40 sticky top-0 z-10 flex items-center justify-between">
         <span>EXPLORER</span>
+        <Button
+          variant="ghost"
+          className="text-gray-400 hover:text-gray-200"
+          onClick={() => {
+            reloadFileTree()
+          }}
+        >
+          <RotateCcw className="h-4 w-4 spin" />
+        </Button>
       </div>
       <div className="flex-1 py-1">
         {files.length > 0 ? (
