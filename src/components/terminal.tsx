@@ -77,7 +77,6 @@ const TerminalComponent: React.FC<TerminalProps> = ({ containerId, autoFocus = t
         socket.onopen = () => {
             setStatus("connected")
             socket.send(JSON.stringify({ type: "start", containerId }))
-            term.writeln("\r\nTerminal session started\r\n")
         }
 
         socket.onmessage = (event) => {
