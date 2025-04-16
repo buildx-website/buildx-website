@@ -14,12 +14,12 @@ import { StepList } from "@/components/StepList";
 import { MessageComponent } from "@/components/Messages";
 import { useFileStore } from "@/store/filesAtom";
 import { User } from "@/components/User";
-import { parseXml } from "@/lib/steps";
 import { Web2 } from "@/components/Web2";
 import { extractAndParseStepsFromMessages } from "@/lib/extract-parse-steps";
 import { handleDownload } from "@/lib/download-project";
 import Sidebar from "@/components/Sidebar";
 import { startNewContainer } from "@/lib/worker-config";
+import { ArtifactParser } from "@/lib/artifactParser";
 
 export default function Editor() {
     const router = useRouter();
@@ -301,150 +301,83 @@ export default function Editor() {
             const decoder = new TextDecoder();
             let fullResponseText = "";
             let visibleResponseText = "";
-            let foundXml = false;
-            let artifactProcessed = false;
-            let contentAfterXml = "";
+            const artifactParser = new ArtifactParser();
 
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
                 const chunk = decoder.decode(value, { stream: true });
+                artifactParser.addChunk(chunk);
+                const newStep = artifactParser.getStep();
+                if (newStep) {
+                    console.log("New step: ", newStep);
+                    addSteps([newStep]);
+                }
                 fullResponseText += chunk;
 
-                if (!artifactProcessed) {
-                    const closingTagIndex = fullResponseText.lastIndexOf("</boltArtifact>");
+                // add the content before the XML to the visible response text
+                const contentBeforeArtifact = artifactParser.getContentBeforeArtifact();
+                if (contentBeforeArtifact) {
+                    console.log("Content before artifact: ", contentBeforeArtifact);
+                    await setUiMsgs(prev => {
+                        const newMsgs = [...prev];
+                        newMsgs[newMsgs.length - 1] = {
+                            ...newMsgs[newMsgs.length - 1],
+                            role: "assistant",
+                            content: [{
+                                type: "text",
+                                text: contentBeforeArtifact
+                            }],
+                            loading: false
+                        };
+                        return newMsgs; 
+                    });
+                }
 
-                    if (closingTagIndex !== -1 && closingTagIndex + "</boltArtifact>".length <= fullResponseText.length) {
-                        contentAfterXml = fullResponseText.substring(closingTagIndex + "</boltArtifact>".length);
+                if (visibleResponseText.trim() === "") {
+                    visibleResponseText = "Okay, Building it...";
+                }
 
-                        if (contentAfterXml.trim().length > 0) {
-                            setUiMsgs(prev => {
-                                const newMsgs = [...prev];
-                                newMsgs[newMsgs.length - 1] = {
-                                    ...newMsgs[newMsgs.length - 1],
-                                    content: [{
-                                        type: "text",
-                                        text: contentAfterXml.trim()
-                                    }],
-                                    loading: false
-                                };
-                                return newMsgs;
-                            });
-
-                            artifactProcessed = true;
-                        }
-                    }
-                } else {
-                    const closingTagIndex = fullResponseText.lastIndexOf("</boltArtifact>");
-                    contentAfterXml = fullResponseText.substring(closingTagIndex + "</boltArtifact>".length);
-
+                // add content after xml to the visible response text
+                const contentAfterArtifact = artifactParser.getContentAfterArtifact();
+                if (contentAfterArtifact) {
+                    visibleResponseText += contentAfterArtifact;
                     setUiMsgs(prev => {
                         const newMsgs = [...prev];
                         newMsgs[newMsgs.length - 1] = {
                             ...newMsgs[newMsgs.length - 1],
+                            role: "assistant",
                             content: [{
                                 type: "text",
-                                text: contentAfterXml.trim()
+                                text: contentAfterArtifact
                             }],
                             loading: false
                         };
                         return newMsgs;
                     });
                 }
-
-                if (!foundXml) {
-                    const combinedText = visibleResponseText + chunk;
-                    const boltIndex = combinedText.indexOf("<boltArtifact");
-                    const codeBlockIndex = combinedText.indexOf("```");
-
-                    let cutoffIndex = -1;
-                    if (boltIndex !== -1) cutoffIndex = boltIndex;
-                    if (codeBlockIndex !== -1 && (cutoffIndex === -1 || codeBlockIndex < cutoffIndex)) {
-                        cutoffIndex = codeBlockIndex;
-                    }
-
-                    if (cutoffIndex !== -1) {
-                        visibleResponseText = combinedText.substring(0, cutoffIndex);
-                        foundXml = true;
-                        setBuilding(true);
-                        setShowPreview(false);
-
-                        if (visibleResponseText.trim() === "") {
-                            visibleResponseText = "Okay, Building it...";
-                        }
-
-                        setUiMsgs(prev => {
-                            const newMsgs = [...prev];
-                            newMsgs[newMsgs.length - 1] = {
-                                ...newMsgs[newMsgs.length - 1],
-                                content: [{
-                                    type: "text",
-                                    text: visibleResponseText
-                                }],
-                                loading: false
-                            };
-                            return newMsgs;
-                        });
-                    } else {
-                        visibleResponseText = combinedText;
-
-                        setUiMsgs(prev => {
-                            const newMsgs = [...prev];
-                            newMsgs[newMsgs.length - 1] = {
-                                ...newMsgs[newMsgs.length - 1],
-                                content: [{
-                                    type: "text",
-                                    text: visibleResponseText
-                                }],
-                                loading: false
-                            };
-                            return newMsgs;
-                        });
-                    }
-                }
             }
 
-            const newSteps = parseXml(fullResponseText);
-            let stepLength = steps.length;
-            const newStepsWithId = newSteps.map(step => {
-                return { ...step, id: stepLength++ }
-            });
-            addSteps(newStepsWithId);
-
-            setBuilding(false);
-            setShowPreview(true);
-
-            if (!artifactProcessed) {
-                const closingTagIndex = fullResponseText.lastIndexOf("</boltArtifact>");
-                if (closingTagIndex !== -1) {
-                    contentAfterXml = fullResponseText.substring(closingTagIndex + "</boltArtifact>".length);
-                    if (contentAfterXml.trim().length > 0) {
-                        setUiMsgs(prev => {
-                            const newMsgs = [...prev];
-                            newMsgs[newMsgs.length - 1] = {
-                                ...newMsgs[newMsgs.length - 1],
-                                content: [{
-                                    type: "text",
-                                    text: contentAfterXml.trim()
-                                }],
-                                loading: false
-                            };
-                            return newMsgs;
-                        });
-                    }
-                }
-            }
-
+            // Finalize the message after streaming is complete
             const newMsg: Message = {
                 role: "assistant",
                 content: [{
                     type: "text",
                     text: fullResponseText
                 }],
-                ignoreInUI: foundXml && contentAfterXml.trim().length === 0
+                ignoreInUI: false
             };
             addMessage(newMsg);
             setIsStreaming(false);
+
+            // Update UI to show streaming is complete
+            setUiMsgs(prev => {
+                const newMsgs = [...prev];
+                if (newMsgs.length > 0) {
+                    newMsgs[newMsgs.length - 1].loading = false;
+                }
+                return newMsgs;
+            });
 
             // Save conversation state to the backend
             await saveMsg([newMsg]);
@@ -512,6 +445,7 @@ export default function Editor() {
 
                     <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
                         {uiMsgs.map((msg: Message, idx: number) => (
+   
                             <MessageComponent key={idx} message={(msg)} loading={isStreaming} />
                         ))}
                     </div>

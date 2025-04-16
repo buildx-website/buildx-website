@@ -1,8 +1,8 @@
-import { StepType } from "@/types/types";
+import { Step, StepType } from "@/types/types";
 
 let stepId = 1;
 
-function getStep(action: string) {
+function getStep(action: string) : Step | null {
     const typeMatch = action.match(/<boltAction[^>]*type="([^"]+)"/);
     const type = typeMatch ? typeMatch[1] : null;
     const filePathMatch = action.match(/<boltAction[^>]*filePath="([^"]+)"/);
@@ -18,7 +18,7 @@ function getStep(action: string) {
             type: StepType.CreateFile,
             status: 'pending',
             code: content.trim(),
-            path: filePath
+            path: filePath ? filePath : undefined
         });
     } else if (type === 'shell') {
         return ({
@@ -61,17 +61,19 @@ export class ArtifactParser {
             const titleMatch = this.content.match(/<boltArtifact[^>]*title="([^"]+)"/);
             if (titleMatch) this.artifactTitle = titleMatch[1];
         }
-        if (!this.contentBeforeArtifact) {
-            const startIdx = this.content.indexOf("<boltArtifact");
-            if (startIdx !== -1) {
-                this.contentBeforeArtifact = this.content.substring(0, startIdx);
-            }
+        const startIdx = this.content.indexOf("<boltArtifact");
+        
+        if (startIdx === -1) {
+            this.contentBeforeArtifact += chunk;
+        } else {
+            const before = this.content.substring(0, startIdx);
+            this.contentBeforeArtifact = before;
         }
-        if (!this.contentAfterArtifact) {
-            const endIdx = this.content.indexOf("</boltArtifact>");
-            if (endIdx !== -1) {
-                this.contentAfterArtifact = this.content.substring(endIdx + "</boltArtifact>".length);
-            }
+
+        const endIdx = this.content.indexOf("</boltArtifact>");
+        if (endIdx !== -1 && startIdx !== -1 && endIdx > startIdx) {
+            const after = this.content.substring(endIdx + "</boltArtifact>".length);
+            this.contentAfterArtifact += after;
         }
 
         while (true) {
