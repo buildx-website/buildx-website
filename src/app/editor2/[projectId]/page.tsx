@@ -330,7 +330,7 @@ export default function Editor() {
                             }],
                             loading: false
                         };
-                        return newMsgs; 
+                        return newMsgs;
                     });
                 }
 
@@ -341,8 +341,8 @@ export default function Editor() {
                 // add content after xml to the visible response text
                 const contentAfterArtifact = artifactParser.getContentAfterArtifact();
                 if (contentAfterArtifact) {
-                    visibleResponseText += contentAfterArtifact;
-                    setUiMsgs(prev => {
+                    console.log("Content after artifact: ", contentAfterArtifact);
+                    await setUiMsgs(prev => {
                         const newMsgs = [...prev];
                         newMsgs[newMsgs.length - 1] = {
                             ...newMsgs[newMsgs.length - 1],
@@ -355,8 +355,36 @@ export default function Editor() {
                         };
                         return newMsgs;
                     });
+                } 
+
+                if (contentBeforeArtifact.trim() == "") {
+                    console.log("No content before artifact");
+                    setUiMsgs(prev => {
+                        const newMsgs = [...prev];
+                        newMsgs[newMsgs.length - 1] = {
+                            ...newMsgs[newMsgs.length - 1],
+                            role: "assistant",
+                            content: [{
+                                type: "text",
+                                text: "Okay, Building it..."
+                            }],
+                            loading: true
+                        };
+                        return newMsgs;
+                    });
+                }
+
+            }
+
+            while (artifactParser.getActions().length > 0) {
+                const step = artifactParser.getStep();
+                if (step) {
+                    console.log("New step: ", step);
+                    addSteps([step]);
                 }
             }
+
+
 
             // Finalize the message after streaming is complete
             const newMsg: Message = {
@@ -445,7 +473,7 @@ export default function Editor() {
 
                     <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
                         {uiMsgs.map((msg: Message, idx: number) => (
-   
+
                             <MessageComponent key={idx} message={(msg)} loading={isStreaming} />
                         ))}
                     </div>
@@ -496,11 +524,11 @@ export default function Editor() {
                     </div>
 
                     <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
-                        <EditorInterface containerId={containerId} />
+                        {/* <EditorInterface containerId={containerId} /> */}
                     </div>
 
                     <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
-                        <Web2 webcontainer={null} url={url} setUrl={setUrl} />
+                        {/* <Web2 webcontainer={null} url={url} setUrl={setUrl} />  */}
                     </div>
                 </div>
             </main>

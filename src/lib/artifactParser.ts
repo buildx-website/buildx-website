@@ -73,6 +73,7 @@ export class ArtifactParser {
         const endIdx = this.content.indexOf("</boltArtifact>");
         if (endIdx !== -1 && startIdx !== -1 && endIdx > startIdx) {
             const after = this.content.substring(endIdx + "</boltArtifact>".length);
+            console.log("after:", after);
             this.contentAfterArtifact += after;
         }
 
