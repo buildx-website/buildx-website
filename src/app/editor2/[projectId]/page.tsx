@@ -36,7 +36,6 @@ export default function Editor() {
     const [isStreaming, setIsStreaming] = useState(false);
     const [uiMsgs, setUiMsgs] = useState<Message[]>([]);
     const [building, setBuilding] = useState(false);
-    const [url, setUrl] = useState<string>("");
     const conversationRef = useRef<HTMLDivElement>(null);
     const [validationError, setValidationError] = useState<string>("");
     const [project, setProject] = useState<any | null>(null);
@@ -102,8 +101,17 @@ export default function Editor() {
                                     ...msg,
                                     content: msg.content.map((content: Content) => ({
                                         ...content,
-                                        text: (content.text ?? "")
-                                            .replace(/<boltArtifact[\s\S]*?<\/boltArtifact>/g, "")
+                                        text: (content.text
+                                            ? `\n\n**Content before response:**\n${content.text}`
+                                                .replace(
+                                                  /<boltArtifact[\s\S]*?<\/boltArtifact>([\s\S]*)/,
+                                                  (match, after) =>
+                                                    after.trim()
+                                                      ? `\n\n**Content after response:**\n${after.trim()}`
+                                                      : ""
+                                                )
+                                            : "")
+                                          
                                     }))
                                 };
                             }
@@ -305,6 +313,7 @@ export default function Editor() {
 
             while (true) {
                 const { done, value } = await reader.read();
+                setBuilding(true);
                 if (done) break;
                 const chunk = decoder.decode(value, { stream: true });
                 artifactParser.addChunk(chunk);
@@ -395,7 +404,7 @@ export default function Editor() {
                 }
                 return newMsgs;
             });
-
+            setBuilding(false);
             await saveMsg([newMsg]);
 
         } catch (e) {
@@ -516,7 +525,7 @@ export default function Editor() {
                     </div>
 
                     <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
-                        <Web2 webcontainer={null} url={url} setUrl={setUrl} /> 
+                        {/* <Web2 webcontainer={null} url={url} setUrl={setUrl} />  */}
                     </div>
                 </div>
             </main>
