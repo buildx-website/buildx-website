@@ -268,16 +268,16 @@ export default function Editor() {
 
     async function send(content: Content[]) {
         try {
-            await saveMsg([{
-                role: "user",
-                content: content,
-                ignoreInUI: false
-            }])
             setIsStreaming(true);
             setUiMsgs(prev => [...prev, { role: "user", content: content }]);
             setUiMsgs(prev => [...prev, { role: "assistant", content: [], loading: true }]);
 
-            console.log("Sending message: ", messages);
+            await saveMsg([{
+                role: "user",
+                content: content,
+                ignoreInUI: false
+            }]);
+
             const response = await fetch('/api/main/chat', {
                 method: 'POST',
                 body: JSON.stringify({
@@ -300,7 +300,7 @@ export default function Editor() {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let fullResponseText = "";
-            let visibleResponseText = "";
+
             const artifactParser = new ArtifactParser();
 
             while (true) {
@@ -334,29 +334,6 @@ export default function Editor() {
                     });
                 }
 
-                if (visibleResponseText.trim() === "") {
-                    visibleResponseText = "Okay, Building it...";
-                }
-
-                // add content after xml to the visible response text
-                const contentAfterArtifact = artifactParser.getContentAfterArtifact();
-                if (contentAfterArtifact) {
-                    console.log("Content after artifact: ", contentAfterArtifact);
-                    await setUiMsgs(prev => {
-                        const newMsgs = [...prev];
-                        newMsgs[newMsgs.length - 1] = {
-                            ...newMsgs[newMsgs.length - 1],
-                            role: "assistant",
-                            content: [{
-                                type: "text",
-                                text: contentAfterArtifact
-                            }],
-                            loading: false
-                        };
-                        return newMsgs;
-                    });
-                } 
-
                 if (contentBeforeArtifact.trim() == "") {
                     console.log("No content before artifact");
                     setUiMsgs(prev => {
@@ -368,7 +345,23 @@ export default function Editor() {
                                 type: "text",
                                 text: "Okay, Building it..."
                             }],
-                            loading: true
+                            loading: false
+                        };
+                        return newMsgs;
+                    });
+                }
+                const contentAfterArtifact = artifactParser.getContentAfterArtifact();
+                if (contentAfterArtifact) {
+                    console.log("Content after artifact: ", contentAfterArtifact);
+                    await setUiMsgs(prev => {
+                        const newMsgs = [...prev];
+                        newMsgs[newMsgs.length - 1] = {
+                            role: "assistant",
+                            content: [{
+                                type: "text",
+                                text: contentAfterArtifact
+                            }],
+                            loading: false
                         };
                         return newMsgs;
                     });
@@ -379,14 +372,11 @@ export default function Editor() {
             while (artifactParser.getActions().length > 0) {
                 const step = artifactParser.getStep();
                 if (step) {
-                    console.log("New step: ", step);
                     addSteps([step]);
                 }
             }
 
 
-
-            // Finalize the message after streaming is complete
             const newMsg: Message = {
                 role: "assistant",
                 content: [{
@@ -398,7 +388,6 @@ export default function Editor() {
             addMessage(newMsg);
             setIsStreaming(false);
 
-            // Update UI to show streaming is complete
             setUiMsgs(prev => {
                 const newMsgs = [...prev];
                 if (newMsgs.length > 0) {
@@ -407,7 +396,6 @@ export default function Editor() {
                 return newMsgs;
             });
 
-            // Save conversation state to the backend
             await saveMsg([newMsg]);
 
         } catch (e) {
@@ -524,11 +512,11 @@ export default function Editor() {
                     </div>
 
                     <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
-                        {/* <EditorInterface containerId={containerId} /> */}
+                        <EditorInterface containerId={containerId} />
                     </div>
 
                     <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
-                        {/* <Web2 webcontainer={null} url={url} setUrl={setUrl} />  */}
+                        <Web2 webcontainer={null} url={url} setUrl={setUrl} /> 
                     </div>
                 </div>
             </main>
