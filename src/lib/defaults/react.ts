@@ -434,11 +434,11 @@ export const baseReactFiles = `<boltArtifact id="project-import" title="React + 
     },
   })
   </boltAction>
+  <boltAction type="shell">npm install</boltAction><boltAction type="shell">npm run dev</boltAction>
   </boltArtifact>`;
 
-export const reactPrompt = `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${baseReactFiles}\n\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n - eslint.config.js\n\nOther components of /src/components/ui are not shown to you, ALL OF THEM ARE SHADCN COMPONENTS.\n\nHere is a list of all shadcn components that are not shown to you:\n\n  - button.tsx\n  - card.tsx\n  - checkbox.tsx\n  - input.tsx\n  - label.tsx\n  - switch.tsx\n  - textarea.tsx\n  - tooltip.tsx\n  - toast.tsx\n  - alert-dialog.tsx\n  - dropdown-menu.tsx\n  - progress.tsx\n  - slider.tsx\n  - tabs.tsx\n  - toggle.tsx\n  - accordion.tsx\n  - select.tsx\n  - spinner.tsx\n
+export const reactPrompt = `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${baseReactFiles}\n\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n - eslint.config.js\n\nOther components of /src/components/ui are not shown to you, but they are present in the project in /src/components/ui directory.  ALL OF THEM ARE SHADCN COMPONENTS.\n\nHere is a list of all shadcn components that are not shown to you but are present in src/components/ui/ :\n\n  - button.tsx\n  - card.tsx\n  - checkbox.tsx\n  - input.tsx\n  - label.tsx\n  - switch.tsx\n  - textarea.tsx\n  - tooltip.tsx\n  - toast.tsx\n  - alert-dialog.tsx\n  - dropdown-menu.tsx\n  - progress.tsx\n  - slider.tsx\n  - tabs.tsx\n  - toggle.tsx\n  - accordion.tsx\n  - select.tsx\n  - spinner.tsx\n
   - skeleton.tsx\n  - badge.tsx\n  - avatar.tsx\n  - progress-bar.tsx\n  and so on\n\n`;
 
 
-export const reactRunCommands = `<boltArtifact id="init commands" title="Commands for Initializing React + ShadCN"><boltAction type="command" command="npm install">npm install</boltAction>
-  <boltAction type="command" command="npm run dev">npm run dev</boltAction></boltArtifact>`
+export const reactRunCommands = `<boltArtifact id="project init" title="Project Init"><boltAction type="shell">npm install</boltAction><boltAction type="shell">npm run dev</boltAction></boltArtifact>`

@@ -95,7 +95,7 @@ export class ArtifactParser {
                             this.currentAction = `Create ${filePathMatch[1]}`;
                         }
                     } else if (actionType === 'shell') {
-                            this.currentAction = `Runnig commands`;
+                            this.currentAction = `Running commands`;
                     }
                 }
                 else {

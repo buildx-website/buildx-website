@@ -29,6 +29,7 @@ export default function Editor() {
     const { steps, setSteps, addSteps } = useStepsStore();
     const { files } = useFileStore();
     const [prompt, setPrompt] = useState("");
+    const [framework, setFramework] = useState<string>("");
 
     const [containerId, setContainerId] = useState<string>("");
 
@@ -77,13 +78,14 @@ export default function Editor() {
                 const projectData = await response.json();
                 console.log("Project", projectData)
                 setProject(projectData);
+                setFramework(projectData.framework);
 
                 if (projectData.messages.length === 0) {
                     await saveMsg(messages.slice(0, messages.length - 1));
                     const lastUserMessage = messages.filter(msg => msg.role === "user").pop();
                     if (lastUserMessage) {
                         console.log("Sending last user message: ", lastUserMessage);
-                        send(lastUserMessage.content);
+                        send(lastUserMessage.content, projectData.framework);
                     }
                 }
 
@@ -275,7 +277,7 @@ export default function Editor() {
         }
     }
 
-    async function send(content: Content[]) {
+    async function send(content: Content[], projectFramework: string) {
         try {
             setIsStreaming(true);
             setUiMsgs(prev => [...prev, { role: "user", content: content }]);
@@ -287,11 +289,14 @@ export default function Editor() {
                 ignoreInUI: false
             }]);
 
+            console.log("Framework: ", project?.framework);
+
             const response = await fetch('/api/main/chat', {
                 method: 'POST',
                 body: JSON.stringify({
-                    messages: messages,
-                    prompt: prompt
+                    messages,
+                    prompt,
+                    framework: projectFramework,
                 }),
                 headers: {
                     'Content-Type': 'application/json',
@@ -438,7 +443,7 @@ export default function Editor() {
         };
 
         addMessage(userMsg);
-        send(userMsg.content);
+        send(userMsg.content, framework);
         setPrompt("");
     }
 
