@@ -3,12 +3,13 @@
 import type React from "react"
 
 import { type Step, StepType } from "@/types/types"
-import { SquareCheck, ChevronDown, ChevronUp, Loader2, OctagonAlert, CheckCircle } from "lucide-react"
+import { SquareCheck, ChevronDown, ChevronUp, Loader2, OctagonAlert } from "lucide-react"
 import { Button } from "./ui/button"
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
 import { useState, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { ActionList } from "./ActionList"
 
 interface StepsListProps {
     StepTitle: string | null
@@ -26,6 +27,10 @@ export function StepList({ StepTitle, steps, building = false, maxHeight = "400p
     const [actionHistory, setActionHistory] = useState<Array<{ title: string; isComplete: boolean }>>([])
     const prevBuildingRef = useRef(building)
     const prevStepTitleRef = useRef(StepTitle)
+
+    useEffect(() => {
+        if (isOpen) setActionOpen(false)
+    }, [isOpen])
 
     useEffect(() => {
         if (scrollContainerRef.current) {
@@ -77,11 +82,11 @@ export function StepList({ StepTitle, steps, building = false, maxHeight = "400p
     }, [building, StepTitle])
 
     return (
-        <div className="w-full p-3">
+        <div className="w-full p-3 font-heading">
             <div className="w-full p-4 rounded-lg border border-zinc-800 bg-black/30 shadow-lg">
                 <Collapsible open={isOpen} onOpenChange={setIsOpen}>
                     <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-bold text-gray-200">{StepTitle ? StepTitle : "Build Steps"}</h3>
+                        <h3 className="text-lg font-bold text-gray-200">{"Build Steps"}</h3>
                         <div className="flex items-center gap-2">
                             {building ? (
                                 <div className="relative flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary/10 text-primary">
@@ -104,29 +109,6 @@ export function StepList({ StepTitle, steps, building = false, maxHeight = "400p
                     </div>
 
                     <CollapsibleContent>
-                        {/* Build Progress Section */}
-                        {actionHistory.length > 0 && (
-                            <div className="mt-4 pt-4 border-t border-zinc-800/70">
-                                <div className="font-heading text-sm text-zinc-400 mb-2">Build Progress</div>
-                                <div className="space-y-2">
-                                    {actionHistory.map((action, index) => (
-                                        <div key={index} className="flex items-center justify-between text-sm">
-                                            <div className="flex items-center gap-2">
-                                                {action.isComplete ? (
-                                                    <CheckCircle className="text-green-500" size={16} />
-                                                ) : (
-                                                    <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
-                                                )}
-                                                <span>{action.title}</span>
-                                            </div>
-                                            <span className="text-zinc-500 text-xs">{action.isComplete ? "Done" : "In progress"}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Steps List */}
                         <div
                             ref={scrollContainerRef}
                             className={cn(
@@ -220,36 +202,7 @@ export function StepList({ StepTitle, steps, building = false, maxHeight = "400p
                         </div>
                     </CollapsibleContent>
                 </Collapsible>
-                <div className="mt-4 pt-4 border-t border-zinc-800/70">
-                    <Collapsible open={actionOpen} onOpenChange={setActionOpen}>
-                    <div className="flex items-center justify-between">
-                        <div className="font-heading text-sm text-zinc-400 mb-2">Action History</div>
-                        <CollapsibleTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-gray-200 hover:bg-gray-800/50">
-                                {actionOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                            </Button>
-                        </CollapsibleTrigger>
-                    </div>
-                        <CollapsibleContent>
-                            <div className="space-y-2">
-                                {actionHistory.map((action, index) => (
-                                    <div key={index} className="flex items-center justify-between text-sm">
-                                        <div className="flex items-center gap-2">
-                                            {action.isComplete ?
-                                                <CheckCircle className="text-green-500" size={16} /> :
-                                                <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
-                                            }
-                                            <span>{action.title}</span>
-                                        </div>
-                                        <span className="text-zinc-500 text-xs">
-                                            {action.isComplete ? "Done" : "In progress"}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </CollapsibleContent>
-                    </Collapsible>
-                </div>
+                <ActionList actionHistory={actionHistory} actionOpen={actionOpen} setActionOpen={setActionOpen} />
             </div>
         </div>
     )
