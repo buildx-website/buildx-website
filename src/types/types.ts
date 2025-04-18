@@ -46,6 +46,7 @@ export const chatBodyTypes = z.object({
         })),
     })),
     prompt: z.string(),
+    framework: z.string()
 })
 
 export interface FileType {

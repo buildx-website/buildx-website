@@ -20,7 +20,6 @@ import { Navbar } from "@/components/navbar";
 export default function Home() {
   const router = useRouter();
   const [prompt, setPrompt] = useState<string>("");
-  const setMessages = useMessagesStore((state) => state.setMessages);
   const addMessage = useMessagesStore((state) => state.addMessage);
   const setSteps = useStepsStore((state) => state.setSteps);
   const [loading, setLoading] = useState(false);
@@ -163,15 +162,9 @@ export default function Home() {
       if (data.message === "Try again with a different prompt") {
         return toast.error("Try again with a different prompt");
       }
-      const { prompts, uiPrompts } = data;
+      const { uiPrompts } = data;
       setSteps(parseXml(uiPrompts[0]));
 
-      setMessages(prompts.map((prompt: string) => ({
-        role: "user", content: [{
-          type: "text",
-          text: prompt,
-        }], ignoreInUI: true
-      })));
       if (image) {
         const base64 = await getBase64(image);
         const content: Content[] = [
