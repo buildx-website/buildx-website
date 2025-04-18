@@ -14,6 +14,9 @@ const modelData: Prisma.ModelsCreateInput[] = [{
 }, {
     name: "mistralai/mistral-nemo:free",
     displayName: "Mistral Nemo",
+}, {
+    name: "meta-llama/llama-4-maverick:free",
+    displayName: "Llama 4 Maverick",
 }]
 
 
