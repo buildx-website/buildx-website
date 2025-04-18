@@ -19,20 +19,25 @@ import {
   FileBarChart2,
   FileType2,
   MoreVertical,
+  Loader2,
+  RotateCcw
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import type { FileType } from "@/types/types"
 import { cn } from "@/lib/utils"
+import { FileType } from "@/types/types"
+import { Button } from "./ui/button"
 
 interface FileExplorerProps {
   files: FileType[]
   onFileSelect: (file: FileType) => void
-  onToggleDirectory: (fileId: string) => void
-  selectedFileId: string | undefined
+  onToggleDirectory: (file: FileType) => void
+  selectedFile: FileType | null
+  reloadFileTree: () => void
 }
 
-export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedFileId }: FileExplorerProps) {
-  const [hoveredId, setHoveredId] = useState<string | null>(null)
+export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedFile, reloadFileTree }: FileExplorerProps) {
+  const [hoveredPath, setHoveredPath] = useState<string | null>(null)
+  const [loadingPaths, setLoadingPaths] = useState<Set<string>>(new Set())
 
   const renderFileIcon = (file: FileType) => {
     if (file.type === "directory") {
@@ -97,27 +102,49 @@ export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedF
     }
   }
 
+  const handleToggleDirectory = (file: FileType) => {
+    if (file.type === "directory" && !file.isOpen && (!file.children || file.children.length === 0)) {
+      setLoadingPaths(prev => {
+        const newSet = new Set(prev);
+        newSet.add(file.path);
+        return newSet;
+      });
+
+      onToggleDirectory(file);
+
+      setTimeout(() => {
+        setLoadingPaths(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(file.path);
+          return newSet;
+        });
+      }, 1000);
+    } else {
+      onToggleDirectory(file);
+    }
+  };
+
   const renderFileTree = (files: FileType[], level = 0) => {
     return files.map((file) => (
-      <div key={file.id} className="relative">
+      <div key={file.path} className="relative">
         <motion.div
           initial={{ opacity: 0.8 }}
           animate={{ opacity: 1 }}
           className={cn(
             "flex items-center py-1.5 px-2 cursor-pointer rounded-sm transition-all duration-100 relative group",
-            selectedFileId === file.id ? "bg-[#37373d]" : "hover:bg-[#2a2d2e]",
+            selectedFile?.path === file.path ? "bg-[#37373d]" : "hover:bg-[#2a2d2e]",
             level === 0 ? "mt-0.5" : "",
           )}
           style={{ paddingLeft: `${level * 12 + 8}px` }}
           onClick={() => {
             if (file.type === "directory") {
-              onToggleDirectory(file.id)
+              handleToggleDirectory(file)
             } else {
               onFileSelect(file)
             }
           }}
-          onMouseEnter={() => setHoveredId(file.id)}
-          onMouseLeave={() => setHoveredId(null)}
+          onMouseEnter={() => setHoveredPath(file.path)}
+          onMouseLeave={() => setHoveredPath(null)}
         >
           {file.type === "directory" && (
             <motion.span
@@ -126,7 +153,11 @@ export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedF
               animate={{ rotate: file.isOpen ? 90 : 0 }}
               transition={{ duration: 0.2 }}
             >
-              <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+              {loadingPaths.has(file.path) ? (
+                <Loader2 className="h-3.5 w-3.5 text-gray-400 animate-spin" />
+              ) : (
+                <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+              )}
             </motion.span>
           )}
           <span className="mr-2 flex items-center">{renderFileIcon(file)}</span>
@@ -139,7 +170,7 @@ export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedF
             {file.name}
           </span>
 
-          {hoveredId === file.id && (
+          {hoveredPath === file.path && (
             <div className="absolute right-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <MoreVertical className="h-4 w-4 text-gray-400 hover:text-gray-200" />
             </div>
@@ -164,12 +195,29 @@ export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedF
   }
 
   return (
-    <div className="h-full bg-[#1e1e1e] overflow-y-auto border-r border-[#333333] flex flex-col">
-      <div className="p-3 text-sm font-semibold text-gray-300 border-b border-[#333333] bg-[#252526] sticky top-0 z-10 flex items-center justify-between">
+    <div className="h-full bg-black/40 overflow-y-auto flex flex-col">
+      <div className="p-3 text-sm font-semibold text-gray-300 border-b border-[#333333] bg-black/40 sticky top-0 z-10 flex items-center justify-between">
         <span>EXPLORER</span>
+        <Button
+          variant="ghost"
+          className="text-gray-400 hover:text-gray-200"
+          onClick={() => {
+            reloadFileTree()
+          }}
+        >
+          <RotateCcw className="h-4 w-4 spin" />
+        </Button>
       </div>
-      <div className="flex-1 py-1">{renderFileTree(files)}</div>
+      <div className="flex-1 py-1">
+        {files.length > 0 ? (
+          renderFileTree(files)
+        ) : (
+          <div className="flex justify-center items-center p-4 text-gray-400">
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <span className="text-sm">Loading files...</span>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
-

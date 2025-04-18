@@ -26,7 +26,7 @@ export async function POST(req: Request) {
             max_tokens: 200,
             messages: [{
                 role: "system",
-                content: "Suggest the name of the project based on the prompt and framework. Do not add any extra information. Just suggest the name of the project."
+                content: "Suggest the name of the project based on the prompt and framework. Do not add any extra information. Just suggest the name of the project. Do not give project name in code block or markdown. Just give a short project name.",
             }, {
                 role: "user",
                 content: `Prompt: ${prompt} | Framework: ${framework}`

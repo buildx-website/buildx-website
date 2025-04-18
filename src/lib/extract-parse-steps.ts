@@ -1,5 +1,5 @@
 
-import { parseXml } from "./steps";
+import { ArtifactParser } from "./artifactParser";
 import { Message, Step } from "@/types/types";
 
 export function extractAndParseStepsFromMessages(messages: Message[]): Step[] {
@@ -7,7 +7,6 @@ export function extractAndParseStepsFromMessages(messages: Message[]): Step[] {
     let stepCounter = 0;
 
     messages.forEach(message => {
-        // Extract message content as string
         let fullText = "";
         message.content.forEach(content => {
             if (content.type === "text") {
@@ -15,13 +14,18 @@ export function extractAndParseStepsFromMessages(messages: Message[]): Step[] {
             }
         });
 
-
         console.log("Full text from message:", fullText);
+        const artifactParser = new ArtifactParser();
+        const newSteps: Step[] = [];
+        artifactParser.addChunk(fullText);
 
-        // Parse XML from the message content
-        const newSteps = parseXml(fullText);
+        
+        while (artifactParser.getActions().length > 0) {
+            const step = artifactParser.getStep();
+            if (!step) continue;
+            newSteps.push(step)
+        }
 
-        // Add IDs to steps
         const stepsWithIds = newSteps.map(step => {
             return { ...step, id: stepCounter++ };
         });

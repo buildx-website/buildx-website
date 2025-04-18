@@ -2,32 +2,64 @@
 
 import { useEffect, useState, useRef } from "react"
 import Editor, { useMonaco } from "@monaco-editor/react"
-import type { FileType } from "@/types/types"
-import { useFileStore } from "@/store/filesAtom"
-import { Loader2, Save, Copy, FileTypeIcon } from "lucide-react"
+import { Loader2, Save, Copy, FileCode2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { editor } from 'monaco-editor'
+import { fetchFileContent, saveOrCreateFileContent } from "@/lib/worker-config"
+import { FileType } from "@/types/types"
 
 interface CodeEditorProps {
   file: FileType
+  containerId: string
 }
 
-export function CodeEditor({ file }: CodeEditorProps) {
+interface FileContent {
+  fileName: string
+  fileDir: string
+  fileType: string
+  fileContent: string
+  success: boolean
+}
+
+export function CodeEditor({ file, containerId }: CodeEditorProps) {
   const [mounted, setMounted] = useState(false)
-  const [editorContent, setEditorContent] = useState<string>(file.content || "")
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [language, setLanguage] = useState("")
   const [lineCount, setLineCount] = useState(0)
   const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 })
   const [themeReady, setThemeReady] = useState(false)
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
   const monaco = useMonaco()
-  const { updateFile } = useFileStore()
 
-  // Update content when file changes
+  const [editorContent, setEditorContent] = useState<FileContent>()
+  const [originalContent, setOriginalContent] = useState<FileContent>()
+
   useEffect(() => {
-    setEditorContent(file.content || "")
-  }, [file.id, file.content])
+    const fetchContent = async () => {
+      if (!file || !containerId) return;
+
+      setIsLoading(true);
+      try {
+        const data = await fetchFileContent(containerId, file.path);
+        setEditorContent(data);
+        setOriginalContent(data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching file content:", error);
+        setEditorContent({
+          fileName: "",
+          fileDir: "",
+          fileType: "",
+          fileContent: "",
+          success: false,
+        });
+        setIsLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, [file, containerId]);
 
   // Configure Monaco editor theme before mounting
   useEffect(() => {
@@ -61,12 +93,12 @@ export function CodeEditor({ file }: CodeEditorProps) {
           "editorIndentGuide.background": "#404040",
         },
       });
-      
+
       // Set default theme
       monaco.editor.setTheme("premium-dark");
-      
+
       setThemeReady(true);
-      
+
       // Configure TypeScript/JavaScript compiler options
       monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
         noSemanticValidation: true,
@@ -107,14 +139,12 @@ export function CodeEditor({ file }: CodeEditorProps) {
 
   const handleEditorDidMount = (editor: editor.IStandaloneCodeEditor) => {
     editorRef.current = editor
-    
+
     const model = editor.getModel()
     if (!model) return
-    
-    // Count lines
+
     setLineCount(model.getLineCount())
 
-    // Set up cursor position tracking
     editor.onDidChangeCursorPosition((e) => {
       setCursorPosition({
         line: e.position.lineNumber,
@@ -122,37 +152,47 @@ export function CodeEditor({ file }: CodeEditorProps) {
       })
     })
 
-    // Update line count when content changes
     model.onDidChangeContent(() => {
       setLineCount(model.getLineCount())
     })
   }
 
   const handleEditorChange = (value: string | undefined) => {
-    if (value !== undefined) {
-      setEditorContent(value)
+      if (value !== undefined && editorContent) {
+        setEditorContent({
+          ...editorContent,
+          fileContent: value,
+        });
+      }
     }
-  }
 
-  const saveChanges = () => {
-    if (editorContent !== file.content) {
+  const saveChanges = async () => {
+    if (editorContent?.fileContent !== originalContent?.fileContent) {
       setIsSaving(true)
 
-      // Simulate save delay
-      setTimeout(() => {
-        const updatedFile: FileType = {
-          ...file,
-          content: editorContent,
-        }
-        updateFile(updatedFile)
-        setIsSaving(false)
-      }, 300)
+      try {
+
+        await saveOrCreateFileContent(
+          containerId,
+          `${editorContent?.fileDir}`,
+          editorContent?.fileName || '',
+          editorContent?.fileContent || '',
+        );
+
+        // Update original content to match current content
+        setOriginalContent(editorContent);
+        setIsSaving(false);
+      } catch (error) {
+        console.error("Error saving file:", error);
+        setIsSaving(false);
+        // Handle error (could add toast notification here)
+      }
     }
   }
 
   const copyContent = () => {
     navigator.clipboard
-      .writeText(editorContent)
+      .writeText(editorContent?.fileContent || "")
       .then(() => {
         // Could add a toast notification here
       })
@@ -212,7 +252,7 @@ export function CodeEditor({ file }: CodeEditorProps) {
       {/* Editor Header */}
       <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-[#3C3C3C]">
         <div className="flex items-center">
-          <FileTypeIcon className="h-4 w-4 mr-2 text-blue-400" />
+          <FileCode2 className="h-4 w-4 mr-2 text-blue-400" />
           <span className="text-sm font-medium text-gray-200">{file.name}</span>
         </div>
         <div className="flex items-center space-x-2">
@@ -227,7 +267,7 @@ export function CodeEditor({ file }: CodeEditorProps) {
             onClick={saveChanges}
             className={cn(
               "p-1.5 rounded-sm transition-colors flex items-center",
-              editorContent !== file.content
+              editorContent !== originalContent
                 ? "text-white bg-blue-600 hover:bg-blue-700"
                 : "text-gray-400 hover:bg-[#3C3C3C]",
             )}
@@ -241,49 +281,54 @@ export function CodeEditor({ file }: CodeEditorProps) {
 
       {/* Editor */}
       <div className="flex-1 overflow-hidden">
-        <Editor
-          key={`${file.id}-${themeReady}`}
-          height="90%"
-          defaultLanguage={language}
-          language={language}
-          value={editorContent}
-          theme="premium-dark"
-          beforeMount={(monaco) => {
-            // Make sure theme is set again right before mount
-            monaco.editor.setTheme("premium-dark");
-          }}
-          onMount={handleEditorDidMount}
-          onChange={handleEditorChange}
-          options={{
-            minimap: { enabled: true, scale: 0.75, showSlider: "mouseover" },
-            scrollBeyondLastLine: false,
-            fontSize: 14,
-            fontFamily: "'JetBrains Mono', 'Fira Code', Menlo, Monaco, 'Courier New', monospace",
-            fontLigatures: true,
-            lineNumbers: "on",
-            renderLineHighlight: "all",
-            automaticLayout: true,
-            bracketPairColorization: { enabled: true },
-            guides: { bracketPairs: true, indentation: true },
-            cursorBlinking: "smooth",
-            cursorSmoothCaretAnimation: "on",
-            smoothScrolling: true,
-            tabSize: 2,
-            wordWrap: "on",
-            wrappingIndent: "same",
-            renderWhitespace: "selection",
-            formatOnPaste: true,
-            formatOnType: true,
-            suggestOnTriggerCharacters: true,
-            acceptSuggestionOnEnter: "on",
-            quickSuggestions: true,
-            padding: { top: 10 },
-          }}
-        />
+        {isLoading ? (
+          <div className="h-full w-full flex items-center justify-center bg-[#1E1E1E]">
+            <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+          </div>
+        ) : (
+          <Editor
+            height="100%"
+            defaultLanguage={language}
+            language={language}
+            value={editorContent?.fileContent}
+            theme="premium-dark"
+            beforeMount={(monaco) => {
+              // Make sure theme is set again right before mount
+              monaco.editor.setTheme("premium-dark");
+            }}
+            onMount={handleEditorDidMount}
+            onChange={handleEditorChange}
+            options={{
+              minimap: { enabled: true, scale: 0.75, showSlider: "mouseover" },
+              scrollBeyondLastLine: false,
+              fontSize: 14,
+              fontFamily: "'JetBrains Mono', 'Fira Code', Menlo, Monaco, 'Courier New', monospace",
+              fontLigatures: true,
+              lineNumbers: "on",
+              renderLineHighlight: "all",
+              automaticLayout: true,
+              bracketPairColorization: { enabled: true },
+              guides: { bracketPairs: true, indentation: true },
+              cursorBlinking: "smooth",
+              cursorSmoothCaretAnimation: "on",
+              smoothScrolling: true,
+              tabSize: 2,
+              wordWrap: "on",
+              wrappingIndent: "same",
+              renderWhitespace: "selection",
+              formatOnPaste: true,
+              formatOnType: true,
+              suggestOnTriggerCharacters: true,
+              acceptSuggestionOnEnter: "on",
+              quickSuggestions: true,
+              padding: { top: 10 },
+            }}
+          />
+        )}
       </div>
 
       {/* Status Bar */}
-      <div className="flex items-center justify-between px-4 py-1 bg-[#007ACC] text-white text-xs">
+      <div className="flex items-center justify-between px-4 py-1 bg-zinc-950 text-white text-xs">
         <div className="flex items-center space-x-4">
           <span>{language.charAt(0).toUpperCase() + language.slice(1)}</span>
           <span>UTF-8</span>
