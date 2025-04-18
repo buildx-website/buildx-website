@@ -2,7 +2,7 @@ import { Step, StepType } from "@/types/types";
 
 let stepId = 1;
 
-function getStep(action: string) : Step | null {
+function getStep(action: string): Step | null {
     const typeMatch = action.match(/<boltAction[^>]*type="([^"]+)"/);
     const type = typeMatch ? typeMatch[1] : null;
     const filePathMatch = action.match(/<boltAction[^>]*filePath="([^"]+)"/);
@@ -37,6 +37,7 @@ export class ArtifactParser {
     private content: string;
     private contentBeforeArtifact: string;
     private contentAfterArtifact: string;
+    private currentAction: string;
     private actions: string[];
     private artifactTitle: string;
     private artifactId: string;
@@ -45,6 +46,7 @@ export class ArtifactParser {
         this.content = '';
         this.contentBeforeArtifact = '';
         this.contentAfterArtifact = '';
+        this.currentAction = '';
         this.actions = [];
         this.artifactTitle = '';
         this.artifactId = '';
@@ -62,7 +64,7 @@ export class ArtifactParser {
             if (titleMatch) this.artifactTitle = titleMatch[1];
         }
         const startIdx = this.content.indexOf("<boltArtifact");
-        
+
         if (startIdx === -1) {
             this.contentBeforeArtifact += chunk;
         } else {
@@ -73,14 +75,34 @@ export class ArtifactParser {
         const endIdx = this.content.indexOf("</boltArtifact>");
         if (endIdx !== -1 && startIdx !== -1 && endIdx > startIdx) {
             const after = this.content.substring(endIdx + "</boltArtifact>".length);
-            console.log("after:", after);
             this.contentAfterArtifact = after;
+            // reset the current action
+            this.currentAction = "";
         }
 
         while (true) {
             const actionStartIdx = this.content.indexOf("<boltAction");
             const actionEndIdx = this.content.indexOf("</boltAction>");
 
+            if (actionStartIdx !== -1) {
+                const actionTag = this.content.substring(actionStartIdx, this.content.indexOf(">", actionStartIdx) + 1);
+                const actionTypeMatch = actionTag.match(/<boltAction[^>]*type="([^"]+)"/);
+                if (actionTypeMatch) {
+                    const actionType = actionTypeMatch[1];
+                    if (actionType === 'file') {
+                        const filePathMatch = actionTag.match(/<boltAction[^>]*filePath="([^"]+)"/);
+                        if (filePathMatch) {
+                            this.currentAction = `Create ${filePathMatch[1]}`;
+                        }
+                    } else if (actionType === 'shell') {
+                            this.currentAction = `Runnig commands`;
+                    }
+                }
+                else {
+                    this.currentAction = "";
+                }
+
+            }
 
             if (actionStartIdx === -1 || actionEndIdx === -1) {
                 break;
@@ -105,6 +127,10 @@ export class ArtifactParser {
 
     getActions(): string[] {
         return this.actions;
+    }
+
+    getCurrentActionTitle(): string {
+        return this.currentAction
     }
 
     getContent(): string {
