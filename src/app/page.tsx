@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useMessagesStore } from "@/store/messagesAtom";
 import { useStepsStore } from "@/store/initialStepsAtom";
-import { parseXml } from "@/lib/steps";
 import { Sparkles, BlocksIcon, Paperclip, ArrowUp, X, Github } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
@@ -16,13 +15,13 @@ import { Content } from "@/types/types";
 import { Spotlight } from "@/components/ui/spotlight-new";
 import Sidebar from "@/components/Sidebar";
 import { Navbar } from "@/components/navbar";
+import { ArtifactParser } from "@/lib/artifactParser";
 
 export default function Home() {
   const router = useRouter();
   const [prompt, setPrompt] = useState<string>("");
-  const setMessages = useMessagesStore((state) => state.setMessages);
   const addMessage = useMessagesStore((state) => state.addMessage);
-  const setSteps = useStepsStore((state) => state.setSteps);
+  const addSteps = useStepsStore((state) => state.addSteps);
   const [loading, setLoading] = useState(false);
   const [allModels, setAllModels] = useState<{ id: string, name: string, displayName: string }[]>([]);
   const [model, setModel] = useState<string | null>(null);
@@ -159,19 +158,19 @@ export default function Home() {
     })
 
     if (template.ok) {
+      const artifactParser = new ArtifactParser();
       const data = await template.json();
       if (data.message === "Try again with a different prompt") {
         return toast.error("Try again with a different prompt");
       }
-      const { prompts, uiPrompts } = data;
-      setSteps(parseXml(uiPrompts[0]));
-
-      setMessages(prompts.map((prompt: string) => ({
-        role: "user", content: [{
-          type: "text",
-          text: prompt,
-        }], ignoreInUI: true
-      })));
+      const { uiPrompts } = data;
+      artifactParser.addChunk(uiPrompts[0]);
+      while (artifactParser.getActions().length > 0) {
+        const step = artifactParser.getStep();
+        if (step) {
+          addSteps([step]);
+        }
+      }
       if (image) {
         const base64 = await getBase64(image);
         const content: Content[] = [

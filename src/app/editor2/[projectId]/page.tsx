@@ -29,6 +29,7 @@ export default function Editor() {
     const { steps, setSteps, addSteps } = useStepsStore();
     const { files } = useFileStore();
     const [prompt, setPrompt] = useState("");
+    const [framework, setFramework] = useState<string>("");
 
     const [containerId, setContainerId] = useState<string>("");
 
@@ -39,6 +40,7 @@ export default function Editor() {
     const conversationRef = useRef<HTMLDivElement>(null);
     const [validationError, setValidationError] = useState<string>("");
     const [project, setProject] = useState<any | null>(null);
+    const [currentActionBuilding, setCurrentActionBuilding] = useState<string | null>(null);
 
     const params = useParams()
     const projectId = params.projectId as string
@@ -76,13 +78,14 @@ export default function Editor() {
                 const projectData = await response.json();
                 console.log("Project", projectData)
                 setProject(projectData);
+                setFramework(projectData.framework);
 
                 if (projectData.messages.length === 0) {
                     await saveMsg(messages.slice(0, messages.length - 1));
                     const lastUserMessage = messages.filter(msg => msg.role === "user").pop();
                     if (lastUserMessage) {
                         console.log("Sending last user message: ", lastUserMessage);
-                        send(lastUserMessage.content);
+                        send(lastUserMessage.content, projectData.framework);
                     }
                 }
 
@@ -104,14 +107,14 @@ export default function Editor() {
                                         text: (content.text
                                             ? `\n\n**Content before response:**\n${content.text}`
                                                 .replace(
-                                                  /<boltArtifact[\s\S]*?<\/boltArtifact>([\s\S]*)/,
-                                                  (match, after) =>
-                                                    after.trim()
-                                                      ? `\n\n**Content after response:**\n${after.trim()}`
-                                                      : ""
+                                                    /<boltArtifact[\s\S]*?<\/boltArtifact>([\s\S]*)/,
+                                                    (match, after) =>
+                                                        after.trim()
+                                                            ? `\n\n**Content after response:**\n${after.trim()}`
+                                                            : ""
                                                 )
                                             : "")
-                                          
+
                                     }))
                                 };
                             }
@@ -274,7 +277,7 @@ export default function Editor() {
         }
     }
 
-    async function send(content: Content[]) {
+    async function send(content: Content[], projectFramework: string) {
         try {
             setIsStreaming(true);
             setUiMsgs(prev => [...prev, { role: "user", content: content }]);
@@ -286,11 +289,14 @@ export default function Editor() {
                 ignoreInUI: false
             }]);
 
+            console.log("Framework: ", project?.framework);
+
             const response = await fetch('/api/main/chat', {
                 method: 'POST',
                 body: JSON.stringify({
-                    messages: messages,
-                    prompt: prompt
+                    messages,
+                    prompt,
+                    framework: projectFramework,
                 }),
                 headers: {
                     'Content-Type': 'application/json',
@@ -318,6 +324,11 @@ export default function Editor() {
                 const chunk = decoder.decode(value, { stream: true });
                 artifactParser.addChunk(chunk);
                 const newStep = artifactParser.getStep();
+                const currentAction = artifactParser.getCurrentActionTitle();
+                if (currentAction) {
+                    console.log("Current action: ", currentAction);
+                    setCurrentActionBuilding(currentAction);
+                }
                 if (newStep) {
                     console.log("New step: ", newStep);
                     addSteps([newStep]);
@@ -327,7 +338,6 @@ export default function Editor() {
                 // add the content before the XML to the visible response text
                 const contentBeforeArtifact = artifactParser.getContentBeforeArtifact();
                 if (contentBeforeArtifact) {
-                    console.log("Content before artifact: ", contentBeforeArtifact);
                     await setUiMsgs(prev => {
                         const newMsgs = [...prev];
                         newMsgs[newMsgs.length - 1] = {
@@ -344,7 +354,6 @@ export default function Editor() {
                 }
 
                 if (contentBeforeArtifact.trim() == "") {
-                    console.log("No content before artifact");
                     setUiMsgs(prev => {
                         const newMsgs = [...prev];
                         newMsgs[newMsgs.length - 1] = {
@@ -361,7 +370,6 @@ export default function Editor() {
                 }
                 const contentAfterArtifact = artifactParser.getContentAfterArtifact();
                 if (contentAfterArtifact) {
-                    console.log("Content after artifact: ", contentAfterArtifact);
                     await setUiMsgs(prev => {
                         const newMsgs = [...prev];
                         newMsgs[newMsgs.length - 1] = {
@@ -384,7 +392,9 @@ export default function Editor() {
                     addSteps([step]);
                 }
             }
-
+            const currentAction = artifactParser.getCurrentActionTitle();
+            console.log("Current action222: ", currentAction);
+            setCurrentActionBuilding(currentAction);
 
             const newMsg: Message = {
                 role: "assistant",
@@ -405,6 +415,7 @@ export default function Editor() {
                 return newMsgs;
             });
             setBuilding(false);
+            setCurrentActionBuilding(null);
             await saveMsg([newMsg]);
 
         } catch (e) {
@@ -432,7 +443,7 @@ export default function Editor() {
         };
 
         addMessage(userMsg);
-        send(userMsg.content);
+        send(userMsg.content, framework);
         setPrompt("");
     }
 
@@ -470,13 +481,12 @@ export default function Editor() {
 
                     <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
                         {uiMsgs.map((msg: Message, idx: number) => (
-
                             <MessageComponent key={idx} message={(msg)} loading={isStreaming} />
                         ))}
                     </div>
 
                     <div className="p-4 border-t border-gray-800 bg-[#1e1e1e]">
-                        <StepList StepTitle="Build Steps" steps={steps} building={building} setPrompt={setPrompt} />
+                        <StepList StepTitle={currentActionBuilding} steps={steps} building={building} setPrompt={setPrompt} />
                         <SendPrompt handleSubmit={handleSubmit} prompt={prompt} setPrompt={setPrompt} disabled={isStreaming} />
                     </div>
                 </div>

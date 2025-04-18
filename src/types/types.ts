@@ -46,14 +46,15 @@ export const chatBodyTypes = z.object({
         })),
     })),
     prompt: z.string(),
+    framework: z.string()
 })
 
 export interface FileType {
-  name: string
-  type: "file" | "directory"
-  isOpen?: boolean
-  children?: FileType[]
-  path: string
+    name: string
+    type: "file" | "directory"
+    isOpen?: boolean
+    children?: FileType[]
+    path: string
 }
 
 export enum StepType {

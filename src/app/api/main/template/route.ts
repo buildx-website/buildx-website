@@ -1,7 +1,7 @@
 import { getApiKey } from "@/lib/apiKey";
 import { baseNextPrompt } from "@/lib/defaults/nextjs";
 import { baseNodePrompt } from "@/lib/defaults/node";
-import { baseReactPrompt } from "@/lib/defaults/react";
+import { reactRunCommands } from "@/lib/defaults/react";
 import { llm } from "@/lib/llm";
 import { chat } from "@/lib/llm/chat";
 import { BASE_PROMPT } from "@/lib/prompts";
@@ -25,8 +25,7 @@ export async function POST(req: Request) {
 
         if (response.content === "react") {
             return new Response(JSON.stringify({
-                prompts: [BASE_PROMPT, `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${baseReactPrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`],
-                uiPrompts: [baseReactPrompt],
+                uiPrompts: [reactRunCommands],
                 framework: "react"
             }))
         }
