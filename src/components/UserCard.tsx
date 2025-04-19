@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { Eye, EyeOff, LogOut, UserCog } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
+import { authClient } from "@/lib/auth-client"
 
 export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean) => void }) {
     const name = localStorage.getItem("name") || "User"
@@ -63,9 +64,10 @@ export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
         setIsUpdating(false)
     }
 
-    function handleLogout() {
-        localStorage.removeItem("token")
+    async function handleLogout() {
         localStorage.removeItem("name")
+        await authClient.signOut()
+        window.location.href = "/";
         setIsDialogOpen(false)
         toast.success("Logged out successfully");
     }
