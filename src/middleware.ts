@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import * as jose from 'jose'
-import { jwtConfig } from "./lib/constants";
 
 export async function middleware(req: NextRequest) {
+    const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+    console.log("Base URL:", baseUrl);
 
     const authorization = req.headers.get("Authorization");
     if (!authorization || !authorization.startsWith("Bearer ")) {
@@ -14,10 +15,15 @@ export async function middleware(req: NextRequest) {
         return new Response("No token provided", { status: 401 });
     }
     try {
-        const { payload } = await jose.jwtVerify(token, jwtConfig.secret);
+        const JWKS = jose.createRemoteJWKSet(new URL(`${baseUrl}/api/auth/jwks`))
+        const { payload } = await jose.jwtVerify(token, JWKS, {
+            issuer: baseUrl,
+        })
+
+        console.log("Decoded JWT payload:", payload);
         const userId = payload.id as string;
         const email = payload.email as string;
-        
+
         if (!userId || !email) {
             throw new Error("User ID not found in token payload");
         }

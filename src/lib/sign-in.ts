@@ -1,7 +1,7 @@
 import { authClient } from "./auth-client";
 
 export async function signInWithGithub() {
-    const doIt = await authClient.signIn.social({
+    await authClient.signIn.social({
         /**
          * The social provider id
          * @example "github", "google", "apple"
@@ -26,6 +26,4 @@ export async function signInWithGithub() {
         */
         disableRedirect: false,
     });
-
-    console.log("doIt", doIt);
 }

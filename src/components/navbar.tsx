@@ -12,27 +12,38 @@ export function Navbar() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [name, setName] = useState("User");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const {
-        data: session, isPending, error, refetch } = authClient.useSession();
+    const [isPending, setIsPending] = useState(true);
+
+    async function getSession() {
+        const response = await authClient.getSession({
+            fetchOptions: {
+                onSuccess: (ctx) => {
+                    const jwt = ctx.response.headers.get("set-auth-jwt")
+                    if (jwt) {
+                        localStorage.setItem("token", jwt);
+                    }
+                }
+            }
+        })
+        return response?.data || null;
+    }
 
     async function checkAuth() {
-        console.log("Checking auth...");
-        console.log("Session: ", session);
-
-        if (session && session.user) {
+        setIsPending(true);
+        const sessionData = await getSession();
+        if (sessionData?.user) {
             setIsLoggedIn(true);
-            setName(session.user.name || "User");
-            localStorage.setItem("name", session.user.name);
+            setName(sessionData.user.name || "User");
+            localStorage.setItem("name", sessionData.user.name);
         } else {
             setIsLoggedIn(false);
         }
-    }
 
+        setIsPending(false);
+    }
     useEffect(() => {
-        if (!isPending) {
-            checkAuth();
-        }
-    }, [isDialogOpen, isPending]);
+        checkAuth();
+    }, []);
 
     function handleClick() {
         setIsDialogOpen(true);
