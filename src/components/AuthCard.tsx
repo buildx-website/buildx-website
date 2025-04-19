@@ -1,151 +1,89 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useState } from "react"
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
+import { Github, Loader2, Mail } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+import { signInWithGithub } from "@/lib/sign-in"
 
 export function AuthCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean) => void }) {
-    const [isSignup, setIsSignup] = useState(false);
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState<{
+        github: boolean
+        google: boolean
+    }>({
+        github: false,
+        google: false,
+    })
 
-    function validateForm() {
-        if (isSignup && !name.trim()) {
-            toast.error("Name is required");
-            return false;
-        }
-        if (!email.trim() || !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
-            toast.error("Enter a valid email");
-            return false;
-        }
-        if (password.length < 6) {
-            toast.error("Password must be at least 6 characters");
-            return false;
-        }
-        return true;
-    }
-
-    async function handleSubmit() {
-        if (!validateForm()) return;
-
-        setIsLoading(true);
-        if (isSignup) {
-            await signup();
-        } else {
-            await login();
-        }
-        setIsLoading(false);
-    }
-
-    async function login() {
+    async function handleGithubSignIn() {
         try {
-            const res = await fetch("/api/signin", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-            });
-
-            const data = await res.json();
-            if (res.ok) {
-                localStorage.setItem("token", data.token);
-                localStorage.setItem("name", data.name);
-                setIsDialogOpen(false);
-                toast.success("Logged in successfully");
-            } else {
-                toast.error(data.error);
-            }
-        } catch {
-            toast.error("Something went wrong");
+            setIsLoading((prev) => ({ ...prev, github: true }))
+            await signInWithGithub()
+            setIsDialogOpen(false)
+        } catch (error) {
+            console.error("Something went wrong with GitHub login: ", error)
+            toast.error("Something went wrong with GitHub login")
+        } finally {
+            setIsLoading((prev) => ({ ...prev, github: false }))
         }
     }
 
-    async function signup() {
+    async function handleGoogleSignIn() {
         try {
-            const res = await fetch("/api/signup", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, password }),
-            });
-
-            const data = await res.json();
-            if (res.ok) {
-                toast.success("Account created successfully. Please login");
-            } else {
-                toast.error(data.error);
-            }
-        } catch {
-            toast.error("Something went wrong");
+            setIsLoading((prev) => ({ ...prev, google: true }))
+            // await signIn("google", { callbackUrl: "/" })
+            setIsDialogOpen(false)
+        } catch (error) {
+            console.error("Something went wrong with Google login: ", error)
+            toast.error("Something went wrong with Google login")
+        } finally {
+            setIsLoading((prev) => ({ ...prev, google: false }))
         }
     }
 
     return (
         <>
             <CardHeader>
-                <CardTitle className="text-center text-2xl font-semibold text-gray-800 dark:text-white">
-                    {isSignup ? "Sign Up" : "Login"}
-                </CardTitle>
+                <CardTitle className="text-center text-2xl font-semibold text-gray-800 dark:text-white">Sign in</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-                {isSignup && (
-                    <div className="space-y-2">
-                        <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Name
-                        </Label>
-                        <Input
-                            id="name"
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Enter your name"
-                            className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-400"
-                        />
+                <div className="flex flex-col space-y-3">
+                    <Button
+                        variant="outline"
+                        onClick={handleGithubSignIn}
+                        disabled={isLoading.github}
+                        className="w-full py-6 font-medium rounded-lg transition-all"
+                    >
+                        {isLoading.github ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Github className="mr-2 h-4 w-4" />}
+                        Continue with GitHub
+                    </Button>
+
+                    <Button
+                        variant="outline"
+                        onClick={handleGoogleSignIn}
+                        disabled={isLoading.google}
+                        className="w-full py-6 font-medium rounded-lg transition-all"
+                    >
+                        {isLoading.google ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
+                        Continue with Google
+                    </Button>
+                </div>
+
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                        <Separator className="w-full" />
                     </div>
-                )}
-                <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Email
-                    </Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-400"
-                    />
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">Secure Authentication</span>
+                    </div>
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Password
-                    </Label>
-                    <Input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter your password"
-                        className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-indigo-400"
-                    />
-                </div>
-                <Button
-                    className="w-full py-2 font-medium rounded-lg transition-all"
-                    onClick={handleSubmit}
-                    disabled={isLoading}
-                >
-                    {isLoading ? "Processing..." : isSignup ? "Sign Up" : "Login"}
-                </Button>
-                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                    {isSignup ? "Already have an account? " : "Don't have an account? "}
-                    <button className="text-indigo-300 hover:underline" onClick={() => setIsSignup(!isSignup)}>
-                        {isSignup ? "Login" : "Sign Up"}
-                    </button>
-                </div>
+
+                <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+                    By signing in, you agree to our Terms of Service and Privacy Policy
+                </p>
             </CardContent>
         </>
-    );
+    )
 }
