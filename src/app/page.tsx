@@ -91,7 +91,7 @@ export default function Home() {
   async function getModels() {
     const token = localStorage.getItem("token");
     if (!token) {
-      return toast.error("You need to login first");
+      return;
     }
     const models = await fetch("/api/main/models", {
       method: "GET",
@@ -112,7 +112,7 @@ export default function Home() {
   async function getUserModel() {
     const token = localStorage.getItem("token");
     if (!token) {
-      return toast.error("You need to login first");
+      return;
     }
     const userModel = await fetch("/api/main/user-model", {
       method: "GET",

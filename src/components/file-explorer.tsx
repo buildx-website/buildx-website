@@ -25,7 +25,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { FileType } from "@/types/types"
-import { Button } from "./ui/button"
 
 interface FileExplorerProps {
   files: FileType[]
@@ -42,9 +41,9 @@ export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedF
   const renderFileIcon = (file: FileType) => {
     if (file.type === "directory") {
       return file.isOpen ? (
-        <FolderOpen className="h-4 w-4 text-yellow-400" />
+        <FolderOpen className="h-4 w-4 text-zinc-200" />
       ) : (
-        <FolderClosed className="h-4 w-4 text-yellow-400" />
+        <FolderClosed className="h-4 w-4 text-zinc-200" />
       )
     }
 
@@ -55,50 +54,50 @@ export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedF
       case "ts":
       case "jsx":
       case "js":
-        return <FileCode2 className="h-4 w-4 text-blue-400" />
+        return <FileCode2 className="h-4 w-4 text-zinc-500" />
       case "json":
-        return <FileJson2 className="h-4 w-4 text-yellow-300" />
+        return <FileJson2 className="h-4 w-4 text-zinc-500" />
       case "md":
-        return <FileText className="h-4 w-4 text-gray-400" />
+        return <FileText className="h-4 w-4 text-zinc-500" />
       case "png":
       case "jpg":
       case "jpeg":
       case "gif":
       case "svg":
       case "webp":
-        return <FileImage className="h-4 w-4 text-purple-400" />
+        return <FileImage className="h-4 w-4 text-zinc-500" />
       case "config":
       case "conf":
       case "env":
-        return <FileCog className="h-4 w-4 text-gray-400" />
+        return <FileCog className="h-4 w-4 text-zinc-500" />
       case "zip":
       case "rar":
       case "tar":
       case "gz":
-        return <FileArchive className="h-4 w-4 text-orange-400" />
+        return <FileArchive className="h-4 w-4 text-zinc-500" />
       case "mp3":
       case "wav":
       case "ogg":
-        return <FileAudio className="h-4 w-4 text-green-400" />
+        return <FileAudio className="h-4 w-4 text-zinc-500" />
       case "mp4":
       case "webm":
       case "mov":
-        return <FileVideo className="h-4 w-4 text-red-400" />
+        return <FileVideo className="h-4 w-4 text-zinc-500" />
       case "csv":
       case "xls":
       case "xlsx":
-        return <FileSpreadsheet className="h-4 w-4 text-green-600" />
+        return <FileSpreadsheet className="h-4 w-4 text-zinc-500" />
       case "html":
       case "css":
-        return <FileType2 className="h-4 w-4 text-orange-500" />
+        return <FileType2 className="h-4 w-4 text-zinc-500" />
       case "pdf":
-        return <FilePieChart className="h-4 w-4 text-red-500" />
+        return <FilePieChart className="h-4 w-4 text-zinc-500" />
       case "py":
       case "rb":
       case "php":
-        return <FileBarChart2 className="h-4 w-4 text-blue-600" />
+        return <FileBarChart2 className="h-4 w-4 text-zinc-500" />
       default:
-        return <File className="h-4 w-4 text-gray-400" />
+        return <File className="h-4 w-4 text-zinc-500" />
     }
   }
 
@@ -196,17 +195,16 @@ export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedF
 
   return (
     <div className="h-full bg-black/40 overflow-y-auto flex flex-col">
-      <div className="p-3 text-sm font-semibold text-gray-300 border-b border-[#333333] bg-black/40 sticky top-0 z-10 flex items-center justify-between">
-        <span>EXPLORER</span>
-        <Button
-          variant="ghost"
-          className="text-gray-400 hover:text-gray-200"
+      <div className="px-3 py-2 text-sm font-semibold text-gray-300 border-b border-[#333333] bg-black/40 sticky top-0 z-10 flex items-center justify-between">
+        <span>Explorer</span>
+        <button
+          className="text-gray-400 hover:text-gray-200 p-1.5"
           onClick={() => {
             reloadFileTree()
           }}
         >
           <RotateCcw className="h-4 w-4 spin" />
-        </Button>
+        </button>
       </div>
       <div className="flex-1 py-1">
         {files.length > 0 ? (

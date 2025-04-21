@@ -12,11 +12,8 @@ import { SendPrompt } from "@/components/SendPrompt";
 import { Content, Message, } from "@/types/types";
 import { StepList } from "@/components/StepList";
 import { MessageComponent } from "@/components/Messages";
-import { useFileStore } from "@/store/filesAtom";
 import { User } from "@/components/User";
-import { Web2 } from "@/components/Web2";
 import { extractAndParseStepsFromMessages } from "@/lib/extract-parse-steps";
-import { handleDownload } from "@/lib/download-project";
 import Sidebar from "@/components/Sidebar";
 import { startNewContainer } from "@/lib/worker-config";
 import { ArtifactParser } from "@/lib/artifactParser";
@@ -24,14 +21,15 @@ import { ArtifactParser } from "@/lib/artifactParser";
 export default function Editor() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [showPreview, setShowPreview] = useState<boolean>(true);
+    const [showPreview, setShowPreview] = useState<boolean>(false);
     const { messages, addMessage, setMessages } = useMessagesStore();
     const { steps, setSteps, addSteps } = useStepsStore();
-    const { files } = useFileStore();
+
     const [prompt, setPrompt] = useState("");
     const [framework, setFramework] = useState<string>("");
 
     const [containerId, setContainerId] = useState<string>("");
+    const [containerStatus, setContainerStatus] = useState<string>("");
 
     const [initialLoadComplete, setInitialLoadComplete] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
@@ -146,12 +144,14 @@ export default function Editor() {
         const startContainer = async () => {
             try {
                 const image = project?.framework === "REACT" ? "buildx-react" : "null";
+                console.log("Image: ", image);
                 console.log("Starting container with image:", image);
 
                 const data = await startNewContainer(image, "tail -f /dev/null");
                 console.log("Container started", data);
 
                 setContainerId(data.containerId);
+                setContainerStatus(data.status);
 
             } catch (error) {
                 console.error("Error starting container:", error);
@@ -159,99 +159,6 @@ export default function Editor() {
         }
         startContainer();
     }, [project])
-
-
-    // useEffect(() => {
-    //     let originalFiles = [...files];
-    //     let updateHappened = false;
-
-    //     steps.filter(({ status }) => status === "pending").map(step => {
-    //         updateHappened = true;
-
-    //         if (step?.type === StepType.CreateFile) {
-    //             let parsedPath = step.path?.split("/") ?? [];
-    //             let currentFileStructure = [...originalFiles];
-    //             const finalAnswerRef = currentFileStructure;
-
-    //             let currentFolder = ""
-    //             while (parsedPath.length) {
-    //                 currentFolder = `${currentFolder}/${parsedPath[0]}`;
-    //                 const currentFolderName = parsedPath[0];
-    //                 parsedPath = parsedPath.slice(1);
-
-
-    //                 if (!parsedPath.length) {
-    //                     const file = currentFileStructure.find(x => x.id === currentFolder);
-
-    //                     if (!file) {
-    //                         currentFileStructure.push({
-    //                             id: currentFolder,
-    //                             name: currentFolderName,
-    //                             type: 'file',
-    //                             path: currentFolder,
-    //                             content: step.code
-    //                         })
-    //                     } else {
-    //                         file.content = step.code;
-    //                     }
-    //                 } else {
-    //                     const folder = currentFileStructure.find(x => x.path === currentFolder)
-    //                     if (!folder) {
-    //                         currentFileStructure.push({
-    //                             id: currentFolder,
-    //                             name: currentFolderName,
-    //                             type: 'directory',
-    //                             path: currentFolder,
-    //                             children: []
-    //                         })
-    //                     }
-    //                     currentFileStructure = currentFileStructure.find(x => x.path === currentFolder)!.children!;
-    //                 }
-    //             }
-    //             originalFiles = finalAnswerRef;
-    //         }
-
-    //     })
-    //     if (updateHappened) {
-    //         setFiles(originalFiles)
-    //         const updatedSteps: Step[] = steps.map(step => {
-    //             if (step.status === "pending") {
-    //                 if (step.type === StepType.RunScript) {
-    //                     return { ...step, status: "in-progress" }
-    //                 }
-    //                 return { ...step, status: "completed" }
-    //             }
-    //             return step;
-    //         })
-    //         setSteps(updatedSteps);
-    //     }
-    // }, [steps, files, setFiles, setSteps]);
-
-    // useEffect(() => {
-    //     if (!webcontainer) return;
-    //     const createFileSystemTree = (files: FileType[]): FileSystemTree => {
-    //         const result: FileSystemTree = {};
-    //         for (const file of files) {
-    //             if (file.type === "file") {
-    //                 result[file.name] = {
-    //                     file: {
-    //                         contents: file.content || ''
-    //                     }
-    //                 };
-    //             } else if (file.type === "directory") {
-    //                 result[file.name] = {
-    //                     directory: file.children ? createFileSystemTree(file.children) : {}
-    //                 };
-    //             }
-    //         }
-    //         return result;
-    //     };
-    //     const mountFiles = createFileSystemTree(files);
-    //     // console.log(mountFiles);
-    //     webcontainer.mount(mountFiles);
-
-    // }, [files, webcontainer]);
-
 
     useEffect(() => {
         if (conversationRef.current) {
@@ -291,7 +198,7 @@ export default function Editor() {
 
             console.log("Framework: ", project?.framework);
 
-            const response = await fetch('/api/main/chat', {
+            const response = await fetch('/api/main/chat-test', {
                 method: 'POST',
                 body: JSON.stringify({
                     messages,
@@ -326,7 +233,7 @@ export default function Editor() {
                 const newStep = artifactParser.getStep();
                 const currentAction = artifactParser.getCurrentActionTitle();
                 if (currentAction) {
-                    console.log("Current action: ", currentAction);
+                    // console.log("Current action: ", currentAction);
                     setCurrentActionBuilding(currentAction);
                 }
                 if (newStep) {
@@ -393,7 +300,7 @@ export default function Editor() {
                 }
             }
             const currentAction = artifactParser.getCurrentActionTitle();
-            console.log("Current action222: ", currentAction);
+            // console.log("Current action222: ", currentAction);
             setCurrentActionBuilding(currentAction);
 
             const newMsg: Message = {
@@ -472,7 +379,7 @@ export default function Editor() {
 
     return (
         <div className="flex flex-row h-screen">
-            <Sidebar />
+            {/* <Sidebar /> */}
             <main className="h-screen flex flex-col md:grid md:grid-cols-4 gap-3 p-3 bg-[#121212] overflow-hidden w-full">
                 <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col rounded-xl overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-lg">
                     <div className="p-4 border-b border-gray-800">
@@ -492,7 +399,7 @@ export default function Editor() {
                 </div>
 
                 <div className="flex-1 md:col-span-3 flex flex-col bg-[#1e1e1e] text-white rounded-xl overflow-hidden border border-gray-800 shadow-lg">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 p-4 gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-4">
                         <div className="flex items-center gap-3 sm:gap-6">
                             <span
 
@@ -521,7 +428,7 @@ export default function Editor() {
                                 variant="outline"
                                 className="border-gray-700 hover:bg-gray-800"
                                 onClick={() => {
-                                    handleDownload(files, projectId);
+                                    // handleDownload(files, projectId);
                                 }}
                             >
                                 <Download size={16} />
@@ -530,13 +437,22 @@ export default function Editor() {
                         </div>
                     </div>
 
-                    <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
-                        <EditorInterface containerId={containerId} />
-                    </div>
+                    { }
 
-                    <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
-                        {/* <Web2 webcontainer={null} url={url} setUrl={setUrl} />  */}
-                    </div>
+                    {containerStatus == "running" && (
+                        <>
+                            <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
+                                <EditorInterface containerId={containerId} />
+                            </div>
+
+                            <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
+                                {/* <Web2 webcontainer={null} url={url} setUrl={setUrl} />  */}
+                            </div>
+                        </>
+                    )}
+
+
+
                 </div>
             </main>
         </div>

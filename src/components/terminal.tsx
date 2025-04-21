@@ -6,23 +6,22 @@ import { Terminal } from "xterm"
 import { FitAddon } from "xterm-addon-fit"
 import { WebLinksAddon } from "xterm-addon-web-links"
 import "xterm/css/xterm.css"
-import { Maximize2, Minimize2, } from "lucide-react"
 
 type TerminalProps = {
     containerId: string
     autoFocus?: boolean
+    startCmd: string | null
 }
 
-const TerminalComponent: React.FC<TerminalProps> = ({ containerId, autoFocus = true }) => {
+const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: TerminalProps) => {
     const xtermRef = useRef<HTMLDivElement | null>(null)
     const terminal = useRef<Terminal | null>(null)
     const fitAddon = useRef<FitAddon | null>(null)
-    const [status, setStatus] = useState<"connecting" | "connected" | "error" | "disconnected">("connecting")
-    const [isFullscreen, setIsFullscreen] = useState(false)
+    const socketRef = useRef<WebSocket | null>(null)
+    const prevStartCmdRef = useRef<string | null>(null)
 
-    // Define theme colors - dark theme only now
     const getThemeColors = () => ({
-        background: "#09090b", // Darker background
+        background: "#09090b",
         foreground: "#e2e2e5",
         cursor: "#a1a1aa",
         selection: "#27272a",
@@ -73,9 +72,9 @@ const TerminalComponent: React.FC<TerminalProps> = ({ containerId, autoFocus = t
 
         // Connect to WebSocket
         const socket = new WebSocket(`ws://localhost:8080`)
+        socketRef.current = socket
 
         socket.onopen = () => {
-            setStatus("connected")
             socket.send(JSON.stringify({ type: "start", containerId }))
         }
 
@@ -86,12 +85,10 @@ const TerminalComponent: React.FC<TerminalProps> = ({ containerId, autoFocus = t
         }
 
         socket.onerror = () => {
-            setStatus("error")
             term.writeln("\r\n\x1b[31m Connection error. Please try again later.\x1b[0m\r\n")
         }
 
         socket.onclose = () => {
-            setStatus("disconnected")
             term.writeln("\r\n\x1b[33m Connection closed\x1b[0m\r\n")
         }
 
@@ -100,74 +97,60 @@ const TerminalComponent: React.FC<TerminalProps> = ({ containerId, autoFocus = t
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(data)
             }
-        })
-
-        // Handle window resize
-        const handleResize = () => {
-            if (fitAddon.current) {
-                fitAddon.current.fit()
-            }
-        }
-
-        window.addEventListener("resize", handleResize)
-
-        // Handle fullscreen change
-        const handleFullscreenChange = () => {
-            setIsFullscreen(document.fullscreenElement !== null)
-            setTimeout(handleResize, 100)
-        }
-
-        document.addEventListener("fullscreenchange", handleFullscreenChange)
+        });
 
         // Clean up
         return () => {
             socket.close()
             terminal.current?.dispose()
-            window.removeEventListener("resize", handleResize)
-            document.removeEventListener("fullscreenchange", handleFullscreenChange)
+            socketRef.current = null
         }
-    }, [containerId, autoFocus])
+    }, [containerId])
 
-    // Toggle fullscreen
-    const toggleFullscreen = () => {
-        if (!isFullscreen) {
-            xtermRef.current?.parentElement?.requestFullscreen()
-        } else {
-            document.exitFullscreen()
+    useEffect(() => {
+        if (startCmd === prevStartCmdRef.current) return;
+        
+        if (!startCmd || !socketRef.current || !terminal.current) {
+            prevStartCmdRef.current = startCmd;
+            return;
         }
-    }
-
-    // Status indicator components
-    const statusIndicators = {
-        connecting: { color: "bg-amber-500" },
-        connected: {  color: "bg-emerald-500" },
-        error: {  color: "bg-red-500" },
-        disconnected: {  color: "bg-red-400" },
-    }
+        
+        const socket = socketRef.current;
+        
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send('\x03');
+            
+            setTimeout(() => {
+                const cmd = `clear && cd /app && ${startCmd}`;
+                terminal.current?.write(`${cmd}\r\n`);
+                socket.send(`${cmd}\r`);
+                socket.send('\n');
+            }, 1000);
+        }
+        
+        prevStartCmdRef.current = startCmd;
+    }, [startCmd])
 
     return (
-        <div className={`overflow-hidden ${isFullscreen ? "fixed inset-0 z-50 bg-zinc-900" : ""} border-t border-zinc-800`}>
-            <div className="flex justify-between w-full p-2">
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-zinc-200 font-heading">Terminal</span>
-                    <span className={`w-3 h-3 ${statusIndicators[status].color} rounded-full animate-pulse my-auto`}></span>
-                </div>
-                <div className={`flex justify-end gap-3`}>
-                    {/* show dot */}
-                    <button
-                        onClick={toggleFullscreen}
-                        className="text-zinc-400 hover:text-zinc-50 transition-colors"
-                        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-                    >
-                        {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                    </button>
-                </div>
+        <div className="overflow-hidden border-t border-zinc-800">
+            <div className="px-3 py-1 text-sm font-semibold text-gray-300 border-b border-[#333333] bg-black/40 sticky top-0 z-10 flex items-center justify-between">
+                <span>Terminal</span>
+                <button
+                    className="text-gray-400 hover:text-gray-200 p-1"
+                    onClick={() => {
+                        if (terminal.current) {
+                            terminal.current.clear()
+                        }
+                    }}
+                >
+                    <span className="text-gray-400 hover:text-gray-200">Clear</span>
+                </button>
             </div>
             <div
                 ref={xtermRef}
                 className="terminal-container"
                 style={{
-                    height: isFullscreen ? "calc(100vh - 40px)" : "500px",
+                    height: "500px",
                     width: "100%",
                     backgroundColor: getThemeColors().background,
                     padding: "4px",
@@ -180,4 +163,4 @@ const TerminalComponent: React.FC<TerminalProps> = ({ containerId, autoFocus = t
     )
 }
 
-export default TerminalComponent
+export default MainTerminalComponent

@@ -4,13 +4,83 @@ import { FileExplorer } from "@/components/file-explorer"
 import { CodeEditor } from "@/components/code-editor"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { BlocksIcon } from "lucide-react"
-import { getFileTree } from "@/lib/worker-config"
-import type { FileType } from "@/types/types"
+import { execCmd, getFileTree, saveOrCreateFileContent } from "@/lib/worker-config"
+import { StepType, type FileType, type Step } from "@/types/types"
 import TerminalComponent from "@/components/terminal"
+import { useStepsStore } from "@/store/initialStepsAtom"
+import { toast } from "sonner"
 
 export function EditorInterface({ containerId }: { containerId: string }) {
-  const [files, setFiles] = useState<FileType[]>([])
-  const [selectedFile, setSelectedFile] = useState<FileType | null>(null)
+  const [files, setFiles] = useState<FileType[]>([]);
+  const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
+  const { steps, updateStep } = useStepsStore();
+  const [startCmd, setStartCmd] = useState<string | null>(null);
+
+  async function executeFileCreateStep(step: Step) {
+    if (!step.path && !step.code) return;
+    if (step.status === "in-progress" || step.status === "completed") return;
+
+    updateStep({ ...step, status: "in-progress" });
+    try {
+      if (step.status !== "pending") return;
+      const split = step.path?.split("/");
+      const fileName = split ? split[split.length - 1] : step.path;
+      let filePath = "/app";
+      if (split && split.length > 1) {
+        filePath = split.slice(0, split.length - 1).join("/") + "/";
+      }
+
+      const response = await saveOrCreateFileContent(
+        containerId,
+        filePath,
+        fileName || "Undefined.txt",
+        step.code || ""
+      );
+
+      if (response.success) {
+        console.log("File created successfully:", fileName);
+        updateStep({ ...step, status: "completed" });
+      }
+
+    } catch (error) {
+      console.error("Error creating file:", error);
+      updateStep({ ...step, status: "failed" });
+    }
+  }
+
+  useEffect(() => {
+    const executeSteps = async () => {
+      for (const step of steps) {
+        if (step.status === "pending" && step.type === StepType.CreateFile) {
+          await executeFileCreateStep(step);
+        } else if (step.status === "pending" && step.type === StepType.RunScript) {
+          updateStep({ ...step, status: "in-progress" });
+          try {
+            if (step.code == "npm run dev" || step.code == "npm start") {
+              setStartCmd(step.code);
+              updateStep({ ...step, status: "completed" });
+            } else {
+              const response = await execCmd(containerId, `${step.code}`, "/app");
+              if (response.success) {
+                toast.success("Command executed successfully: " + step.code);
+                updateStep({ ...step, status: "completed" });
+              } else {
+                toast.error("Command execution failed: " + step.code);
+                updateStep({ ...step, status: "failed" });
+              }
+            }
+          } catch (error) {
+            console.error("Error executing command:", error);
+            updateStep({ ...step, status: "failed" });
+          }
+        }
+      }
+      await reloadFileTree();
+    };
+    executeSteps();
+    reloadFileTree();
+  }, [containerId]);
+
 
   async function reloadFileTree() {
     if (!containerId) return
@@ -132,40 +202,40 @@ export function EditorInterface({ containerId }: { containerId: string }) {
       {/* Main content area */}
       <div className="flex-1">
         <ResizablePanelGroup direction="vertical">
-        <ResizablePanel defaultSize={70} minSize={5} maxSize={80}>
+          <ResizablePanel defaultSize={70} minSize={5} maxSize={80}>
 
-          <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel defaultSize={20} minSize={5} maxSize={40}>
-              <FileExplorer
-                files={files}
-                onFileSelect={handleFileSelect}
-                onToggleDirectory={handleDirectoryToggle}
-                selectedFile={selectedFile}
-                reloadFileTree={reloadFileTree}
-              />
-            </ResizablePanel>
-            <ResizableHandle />
-            <ResizablePanel defaultSize={80}>
-              {selectedFile ? (
-                <CodeEditor file={selectedFile} containerId={containerId} />
-              ) : (
-                <div className="flex items-center justify-center h-full bg-zinc-900 text-gray-300">
-                  <div className="text-center p-6">
-                    <BlocksIcon size={64} className="mx-auto mb-4 text-gray-400" />
-                    <h2 className="text-2xl font-light mb-2 text-gray-200">Welcome to the Editor</h2>
-                    <p className="text-gray-400">Select a file from the explorer to start editing</p>
+            <ResizablePanelGroup direction="horizontal">
+              <ResizablePanel defaultSize={20} minSize={5} maxSize={40}>
+                <FileExplorer
+                  files={files}
+                  onFileSelect={handleFileSelect}
+                  onToggleDirectory={handleDirectoryToggle}
+                  selectedFile={selectedFile}
+                  reloadFileTree={reloadFileTree}
+                />
+              </ResizablePanel>
+              <ResizableHandle />
+              <ResizablePanel defaultSize={80}>
+                {selectedFile ? (
+                  <CodeEditor file={selectedFile} containerId={containerId} />
+                ) : (
+                  <div className="flex items-center justify-center h-full bg-zinc-900 text-gray-300">
+                    <div className="text-center p-6">
+                      <BlocksIcon size={64} className="mx-auto mb-4 text-gray-400" />
+                      <h2 className="text-2xl font-light mb-2 text-gray-200">Welcome to the Editor</h2>
+                      <p className="text-gray-400">Select a file from the explorer to start editing</p>
+                    </div>
                   </div>
-                </div>
-              )}
-            </ResizablePanel>
-          </ResizablePanelGroup>
+                )}
+              </ResizablePanel>
+            </ResizablePanelGroup>
 
           </ResizablePanel>
 
           <ResizableHandle />
 
           <ResizablePanel defaultSize={30} minSize={5} maxSize={90}>
-          <TerminalComponent containerId={containerId} />
+            <TerminalComponent containerId={containerId} startCmd={startCmd} />
           </ResizablePanel>
 
         </ResizablePanelGroup>

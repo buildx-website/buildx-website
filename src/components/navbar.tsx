@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AuthCard } from "./AuthCard";
 import { UserCard } from "./UserCard";
 import { BlocksIcon, UserRound, UserRoundCheck } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
 
 export function Navbar() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -14,31 +13,19 @@ export function Navbar() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isPending, setIsPending] = useState(true);
 
-    async function getSession() {
-        const response = await authClient.getSession({
-            fetchOptions: {
-                onSuccess: (ctx) => {
-                    const jwt = ctx.response.headers.get("set-auth-jwt")
-                    if (jwt) {
-                        localStorage.setItem("token", jwt);
-                    }
-                }
-            }
-        })
-        return response?.data || null;
-    }
-
     async function checkAuth() {
         setIsPending(true);
-        const sessionData = await getSession();
-        if (sessionData?.user) {
-            setIsLoggedIn(true);
-            setName(sessionData.user.name || "User");
-            localStorage.setItem("name", sessionData.user.name);
-        } else {
+        const token = localStorage.getItem("token");
+        if (!token) {
             setIsLoggedIn(false);
+            setIsPending(false);
+            return;
         }
-
+        const name = localStorage.getItem("name");
+        if (name) {
+            setName(name);
+        }
+        setIsLoggedIn(true);
         setIsPending(false);
     }
     useEffect(() => {

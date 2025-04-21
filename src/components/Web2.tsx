@@ -6,7 +6,7 @@ import { useStepsStore } from "@/store/initialStepsAtom";
 import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 import { Button } from "./ui/button";
-import { CustomTerminal } from "./CustomTerminal";
+// import { CustomTerminal } from "./CustomTerminal";
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Web2Props {
@@ -374,7 +374,7 @@ export function Web2({ webcontainer, url, setUrl }: Web2Props) {
                             className={`w-full h-full bg-[#212121] p-2 ${activeTab === 'console' ? 'block' : 'hidden'}`}
                         />
                         <div className={`w-full h-full bg-[#212121] p-2 ${activeTab === 'terminal' ? 'block' : 'hidden'}`}>
-                            <CustomTerminal webcontainer={webcontainer} />
+                            {/* <CustomTerminal webcontainer={webcontainer} /> */}
                         </div>
                     </Tabs>
                 </div>
