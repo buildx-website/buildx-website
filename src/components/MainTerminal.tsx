@@ -1,6 +1,5 @@
 "use client"
 
-import { streamExac } from "@/lib/worker-config"
 import type React from "react"
 import { useEffect, useRef } from "react"
 import { Terminal } from "xterm"
@@ -8,17 +7,15 @@ import { FitAddon } from "xterm-addon-fit"
 import { WebLinksAddon } from "xterm-addon-web-links"
 import "xterm/css/xterm.css"
 
-
 type TerminalProps = {
     containerId: string
     autoFocus?: boolean
 }
 
-const CustomTerminalComponent: React.FC<TerminalProps> = ({ containerId, autoFocus = true }) => {
+const MainTerminalComponent: React.FC<TerminalProps> = ({ containerId, autoFocus = true }) => {
     const xtermRef = useRef<HTMLDivElement | null>(null)
     const terminal = useRef<Terminal | null>(null)
     const fitAddon = useRef<FitAddon | null>(null)
-    const childProcessRef = useRef<AbortController | null>(null)
 
     const getThemeColors = () => ({
         background: "#09090b",
@@ -36,6 +33,7 @@ const CustomTerminalComponent: React.FC<TerminalProps> = ({ containerId, autoFoc
     })
 
     useEffect(() => {
+        // Initialize XTerm.js
         const term = new Terminal({
             cursorBlink: true,
             fontFamily: "'JetBrains Mono', monospace",
@@ -55,9 +53,11 @@ const CustomTerminalComponent: React.FC<TerminalProps> = ({ containerId, autoFoc
         fitAddon.current = new FitAddon()
         const webLinksAddon = new WebLinksAddon()
 
+        // Add addons
         term.loadAddon(fitAddon.current)
         term.loadAddon(webLinksAddon)
 
+        // Open terminal and fit to container
         if (xtermRef.current) {
             term.open(xtermRef.current)
             fitAddon.current.fit()
@@ -67,58 +67,44 @@ const CustomTerminalComponent: React.FC<TerminalProps> = ({ containerId, autoFoc
             }
         }
 
-        term.onKey(({ key }) => {
-            if (key === '\x03' && childProcessRef.current) {
-                childProcessRef.current.abort();
-                childProcessRef.current = null;
-                term.write('^C\r\n');
-            }
-        });
+        // Connect to WebSocket
+        const socket = new WebSocket(`ws://localhost:8080`)
 
-        async function runCommand(command: string, workdir: string = "/app") {
-            try {
-                childProcessRef.current = new AbortController();
+        socket.onopen = () => {
+            socket.send(JSON.stringify({ type: "start", containerId }))
+        }
 
-                term.write(`$ ${command}\r\n`);
-
-                const stream = await streamExac(containerId, command, workdir);
-                const reader = stream.getReader();
-
-                while (true) {
-                    if (childProcessRef.current === null) {
-                        reader.cancel();
-                        break;
-                    }
-
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    const text = new TextDecoder().decode(value);
-                    term.write(text);
-                }
-
-                childProcessRef.current = null;
-            } catch (error) {
-                term.write(`\r\nError: ${error instanceof Error ? error.message : String(error)}\r\n`);
-                childProcessRef.current = null;
+        socket.onmessage = (event) => {
+            if (terminal.current) {
+                terminal.current.write(event.data)
             }
         }
 
-        if (window) {
-            (window as typeof window & { runTerminalCommand?: (cmd: string, dir: string) => void }).runTerminalCommand = (cmd: string, dir: string) => runCommand(cmd, dir);
+        socket.onerror = () => {
+            term.writeln("\r\n\x1b[31m Connection error. Please try again later.\x1b[0m\r\n")
         }
 
+        socket.onclose = () => {
+            term.writeln("\r\n\x1b[33m Connection closed\x1b[0m\r\n")
+        }
+
+        // Send terminal input to WebSocket
+        term.onData((data) => {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(data)
+            }
+        })
+
+
+        // Clean up
         return () => {
+            socket.close()
             terminal.current?.dispose()
-
-            if (childProcessRef.current) {
-                childProcessRef.current.abort();
-            }
         }
-    }, [containerId, autoFocus])
+    }, [containerId])
 
     return (
-        <div className={`overflow-hidden  border-t border-zinc-800`}>
+        <div className={`overflow-hidden border-t border-zinc-800`}>
             <div
                 ref={xtermRef}
                 className="terminal-container"
@@ -136,4 +122,4 @@ const CustomTerminalComponent: React.FC<TerminalProps> = ({ containerId, autoFoc
     )
 }
 
-export default CustomTerminalComponent
+export default MainTerminalComponent

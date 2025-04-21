@@ -67,3 +67,33 @@ export async function saveOrCreateFileContent(containerId: string, workingDir: s
     const data = await response.json()
     return data;
 }
+
+export async function streamExac(containerId: string, command: string, workdir: string) {
+    try {
+        const response = await fetch(`${WORKER_URL}/exec/stream`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({
+                containerId,
+                command,
+                workdir,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Stream failed: ${errorData.error || response.statusText}`);
+        }
+
+        if (!response.body) {
+            throw new Error("Response body is null");
+        }
+        return response.body;
+    } catch (error) {
+        console.error("Error in streamExac:", error);
+        throw error;
+    }
+}
