@@ -14,7 +14,6 @@ export function extractAndParseStepsFromMessages(messages: Message[]): Step[] {
             }
         });
 
-        console.log("Full text from message:", fullText);
         const artifactParser = new ArtifactParser();
         const newSteps: Step[] = [];
         artifactParser.addChunk(fullText);

@@ -25,7 +25,6 @@ export async function getFileTree(containerId: string, path: string) {
         }
     });
     const data = await response.json();
-    console.log("File tree", data);
 
     return data;
 }
