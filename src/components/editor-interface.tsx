@@ -14,49 +14,49 @@ export function EditorInterface({ containerId }: { containerId: string }) {
   const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
   const { steps, updateStep } = useStepsStore();
 
-async function executeFileCreateStep(step: Step) {
-  if (!step.path && !step.code) return;
-  if (step.status === "in-progress" || step.status === "completed") return;
+  async function executeFileCreateStep(step: Step) {
+    if (!step.path && !step.code) return;
+    if (step.status === "in-progress" || step.status === "completed") return;
 
-  updateStep({ ...step, status: "in-progress" });
-  try {
-    if (step.status !== "pending") return;
-    const split = step.path?.split("/");
-    const fileName = split ? split[split.length - 1] : step.path;
-    let filePath = "/app";
-    if (split && split.length > 1) {
-      filePath = split.slice(0, split.length - 1).join("/") + "/";
-    }
-
-    const response = await saveOrCreateFileContent(
-      containerId,
-      filePath,
-      fileName || "Undefined.txt",
-      step.code || ""
-    );
-
-    if (response.success) {
-      console.log("File created successfully:", fileName);
-      updateStep({ ...step, status: "completed" });
-    }
-
-  } catch (error) {
-    console.error("Error creating file:", error);
-    updateStep({ ...step, status: "failed" });
-  }
-}
-
-useEffect(() => {
-  const executeSteps = async () => {
-    for (const step of steps) {
-      if (step.status === "pending" && step.type === StepType.CreateFile) {
-        await executeFileCreateStep(step);
+    updateStep({ ...step, status: "in-progress" });
+    try {
+      if (step.status !== "pending") return;
+      const split = step.path?.split("/");
+      const fileName = split ? split[split.length - 1] : step.path;
+      let filePath = "/app";
+      if (split && split.length > 1) {
+        filePath = split.slice(0, split.length - 1).join("/") + "/";
       }
+
+      const response = await saveOrCreateFileContent(
+        containerId,
+        filePath,
+        fileName || "Undefined.txt",
+        step.code || ""
+      );
+
+      if (response.success) {
+        console.log("File created successfully:", fileName);
+        updateStep({ ...step, status: "completed" });
+      }
+
+    } catch (error) {
+      console.error("Error creating file:", error);
+      updateStep({ ...step, status: "failed" });
     }
-    await reloadFileTree();
-  };
-  executeSteps();
-}, [containerId]);
+  }
+
+  useEffect(() => {
+    const executeSteps = async () => {
+      for (const step of steps) {
+        if (step.status === "pending" && step.type === StepType.CreateFile) {
+          await executeFileCreateStep(step);
+        }
+      }
+      await reloadFileTree();
+    };
+    executeSteps();
+  }, [containerId]);
 
 
 
