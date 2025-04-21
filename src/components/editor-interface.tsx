@@ -4,15 +4,17 @@ import { FileExplorer } from "@/components/file-explorer"
 import { CodeEditor } from "@/components/code-editor"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { BlocksIcon } from "lucide-react"
-import { getFileTree, saveOrCreateFileContent } from "@/lib/worker-config"
+import { execCmd, getFileTree, saveOrCreateFileContent } from "@/lib/worker-config"
 import { StepType, type FileType, type Step } from "@/types/types"
 import TerminalComponent from "@/components/terminal"
 import { useStepsStore } from "@/store/initialStepsAtom"
+import { toast } from "sonner"
 
 export function EditorInterface({ containerId }: { containerId: string }) {
   const [files, setFiles] = useState<FileType[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
   const { steps, updateStep } = useStepsStore();
+  const [startCmd, setStartCmd] = useState<string | null>(null);
 
   async function executeFileCreateStep(step: Step) {
     if (!step.path && !step.code) return;
@@ -51,14 +53,33 @@ export function EditorInterface({ containerId }: { containerId: string }) {
       for (const step of steps) {
         if (step.status === "pending" && step.type === StepType.CreateFile) {
           await executeFileCreateStep(step);
+        } else if (step.status === "pending" && step.type === StepType.RunScript) {
+          updateStep({ ...step, status: "in-progress" });
+          try {
+            if (step.code == "npm run dev" || step.code == "npm start") {
+              setStartCmd(step.code);
+              updateStep({ ...step, status: "completed" });
+            } else {
+              const response = await execCmd(containerId, `${step.code}`, "/app");
+              if (response.success) {
+                toast.success("Command executed successfully: " + step.code);
+                updateStep({ ...step, status: "completed" });
+              } else {
+                toast.error("Command execution failed: " + step.code);
+                updateStep({ ...step, status: "failed" });
+              }
+            }
+          } catch (error) {
+            console.error("Error executing command:", error);
+            updateStep({ ...step, status: "failed" });
+          }
         }
       }
       await reloadFileTree();
     };
     executeSteps();
+    reloadFileTree();
   }, [containerId]);
-
-
 
 
   async function reloadFileTree() {
@@ -214,7 +235,7 @@ export function EditorInterface({ containerId }: { containerId: string }) {
           <ResizableHandle />
 
           <ResizablePanel defaultSize={30} minSize={5} maxSize={90}>
-            <TerminalComponent containerId={containerId} />
+            <TerminalComponent containerId={containerId} startCmd={startCmd} />
           </ResizablePanel>
 
         </ResizablePanelGroup>

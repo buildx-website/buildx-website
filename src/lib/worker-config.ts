@@ -97,3 +97,34 @@ export async function streamExac(containerId: string, command: string, workdir: 
         throw error;
     }
 }
+
+export async function execCmd(containerId: string, command: string, workdir: string) {
+    try {
+        const response = await fetch(`${WORKER_URL}/exec`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({
+                containerId,
+                command,
+                workdir,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Execution failed: ${errorData.error || response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error in execCmd:", error);
+        return {
+            sucess: false,
+            error: error instanceof Error ? error.message : String(error),
+        }
+    }
+}

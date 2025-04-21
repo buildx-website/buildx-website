@@ -1,59 +1,166 @@
 "use client"
 
-import React, { useState } from "react"
-import MainTerminalComponent from "./MainTerminal"
-import CustomTerminalComponent from "./CustomTerminal"
+import type React from "react"
+import { useEffect, useRef, useState } from "react"
+import { Terminal } from "xterm"
+import { FitAddon } from "xterm-addon-fit"
+import { WebLinksAddon } from "xterm-addon-web-links"
+import "xterm/css/xterm.css"
 
 type TerminalProps = {
     containerId: string
+    autoFocus?: boolean
+    startCmd: string | null
 }
 
-const TerminalComponent: React.FC<TerminalProps> = ({ containerId }) => {
-    const [activeTab, setActiveTab] = useState<'main' | 'custom'>('main');
+const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: TerminalProps) => {
+    const xtermRef = useRef<HTMLDivElement | null>(null)
+    const terminal = useRef<Terminal | null>(null)
+    const fitAddon = useRef<FitAddon | null>(null)
+    const socketRef = useRef<WebSocket | null>(null)
+    const prevStartCmdRef = useRef<string | null>(null)
+
+    const getThemeColors = () => ({
+        background: "#09090b",
+        foreground: "#e2e2e5",
+        cursor: "#a1a1aa",
+        selection: "#27272a",
+        black: "#09090b",
+        red: "#f87171",
+        green: "#4ade80",
+        yellow: "#facc15",
+        blue: "#60a5fa",
+        magenta: "#c084fc",
+        cyan: "#22d3ee",
+        white: "#e2e2e5",
+    })
+
+    useEffect(() => {
+        // Initialize XTerm.js
+        const term = new Terminal({
+            cursorBlink: true,
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 14,
+            rows: 24,
+            cols: 80,
+            lineHeight: 1.2,
+            scrollback: 5000,
+            theme: getThemeColors(),
+            allowTransparency: true,
+            cursorStyle: "bar",
+            cursorWidth: 2,
+            screenReaderMode: true,
+        })
+
+        terminal.current = term
+        fitAddon.current = new FitAddon()
+        const webLinksAddon = new WebLinksAddon()
+
+        // Add addons
+        term.loadAddon(fitAddon.current)
+        term.loadAddon(webLinksAddon)
+
+        // Open terminal and fit to container
+        if (xtermRef.current) {
+            term.open(xtermRef.current)
+            fitAddon.current.fit()
+
+            if (autoFocus) {
+                term.focus()
+            }
+        }
+
+        // Connect to WebSocket
+        const socket = new WebSocket(`ws://localhost:8080`)
+        socketRef.current = socket
+
+        socket.onopen = () => {
+            socket.send(JSON.stringify({ type: "start", containerId }))
+        }
+
+        socket.onmessage = (event) => {
+            if (terminal.current) {
+                terminal.current.write(event.data)
+            }
+        }
+
+        socket.onerror = () => {
+            term.writeln("\r\n\x1b[31m Connection error. Please try again later.\x1b[0m\r\n")
+        }
+
+        socket.onclose = () => {
+            term.writeln("\r\n\x1b[33m Connection closed\x1b[0m\r\n")
+        }
+
+        // Send terminal input to WebSocket
+        term.onData((data) => {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(data)
+            }
+        });
+
+        // Clean up
+        return () => {
+            socket.close()
+            terminal.current?.dispose()
+            socketRef.current = null
+        }
+    }, [containerId])
+
+    useEffect(() => {
+        if (startCmd === prevStartCmdRef.current) return;
+        
+        if (!startCmd || !socketRef.current || !terminal.current) {
+            prevStartCmdRef.current = startCmd;
+            return;
+        }
+        
+        const socket = socketRef.current;
+        
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send('\x03');
+            
+            setTimeout(() => {
+                const cmd = `clear && cd /app && ${startCmd}`;
+                terminal.current?.write(`${cmd}\r\n`);
+                socket.send(`${cmd}\r`);
+                socket.send('\n');
+            }, 1000);
+        }
+        
+        prevStartCmdRef.current = startCmd;
+    }, [startCmd])
 
     return (
-        <div className="flex flex-col w-full border border-zinc-800 rounded-md overflow-hidden">
-            {/* Tabs header */}
-            <div className="flex border-b border-zinc-800 bg-zinc-900">
+        <div className="overflow-hidden border-t border-zinc-800">
+            <div className="px-3 py-1 text-sm font-semibold text-gray-300 border-b border-[#333333] bg-black/40 sticky top-0 z-10 flex items-center justify-between">
+                <span>Terminal</span>
                 <button
-                    className={`px-4 py-2 text-sm font-medium ${
-                        activeTab === 'custom' 
-                            ? 'bg-zinc-800 text-white border-b-2 border-blue-500' 
-                            : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
-                    }`}
-                    onClick={() => setActiveTab('custom')}
+                    className="text-gray-400 hover:text-gray-200 p-1"
+                    onClick={() => {
+                        if (terminal.current) {
+                            terminal.current.clear()
+                        }
+                    }}
                 >
-                    Console
-                </button>
-                <button
-                    className={`px-4 py-2 text-sm font-medium ${
-                        activeTab === 'main' 
-                            ? 'bg-zinc-800 text-white border-b-2 border-blue-500' 
-                            : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
-                    }`}
-                    onClick={() => setActiveTab('main')}
-                >
-                    Terminal
+                    <span className="text-gray-400 hover:text-gray-200">Clear</span>
                 </button>
             </div>
-
-            {/* Terminal content - both terminals are mounted but only one is visible */}
-            <div className="flex-grow">
-                <div style={{ display: activeTab === 'main' ? 'block' : 'none', height: '100%' }}>
-                    <MainTerminalComponent 
-                        containerId={containerId}
-                        autoFocus={activeTab === 'main'}
-                    />
-                </div>
-                <div style={{ display: activeTab === 'custom' ? 'block' : 'none', height: '100%' }}>
-                    <CustomTerminalComponent
-                        containerId={containerId}
-                        autoFocus={activeTab === 'custom'}
-                    />
-                </div>
-            </div>
+            <div
+                ref={xtermRef}
+                className="terminal-container"
+                style={{
+                    height: "500px",
+                    width: "100%",
+                    backgroundColor: getThemeColors().background,
+                    padding: "4px",
+                }}
+                aria-label="Terminal window"
+                role="application"
+                tabIndex={0}
+            />
         </div>
     )
 }
 
-export default TerminalComponent
+export default MainTerminalComponent
