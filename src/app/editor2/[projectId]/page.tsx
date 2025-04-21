@@ -379,7 +379,7 @@ export default function Editor() {
 
     return (
         <div className="flex flex-row h-screen">
-            <Sidebar />
+            {/* <Sidebar /> */}
             <main className="h-screen flex flex-col md:grid md:grid-cols-4 gap-3 p-3 bg-[#121212] overflow-hidden w-full">
                 <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col rounded-xl overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-lg">
                     <div className="p-4 border-b border-gray-800">
@@ -399,7 +399,7 @@ export default function Editor() {
                 </div>
 
                 <div className="flex-1 md:col-span-3 flex flex-col bg-[#1e1e1e] text-white rounded-xl overflow-hidden border border-gray-800 shadow-lg">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 p-4 gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-4">
                         <div className="flex items-center gap-3 sm:gap-6">
                             <span
 

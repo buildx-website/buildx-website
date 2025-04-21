@@ -25,7 +25,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { FileType } from "@/types/types"
-import { Button } from "./ui/button"
 
 interface FileExplorerProps {
   files: FileType[]
