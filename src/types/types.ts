@@ -1,3 +1,4 @@
+import { Session, User } from "better-auth";
 import { z } from "zod";
 
 export const userSignUp = z.object({
@@ -109,4 +110,9 @@ export interface getChatsTypes {
     updatedAt: string;
     ownerId: string;
     frameWork: string;
-} 
+}
+
+export type SessionDataType = {
+    session: Session | null;
+    user: User | null;
+} | null
