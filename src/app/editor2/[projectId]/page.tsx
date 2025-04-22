@@ -197,7 +197,7 @@ export default function Editor() {
 
             console.log("Framework: ", project?.framework);
 
-            const response = await fetch('/api/main/chat-test', {
+            const response = await fetch('/api/main/chat', {
                 method: 'POST',
                 body: JSON.stringify({
                     messages,
