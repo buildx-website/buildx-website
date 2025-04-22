@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
     Menu,
@@ -9,36 +8,9 @@ import {
     Loader2
 } from "lucide-react";
 import { getChatsTypes } from "@/types/types";
+import { SidebarLink } from "./SidebarLink";
 
-interface SidebarLinkProps {
-    href: string;
-    icon: React.ReactNode;
-    label: string;
-    isActive?: boolean;
-    isCollapsed: boolean;
-}
-
-function SidebarLink({
-    href,
-    icon,
-    label,
-    isActive = false,
-    isCollapsed,
-}: SidebarLinkProps) {
-    return (
-        <Link
-            href={href}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-gray-800 ${isActive ? "bg-gray-800 text-white" : "text-gray-400 hover:text-white"
-                } ${isCollapsed ? "justify-center" : ""}`}
-            title={isCollapsed ? label : undefined}
-        >
-            {icon}
-            {!isCollapsed && <span className="truncate">{label}</span>}
-        </Link>
-    );
-}
-
-export default function Sidebar() {
+export default function Sidebar({ isLoggedIn }: { isLoggedIn: boolean }) {
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [isHovering, setIsHovering] = useState(false);
     const [chats, setChats] = useState<getChatsTypes[]>([]);
@@ -47,23 +19,19 @@ export default function Sidebar() {
 
     useEffect(() => {
         async function getChats() {
+            if (!isLoggedIn) {
+                setLoading(false);
+                return;
+            }
+
             setLoading(true);
             try {
-                const token = localStorage.getItem("token");
-                if (!token) {
-                    throw new Error("No authentication token found");
-                }
-                
-                const res = await fetch("/api/main/chats", {
-                    headers: {
-                        authorization: `Bearer ${token}`,
-                    }
-                });
-                
+                const res = await fetch("/api/main/chats");
+
                 if (!res.ok) {
                     throw new Error(`Failed to fetch chats: ${res.status}`);
                 }
-                
+
                 const chatsData = await res.json();
                 setChats(chatsData);
                 setError(null);
@@ -74,9 +42,9 @@ export default function Sidebar() {
                 setLoading(false);
             }
         }
-        
+
         getChats();
-    }, []);
+    }, [isLoggedIn]);
 
     const handleMouseEnter = () => {
         setIsHovering(true);
@@ -114,8 +82,10 @@ export default function Sidebar() {
                 {shouldExpand && (
                     <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
                         <h2 className="text-sm font-semibold text-gray-400 mb-3">Chats</h2>
-                        
-                        {loading ? (
+
+                        {!isLoggedIn ? (
+                            <div className="text-gray-400 text-sm p-2">Please log in to view chats.</div>
+                        ) : loading ? (
                             <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                                 <Loader2 size={24} className="animate-spin mb-2" />
                                 <span className="text-sm">Loading chats...</span>

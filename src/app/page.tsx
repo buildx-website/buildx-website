@@ -16,9 +16,11 @@ import { Spotlight } from "@/components/ui/spotlight-new";
 import Sidebar from "@/components/Sidebar";
 import { Navbar } from "@/components/navbar";
 import { ArtifactParser } from "@/lib/artifactParser";
+import { useUser } from "@/hooks/useUser";
 
 export default function Home() {
   const router = useRouter();
+  const { user, isLoggedIn } = useUser();
   const [prompt, setPrompt] = useState<string>("");
   const addMessage = useMessagesStore((state) => state.addMessage);
   const addSteps = useStepsStore((state) => state.addSteps);
@@ -76,9 +78,11 @@ export default function Home() {
   }, [prompt]);
 
   useEffect(() => {
-    getModels();
-    getUserModel();
-  }, []);
+    if (isLoggedIn) {
+      getModels();
+      getUserModel();
+    }
+  }, [isLoggedIn]);
 
   const examplePrompts: string[] = [
     "An e-commerce site for selling sports equipment",
@@ -89,15 +93,13 @@ export default function Home() {
   ]
 
   async function getModels() {
-    const token = localStorage.getItem("token");
-    if (!token) {
+    if (!isLoggedIn) {
       return;
     }
     const models = await fetch("/api/main/models", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
     });
     if (models.ok) {
@@ -110,15 +112,13 @@ export default function Home() {
   }
 
   async function getUserModel() {
-    const token = localStorage.getItem("token");
-    if (!token) {
+    if (!isLoggedIn) {
       return;
     }
     const userModel = await fetch("/api/main/user-model", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
     });
     if (userModel.ok) {
@@ -143,8 +143,7 @@ export default function Home() {
     if (!prompt.trim()) {
       return toast.error("Please write your idea first");
     }
-    const token = localStorage.getItem("token");
-    if (!token) {
+    if (!isLoggedIn) {
       return toast.error("You need to login first");
     }
     setLoading(true);
@@ -152,7 +151,6 @@ export default function Home() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ prompt }),
     })
@@ -193,7 +191,6 @@ export default function Home() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           prompt, framework: data.framework,
@@ -229,8 +226,7 @@ export default function Home() {
     if (!prompt.trim()) {
       return toast.error("Please write your idea first");
     }
-    const token = localStorage.getItem("token");
-    if (!token) {
+    if (!isLoggedIn) {
       return toast.error("You need to login first");
     }
     setLoading(true);
@@ -238,7 +234,6 @@ export default function Home() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ prompt }),
     });
@@ -258,8 +253,7 @@ export default function Home() {
   }
 
   async function handleModelChange(modelId: string) {
-    const token = localStorage.getItem("token");
-    if (!token) {
+    if (!isLoggedIn) {
       return toast.error("You need to login first");
     }
 
@@ -268,7 +262,6 @@ export default function Home() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ modelId }),
       });
@@ -315,11 +308,11 @@ export default function Home() {
   return (
     <>
       <div className="flex relative overflow-hidden min-h-screen">
-        <Sidebar />
+        <Sidebar isLoggedIn={isLoggedIn} />
         <main className="flex-1 bg-gradient-to-b from-black to-zinc-950">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex flex-col">
-              <Navbar />
+              <Navbar user={user} isLoggedIn={isLoggedIn} />
 
               <main className="flex-1 flex flex-col items-center justify-center py-12 md:py-24">
                 <Spotlight />
@@ -542,8 +535,7 @@ export default function Home() {
                 </motion.div>
 
                 <div className="flex flex-wrap gap-3 justify-center">
-                  <div
-                  >
+                  <div>
                     <Button
                       variant="link"
                       size="sm"
@@ -555,8 +547,7 @@ export default function Home() {
                     </Button>
                   </div>
 
-                  <div
-                  >
+                  <div>
                     <Button
                       variant="link"
                       size="sm"

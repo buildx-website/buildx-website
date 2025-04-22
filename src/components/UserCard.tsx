@@ -65,8 +65,6 @@ export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
     }
 
     async function handleLogout() {
-        localStorage.removeItem("name");
-        localStorage.removeItem("token");
         await authClient.signOut();
         window.location.href = "/";
         setIsDialogOpen(false)
