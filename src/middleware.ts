@@ -1,44 +1,29 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import * as jose from 'jose'
+import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 
-export async function middleware(req: NextRequest) {
-    const baseUrl = process.env.BASE_URL || "http://localhost:3000";
-    console.log("Base URL:", baseUrl);
+export async function middleware(request: NextRequest) {
+    console.log(`Middleware triggered for ${request.nextUrl.pathname}`);
+    
+    const session = await auth.api.getSession({
+        headers: await headers()
+    })
 
-    const authorization = req.headers.get("Authorization");
-    if (!authorization || !authorization.startsWith("Bearer ")) {
-        return new Response("Missing or invalid Authorization header", { status: 401 });
+
+    if (!session) {
+        return new Response("Cannot find user's session. Please login again.", { status: 401 });;
     }
-    const token = authorization.split(" ")[1];
-    if (!token) {
-        return new Response("No token provided", { status: 401 });
-    }
-    try {
-        const JWKS = jose.createRemoteJWKSet(new URL(`${baseUrl}/api/auth/jwks`))
-        const { payload } = await jose.jwtVerify(token, JWKS, {
-            issuer: baseUrl,
-        })
 
-        console.log("Decoded JWT payload:", payload);
-        const userId = payload.id as string;
-        const email = payload.email as string;
+    const response = NextResponse.next();
+    const userId = session.user.id;
+    const email = session.user.email;
 
-        if (!userId || !email) {
-            throw new Error("User ID not found in token payload");
-        }
-
-        const response = NextResponse.next();
-        response.headers.set("X-User-Id", userId);
-        response.headers.set("X-User-Email", email);
-        return response;
-
-    } catch (error) {
-        console.error("Token verification failed:", error);
-        return new Response("Invalid or expired token", { status: 403 });
-    }
+    response.headers.set("X-User-Id", userId);
+    response.headers.set("X-User-Email", email);
+    return response;
 }
 
 export const config = {
-    matcher: "/api/main/:path*",
+    runtime: "nodejs",
+    matcher: ["/api/main/:path*", "/editor2/:path"],
 };
