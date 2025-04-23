@@ -17,7 +17,7 @@ export function EditorInterface({ containerId }: { containerId: string }) {
   const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
   const [startCmd, setStartCmd] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { currentStep, handleStep } = useStepHandler(containerId, reloadFileTree);
+  const { handleStep } = useStepHandler(containerId, reloadFileTree);
 
   useEffect(() => {
     const executeSteps = async () => {

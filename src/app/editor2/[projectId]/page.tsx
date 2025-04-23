@@ -7,7 +7,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Switch } from "@/components/ui/switch"
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { BlocksIcon, Download, Loader2 } from "lucide-react";
+import { BlocksIcon, Download } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
 import { Content, Message, } from "@/types/types";
 import { StepList } from "@/components/StepList";

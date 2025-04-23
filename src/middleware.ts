@@ -25,5 +25,5 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     runtime: "nodejs",
-    matcher: ["/api/main/:path*", "/editor2/:path"],
+    matcher: ["/api/main/:path*"],
 };
