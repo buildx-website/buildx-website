@@ -18,6 +18,7 @@ import { startNewContainer } from "@/lib/worker-config";
 import { ArtifactParser } from "@/lib/artifactParser";
 import { useUser } from "@/hooks/useUser";
 import Loading from "@/app/loading";
+import { BrowserPreview } from "@/components/WebPreview/browser-preview";
 
 export default function Editor() {
     const router = useRouter();
@@ -441,7 +442,7 @@ export default function Editor() {
                             </div>
 
                             <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
-                                {/* <Web2 webcontainer={null} url={url} setUrl={setUrl} />  */}
+                                <BrowserPreview containerId={containerId} initialPort={3000} height="100%" width="100%" />
                             </div>
                         </>
                     )}
