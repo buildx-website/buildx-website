@@ -7,19 +7,21 @@ import { useRouter, useParams } from "next/navigation";
 import { Switch } from "@/components/ui/switch"
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { BlocksIcon, Download, Loader2 } from "lucide-react";
+import { BlocksIcon, Download } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
 import { Content, Message, } from "@/types/types";
 import { StepList } from "@/components/StepList";
 import { MessageComponent } from "@/components/Messages";
 import { User } from "@/components/User";
 import { extractAndParseStepsFromMessages } from "@/lib/extract-parse-steps";
-import Sidebar from "@/components/Sidebar";
 import { startNewContainer } from "@/lib/worker-config";
 import { ArtifactParser } from "@/lib/artifactParser";
+import { useUser } from "@/hooks/useUser";
+import Loading from "@/app/loading";
 
 export default function Editor() {
     const router = useRouter();
+    const { user, isLoggedIn } = useUser();
     const [loading, setLoading] = useState(true);
     const [showPreview, setShowPreview] = useState<boolean>(false);
     const { messages, addMessage, setMessages } = useMessagesStore();
@@ -51,8 +53,7 @@ export default function Editor() {
         const validateAndLoadProject = async () => {
             setLoading(true);
             try {
-                const token = localStorage.getItem("token");
-                if (!token) {
+                if (!isLoggedIn) {
                     setValidationError("Authentication required");
                     router.push("/");
                     return;
@@ -61,7 +62,6 @@ export default function Editor() {
                 const response = await fetch(`/api/main/project/${projectId}`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     }
                 });
@@ -171,8 +171,7 @@ export default function Editor() {
             await fetch(`/api/main/save-project`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     projectId,
@@ -198,7 +197,7 @@ export default function Editor() {
 
             console.log("Framework: ", project?.framework);
 
-            const response = await fetch('/api/main/chat-test', {
+            const response = await fetch('/api/main/chat', {
                 method: 'POST',
                 body: JSON.stringify({
                     messages,
@@ -206,8 +205,7 @@ export default function Editor() {
                     framework: projectFramework,
                 }),
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Content-Type': 'application/json'
                 }
             });
 
@@ -356,9 +354,7 @@ export default function Editor() {
 
     if (loading) {
         return (
-            <div className="h-full w-full flex items-center justify-center bg-[#1E1E1E]">
-                <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-            </div>
+            <Loading />
         );
     }
 
@@ -402,7 +398,6 @@ export default function Editor() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-4">
                         <div className="flex items-center gap-3 sm:gap-6">
                             <span
-
                                 className="flex items-center gap-2 text-slate-200 cursor-pointer"
                                 onClick={() => window.location.href = '/'}
                             >
@@ -433,7 +428,7 @@ export default function Editor() {
                             >
                                 <Download size={16} />
                             </Button>
-                            <User />
+                            <User user={user} />
                         </div>
                     </div>
 

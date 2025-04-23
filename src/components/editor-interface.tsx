@@ -4,82 +4,76 @@ import { FileExplorer } from "@/components/file-explorer"
 import { CodeEditor } from "@/components/code-editor"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { BlocksIcon } from "lucide-react"
-import { execCmd, getFileTree, saveOrCreateFileContent } from "@/lib/worker-config"
-import { StepType, type FileType, type Step } from "@/types/types"
+import { getFileTree } from "@/lib/worker-config"
+import { StepType, type FileType } from "@/types/types"
 import TerminalComponent from "@/components/terminal"
 import { useStepsStore } from "@/store/initialStepsAtom"
-import { toast } from "sonner"
+import { useStepHandler } from "@/hooks/useStepHandler"
+
 
 export function EditorInterface({ containerId }: { containerId: string }) {
+  const { steps, updateStep } = useStepsStore();
   const [files, setFiles] = useState<FileType[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
-  const { steps, updateStep } = useStepsStore();
   const [startCmd, setStartCmd] = useState<string | null>(null);
-
-  async function executeFileCreateStep(step: Step) {
-    if (!step.path && !step.code) return;
-    if (step.status === "in-progress" || step.status === "completed") return;
-
-    updateStep({ ...step, status: "in-progress" });
-    try {
-      if (step.status !== "pending") return;
-      const split = step.path?.split("/");
-      const fileName = split ? split[split.length - 1] : step.path;
-      let filePath = "/app";
-      if (split && split.length > 1) {
-        filePath = split.slice(0, split.length - 1).join("/") + "/";
-      }
-
-      const response = await saveOrCreateFileContent(
-        containerId,
-        filePath,
-        fileName || "Undefined.txt",
-        step.code || ""
-      );
-
-      if (response.success) {
-        console.log("File created successfully:", fileName);
-        updateStep({ ...step, status: "completed" });
-      }
-
-    } catch (error) {
-      console.error("Error creating file:", error);
-      updateStep({ ...step, status: "failed" });
-    }
-  }
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { handleStep } = useStepHandler(containerId, reloadFileTree);
 
   useEffect(() => {
     const executeSteps = async () => {
-      for (const step of steps) {
-        if (step.status === "pending" && step.type === StepType.CreateFile) {
-          await executeFileCreateStep(step);
-        } else if (step.status === "pending" && step.type === StepType.RunScript) {
-          updateStep({ ...step, status: "in-progress" });
-          try {
-            if (step.code == "npm run dev" || step.code == "npm start") {
-              setStartCmd(step.code);
-              updateStep({ ...step, status: "completed" });
-            } else {
-              const response = await execCmd(containerId, `${step.code}`, "/app");
-              if (response.success) {
-                toast.success("Command executed successfully: " + step.code);
-                updateStep({ ...step, status: "completed" });
-              } else {
-                toast.error("Command execution failed: " + step.code);
-                updateStep({ ...step, status: "failed" });
-              }
-            }
-          } catch (error) {
-            console.error("Error executing command:", error);
-            updateStep({ ...step, status: "failed" });
+      const pendingSteps = steps.filter(step => step.status === "pending");
+
+      for (const step of pendingSteps) {
+        updateStep({ ...step, status: "in-progress" });
+        try {
+          const result = await handleStep(step);
+          if (step.type === StepType.RunScript &&
+            (result === "npm run dev" || result === "npm start")) {
+            setStartCmd(result);
           }
+          updateStep({ ...step, status: "completed" });
+        } catch (error) {
+          console.error("Step failed:", error);
+          updateStep({ ...step, status: "failed" });
         }
       }
-      await reloadFileTree();
     };
-    executeSteps();
-    reloadFileTree();
+
+    if (containerId) {
+      executeSteps();
+    }
   }, [containerId]);
+
+  useEffect(() => {
+    const processNewSteps = async () => {
+      if (isProcessing) return;
+
+      const pendingSteps = steps.filter(step => step.status === "pending");
+      if (pendingSteps.length === 0) return;
+
+      setIsProcessing(true);
+
+      try {
+        for (const step of pendingSteps) {
+          updateStep({ ...step, status: "in-progress" });
+          const result = await handleStep(step);
+          if (step.type === StepType.RunScript &&
+            (result === "npm run dev" || result === "npm start")) {
+            setStartCmd(result);
+          }
+          updateStep({ ...step, status: "completed" });
+        }
+      } catch (error) {
+        console.error("Error processing steps:", error);
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+
+    if (containerId && steps.some(step => step.status === "pending")) {
+      processNewSteps();
+    }
+  }, [steps, containerId, isProcessing]);
 
 
   async function reloadFileTree() {

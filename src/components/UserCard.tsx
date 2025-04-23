@@ -9,13 +9,14 @@ import { toast } from "sonner"
 import { Eye, EyeOff, LogOut, UserCog } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { authClient } from "@/lib/auth-client"
+import { useUser } from "@/hooks/useUser"
 
 export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean) => void }) {
-    const name = localStorage.getItem("name") || "User"
     const [apiKey, setApiKey] = useState<string | undefined>("")
     const [isApiKeyVisible, setIsApiKeyVisible] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
     const [loading, setLoading] = useState(false)
+    const { user } = useUser();
 
     async function fetchApiKey() {
         setLoading(true)
@@ -79,7 +80,7 @@ export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
                         <UserCog size={32} className="text-muted-foreground" />
                     </div>
                 </div>
-                <CardTitle className="text-center text-2xl font-semibold">{name}</CardTitle>
+                <CardTitle className="text-center text-2xl font-semibold">{user?.name}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="space-y-2">

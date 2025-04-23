@@ -98,7 +98,7 @@ export default function Sidebar({ isLoggedIn }: { isLoggedIn: boolean }) {
                             chats.map((chat) => (
                                 <SidebarLink
                                     key={chat.id}
-                                    href={`/editor/${chat.id}`}
+                                    href={`/editor2/${chat.id}`}
                                     icon={<File size={20} />}
                                     label={chat.name}
                                     isActive={false}

@@ -14,7 +14,7 @@ import { MessageComponent } from "@/components/Messages";
 import { useFileStore } from "@/store/filesAtom";
 import { User } from "@/components/User";
 import { parseXml } from "@/lib/steps";
-import { useWebContainer } from "@/hooks/useWebContainer";
+// import { useWebContainer } from "@/hooks/useWebContainer";
 import { FileSystemTree } from "@webcontainer/api";
 import { Web2 } from "@/components/Web2";
 import { extractAndParseStepsFromMessages } from "@/lib/extract-parse-steps";
@@ -34,7 +34,7 @@ export default function Editor() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [uiMsgs, setUiMsgs] = useState<Message[]>([]);
   const [building, setBuilding] = useState(false);
-  const webcontainer = useWebContainer();
+  const webcontainer = "webcontainer" as any; // Replace with actual WebContainer instance
   const [url, setUrl] = useState<string>("");
   const conversationRef = useRef<HTMLDivElement>(null);
   const [validationError, setValidationError] = useState<string>("");
