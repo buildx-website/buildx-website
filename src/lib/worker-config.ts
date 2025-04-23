@@ -128,3 +128,28 @@ export async function execCmd(containerId: string, command: string, workdir: str
         }
     }
 }
+
+export async function tunnelConnection(containerId: string, port: number) {
+    try {
+        const response = await fetch(`${WORKER_URL}/tunnel`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({containerId, port}),
+        })
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Tunnel connection failed: ${errorData.error || response.statusText}`);
+        }
+        const data = await response.json();
+        console.log("tunnelConnection", data);
+        return data;
+    } catch (error) {
+        console.error("Error in tunnelConnection:", error);
+        return {
+            url: null,
+            error: error instanceof Error ? error.message : String(error),
+        }
+    }
+}
