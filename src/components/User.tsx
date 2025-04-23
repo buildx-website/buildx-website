@@ -18,7 +18,6 @@ export function User({ user }: { user: User | null }) {
         <div className="p-0">
             <Button
                 variant="outline"
-                className="flex items-center gap-2 border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] text-slate-400 hover:text-slate-200 hover:bg-[length:220%_100%] transition-colors justify-center"
                 onClick={handleClick}
             >
                 <UserRoundCheck size={16} />
