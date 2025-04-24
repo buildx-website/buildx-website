@@ -9,7 +9,7 @@ import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { BlocksIcon, Download } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
-import { Content, Message, } from "@/types/types";
+import { ContainerPort, Content, Message, } from "@/types/types";
 import { StepList } from "@/components/StepList";
 import { MessageComponent } from "@/components/Messages";
 import { User } from "@/components/User";
@@ -42,6 +42,8 @@ export default function Editor() {
     const [validationError, setValidationError] = useState<string>("");
     const [project, setProject] = useState<any | null>(null);
     const [currentActionBuilding, setCurrentActionBuilding] = useState<string | null>(null);
+
+    const [containerPort, setContainerPort] = useState<ContainerPort>({});
 
     const params = useParams()
     const projectId = params.projectId as string
@@ -148,11 +150,12 @@ export default function Editor() {
                 console.log("Image: ", image);
                 console.log("Starting container with image:", image);
 
-                const data = await startNewContainer(image, "tail -f /dev/null");
+                const data = await startNewContainer(image, "tail -f /dev/null", ["3000", "5173"]);
                 console.log("Container started", data);
 
                 setContainerId(data.containerId);
                 setContainerStatus(data.status);
+                setContainerPort(data.urls);
 
             } catch (error) {
                 console.error("Error starting container:", error);
@@ -376,7 +379,6 @@ export default function Editor() {
 
     return (
         <div className="flex flex-row h-screen">
-            {/* <Sidebar /> */}
             <main className="h-screen flex flex-col md:grid md:grid-cols-4 gap-3 p-3 bg-[#121212] overflow-hidden w-full">
                 <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col rounded-xl overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-lg">
                     <div className="p-4 border-b border-gray-800">
@@ -442,7 +444,12 @@ export default function Editor() {
                             </div>
 
                             <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
-                                <BrowserPreview containerId={containerId} initialPort={3000} height="100%" width="100%" />
+                                <BrowserPreview
+                                    containerId={containerId}
+                                    containerPort={containerPort}
+                                    height="100%"
+                                    width="100%"
+                                />
                             </div>
                         </>
                     )}

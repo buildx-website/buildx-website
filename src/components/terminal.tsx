@@ -71,7 +71,7 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
         }
 
         // Connect to WebSocket
-        const socket = new WebSocket(`ws://localhost:8080`)
+        const socket = new WebSocket(process.env.NEXT_PUBLIC_WORKER_WS_URL! || "ws://localhost:8080")
         socketRef.current = socket
 
         socket.onopen = () => {
@@ -109,17 +109,17 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
 
     useEffect(() => {
         if (startCmd === prevStartCmdRef.current) return;
-        
+
         if (!startCmd || !socketRef.current || !terminal.current) {
             prevStartCmdRef.current = startCmd;
             return;
         }
-        
+
         const socket = socketRef.current;
-        
+
         if (socket.readyState === WebSocket.OPEN) {
             socket.send('\x03');
-            
+
             setTimeout(() => {
                 const cmd = `clear && cd /app && ${startCmd}`;
                 terminal.current?.write(`${cmd}\r\n`);
@@ -127,7 +127,7 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
                 socket.send('\n');
             }, 1000);
         }
-        
+
         prevStartCmdRef.current = startCmd;
     }, [startCmd])
 

@@ -116,3 +116,8 @@ export type SessionDataType = {
     session: Session | null;
     user: User | null;
 } | null
+
+
+export interface ContainerPort {
+    [port: number]: string;
+}

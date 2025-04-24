@@ -1,6 +1,7 @@
-export const WORKER_URL = 'http://localhost:8080/api';
+export const WORKER_URL = process.env.NEXT_PUBLIC_WORKER_URL || "http://localhost:8080";
+console.log("WORKER_URL", WORKER_URL);
 
-export async function startNewContainer(image: string, command: string) {
+export async function startNewContainer(image: string, command: string, ports: string[]) {
     const response = await fetch(`${WORKER_URL}/start`, {
         method: 'POST',
         headers: {
@@ -10,6 +11,7 @@ export async function startNewContainer(image: string, command: string) {
         body: JSON.stringify({
             image: image,
             command: command,
+            ports: ports,
         })
     });
     const data = await response.json();
@@ -136,6 +138,7 @@ export async function tunnelConnection(containerId: string, port: number) {
             headers: {
                 "Content-Type": "application/json",
             },
+            credentials: 'omit',
             body: JSON.stringify({containerId, port}),
         })
         if (!response.ok) {
