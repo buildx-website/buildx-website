@@ -5,59 +5,63 @@ import { Button } from "../ui/button";
 import { ArrowLeft, ArrowRight, RefreshCw } from "lucide-react";
 import { Input } from "../ui/input";
 import { SelectPort } from "./select-port";
-import { tunnelConnection } from "@/lib/worker-config";
+import { ContainerPort } from "@/types/types";
 
 interface BrowserPreviewProps {
-  containerId: string;
-  initialPort: number;
+  containerPort: ContainerPort[];
   height?: string;
   width?: string;
 }
 
-export function BrowserPreview({ containerId, initialPort, height, width }: BrowserPreviewProps) {
-  const [port, setPort] = useState(initialPort);
-  const [inputPort, setInputPort] = useState<number>(initialPort);
+export function BrowserPreview({ containerPort, height, width }: BrowserPreviewProps) {
+  const [inputPort, setInputPort] = useState<number>(3000);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeSrc, setIframeSrc] = useState<string | undefined>(undefined);
-  const [history, setHistory] = useState<number[]>([initialPort]);
   const [path, setPath] = useState<string>("/");
-  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(0);
+  
+  // Simple array of visited paths for current port only
+  const [history, setHistory] = useState<string[]>([]);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
 
   useEffect(() => {
-    console.log("iframeSrc", iframeSrc);
-  }, [iframeSrc])
-
-
-  async function getUrlFromPort(containerId: string, port: number) {
-    const data = await tunnelConnection(containerId, port);
-    if (data.url) {
-      const url = data.url.replace(/\/$/, "");
-      console.log(port, url);
-      return `${url}${path}`;
+    // Find the URL for the current port
+    const portObject = containerPort.find(item => Object.keys(item)[0] === inputPort.toString());
+    if (portObject) {
+      // Get the full URL directly from the port object
+      const baseUrl = portObject[inputPort];
+      
+      // Ensure it starts with http:// or https://
+      let fullUrl;
+      if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
+        fullUrl = baseUrl;
+      } else {
+        fullUrl = `http://${baseUrl}`;
+      }
+      
+      // Clean the URL and append the path
+      const cleanUrl = fullUrl.replace(/\/$/, "");
+      setIframeSrc(`${cleanUrl}${path}`);
+    } else {
+      setIframeSrc(undefined);
     }
-    return "";
-  }
+  }, [containerPort, inputPort, path]);
 
   function goBack() {
     if (currentHistoryIndex > 0) {
       setCurrentHistoryIndex(currentHistoryIndex - 1);
-      setPort(history[currentHistoryIndex - 1]);
-      setInputPort(history[currentHistoryIndex - 1]);
+      setPath(history[currentHistoryIndex - 1]);
     }
   }
 
   function goForward() {
     if (currentHistoryIndex < history.length - 1) {
       setCurrentHistoryIndex(currentHistoryIndex + 1);
-      setPort(history[currentHistoryIndex + 1]);
-      setInputPort(history[currentHistoryIndex + 1]);
+      setPath(history[currentHistoryIndex + 1]);
     }
   }
 
   function refresh() {
-    // Instead of directly accessing contentWindow.location.reload()
     if (iframeSrc) {
-      // Force refresh by temporarily clearing and resetting the src
       setIframeSrc('');
       setTimeout(() => {
         setIframeSrc(iframeSrc);
@@ -67,17 +71,27 @@ export function BrowserPreview({ containerId, initialPort, height, width }: Brow
 
   function navigate(e: React.FormEvent) {
     e.preventDefault();
-    const portNumber = inputPort;
-    if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
-      return;
-    }
-
-    if (inputPort && !history.includes(inputPort)) {
-      setHistory([...history, inputPort]);
+    
+    // Add new path to history only if it's different from current
+    if (history.length === 0 || history[currentHistoryIndex] !== path) {
+      if (currentHistoryIndex === history.length - 1) {
+        // At the end of history, just append
+        setHistory([...history, path]);
+      } else {
+        // In the middle of history, truncate forward history
+        setHistory([...history.slice(0, currentHistoryIndex + 1), path]);
+      }
       setCurrentHistoryIndex(currentHistoryIndex + 1);
     }
-    setPort(inputPort);
   }
+
+  // When port changes, reset history
+  const handlePortChange = (newPort: number) => {
+    setInputPort(newPort);
+    setPath("/");
+    setHistory([]);
+    setCurrentHistoryIndex(-1);
+  };
 
   const handleIframeLoad = () => {
     const iframe = iframeRef.current;
@@ -95,14 +109,6 @@ export function BrowserPreview({ containerId, initialPort, height, width }: Brow
       iframe.contentWindow.document.head.appendChild(script);
     }
   };
-
-  useEffect(() => {
-    async function updateIframeSrc() {
-      const url = await getUrlFromPort(containerId, port);
-      setIframeSrc(url);
-    }
-    updateIframeSrc();
-  }, [containerId, port, path]);
 
   return (
     <div
@@ -128,14 +134,7 @@ export function BrowserPreview({ containerId, initialPort, height, width }: Brow
           </Button>
           <SelectPort
             value={inputPort}
-            onChange={(newPort) => {
-              setInputPort(newPort);
-              setPort(newPort);
-              if (!history.includes(newPort)) {
-                setHistory([...history, newPort]);
-                setCurrentHistoryIndex(currentHistoryIndex + 1);
-              }
-            }}
+            onChange={handlePortChange}
           />
         </div>
 
@@ -144,12 +143,10 @@ export function BrowserPreview({ containerId, initialPort, height, width }: Brow
             type="text"
             value={path}
             onChange={(e) => setPath(e.target.value)}
-            src={iframeSrc}
           />
         </form>
       </div>
 
-      {/* Content area */}
       <div className="flex-1 bg-white overflow-hidden">
         <iframe
           ref={iframeRef}
@@ -161,7 +158,5 @@ export function BrowserPreview({ containerId, initialPort, height, width }: Brow
         />
       </div>
     </div>
-  )
+  );
 }
-
-

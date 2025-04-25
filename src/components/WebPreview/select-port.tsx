@@ -15,7 +15,7 @@ interface SelectPortProps {
     commonPorts?: number[];
 }
 
-export function SelectPort({ value, onChange, commonPorts = [3000, 4000, 5000, 8000, 8080, 5173] }: SelectPortProps) {
+export function SelectPort({ value, onChange, commonPorts = [3000] }: SelectPortProps) {
     return (
         <Select value={`${value}`} onValueChange={(val) => onChange(Number(val))}>
             <SelectTrigger className="w-[120px]">
