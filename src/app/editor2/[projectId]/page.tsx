@@ -20,6 +20,15 @@ import { useUser } from "@/hooks/useUser";
 import Loading from "@/app/loading";
 import { BrowserPreview } from "@/components/WebPreview/browser-preview";
 
+import {
+    Sidebar,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuItem,
+    SidebarMenuButton,
+    SidebarProvider,
+} from "@/components/ui/sidebar"
+
 export default function Editor() {
     const router = useRouter();
     const { user, isLoggedIn } = useUser();
@@ -33,6 +42,7 @@ export default function Editor() {
 
     const [containerId, setContainerId] = useState<string>("");
     const [containerStatus, setContainerStatus] = useState<string>("");
+    const [showConversation, setShowConversation] = useState(true)
 
     const [initialLoadComplete, setInitialLoadComplete] = useState(false);
     const [isStreaming, setIsStreaming] = useState(false);
@@ -379,84 +389,127 @@ export default function Editor() {
 
     return (
         <div className="flex flex-row h-screen">
-            <main className="h-screen flex flex-col md:grid md:grid-cols-4 gap-3 p-3 bg-[#121212] overflow-hidden w-full">
-                <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col rounded-xl overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-lg">
-                    <div className="p-4 border-b border-gray-800">
-                        <h2 className="text-lg font-medium text-gray-200">Conversation</h2>
-                    </div>
+            <SidebarProvider>
+                <Sidebar className="w-16 flex-shrink-0 bg-black border-r border-zinc-950">
+                    <SidebarHeader className="p-2">
+                        <SidebarMenu>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    size="lg"
+                                    className="flex justify-center"
+                                    onClick={() => (window.location.href = "/")}
+                                >
+                                    <BlocksIcon size={24} />
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    size="lg"
+                                    className="flex justify-center"
+                                    onClick={() => setShowConversation(!showConversation)}
+                                    tooltip="Toggle Conversation"
+                                >
+                                    {showConversation ? (
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            className="lucide lucide-message-square"
+                                        >
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                        </svg>
+                                    ) : (
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            className="lucide lucide-message-square-off"
+                                        >
+                                            <path d="M21 15V5a2 2 0 0 0-2-2H9" />
+                                            <path d="m2 2 20 20" />
+                                            <path d="M3.6 3.6A2 2 0 0 0 3 5v14l4-4h10" />
+                                        </svg>
+                                    )}
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </SidebarHeader>
+                </Sidebar>
 
-                    <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
-                        {uiMsgs.map((msg: Message, idx: number) => (
-                            <MessageComponent key={idx} message={(msg)} loading={isStreaming} />
-                        ))}
-                    </div>
+                <main className="h-screen flex flex-col md:grid md:grid-cols-4 gap-0 p-0 bg-[#121212] overflow-hidden w-full">
+                    {showConversation && (
+                        <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col overflow-hidden shadow-lg px-2">
+                            <div className="p-4 flex flex-row">
+                                <h2 className="text-lg font-medium text-gray-200">Conversation</h2>
+                            </div>
 
-                    <div className="p-4 border-t border-gray-800 bg-[#1e1e1e]">
-                        <StepList StepTitle={currentActionBuilding} steps={steps} building={building} setPrompt={setPrompt} />
-                        <SendPrompt handleSubmit={handleSubmit} prompt={prompt} setPrompt={setPrompt} disabled={isStreaming} />
-                    </div>
-                </div>
+                            <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
+                                {uiMsgs.map((msg, idx) => (
+                                    <MessageComponent key={idx} message={msg} loading={isStreaming} />
+                                ))}
+                            </div>
 
-                <div className="flex-1 md:col-span-3 flex flex-col bg-[#1e1e1e] text-white rounded-xl overflow-hidden border border-gray-800 shadow-lg">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-4">
-                        <div className="flex items-center gap-3 sm:gap-6">
-                            <span
-                                className="flex items-center gap-2 text-slate-200 cursor-pointer"
-                                onClick={() => window.location.href = '/'}
-                            >
-                                <BlocksIcon size={32} />
-                            </span>
-                            <h2 className="text-lg font-medium text-gray-200">
-                                {showPreview ? "Preview" : "Code"}
-                            </h2>
+                            <div className="p-4">
+                                <StepList StepTitle={currentActionBuilding} steps={steps} building={building} setPrompt={setPrompt} />
+                                <SendPrompt handleSubmit={handleSubmit} prompt={prompt} setPrompt={setPrompt} disabled={isStreaming} />
+                            </div>
                         </div>
-
-                        <div className="flex flex-wrap items-center gap-3 sm:gap-6">
-                            <div className="flex items-center gap-2">
-                                <span className={`text-sm ${!showPreview ? "text-gray-300" : "text-gray-500"}`}>Code</span>
-                                <Switch
-                                    checked={showPreview}
-                                    onCheckedChange={setShowPreview}
-                                    className="data-[state=checked]:bg-gray-700 data-[state=unchecked]:bg-gray-800"
-                                />
-                                <span className={`text-sm ${showPreview ? "text-gray-300" : "text-gray-500"}`}>Preview</span>
-                            </div>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-gray-700 hover:bg-gray-800"
-                                onClick={() => {
-                                    // handleDownload(files, projectId);
-                                }}
-                            >
-                                <Download size={16} />
-                            </Button>
-                            <User user={user} />
-                        </div>
-                    </div>
-
-                    { }
-
-                    {containerStatus == "running" && (
-                        <>
-                            <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
-                                <EditorInterface containerId={containerId} />
-                            </div>
-
-                            <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
-                                <BrowserPreview
-                                    containerPort={containerPort}
-                                    height="100%"
-                                    width="100%"
-                                />
-                            </div>
-                        </>
                     )}
 
+                    <div
+                        className={`flex-1 ${showConversation ? "md:col-span-3" : "md:col-span-4"} flex flex-col bg-black/10 text-white rounded-xl overflow-hidden shadow-lg`}
+                    >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-4">
+                            <div className="flex items-center gap-3 sm:gap-6">
+                                <h2 className="text-lg font-medium text-gray-200">{showPreview ? "Preview" : "Code"}</h2>
+                            </div>
 
+                            <div className="flex flex-wrap items-center gap-3 sm:gap-6">
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-sm ${!showPreview ? "text-gray-300" : "text-gray-500"}`}>Code</span>
+                                    <Switch
+                                        checked={showPreview}
+                                        onCheckedChange={setShowPreview}
+                                        className="data-[state=checked]:bg-gray-700 data-[state=unchecked]:bg-gray-800"
+                                    />
+                                    <span className={`text-sm ${showPreview ? "text-gray-300" : "text-gray-500"}`}>Preview</span>
+                                </div>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-gray-700 hover:bg-gray-800"
+                                    onClick={() => {
+                                        // handleDownload(files, projectId);
+                                    }}
+                                >
+                                    <Download size={16} />
+                                </Button>
+                                <User user={user} />
+                            </div>
+                        </div>
 
-                </div>
-            </main>
+                        <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
+                            <EditorInterface containerId={containerId} />
+                        </div>
+
+                        <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
+                            <BrowserPreview containerPort={containerPort} height="100%" width="100%" />
+                        </div>
+                    </div>
+                </main>
+            </SidebarProvider>
         </div>
-    );
+    )
 }

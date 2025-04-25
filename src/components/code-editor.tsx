@@ -83,7 +83,7 @@ export function CodeEditor({ file, containerId }: CodeEditorProps) {
           { token: "namespace", foreground: "4EC9B0" },
         ],
         colors: {
-          "editor.background": "#1E1E1E",
+          "editor.background": "#101010",
           "editor.foreground": "#D4D4D4",
           "editorCursor.foreground": "#AEAFAD",
           "editor.lineHighlightBackground": "#2D2D30",
@@ -241,16 +241,16 @@ export function CodeEditor({ file, containerId }: CodeEditorProps) {
 
   if (!mounted || !themeReady) {
     return (
-      <div className="h-full w-full flex items-center justify-center bg-[#1E1E1E]">
+      <div className="h-full w-full flex items-center justify-center bg-black/40">
         <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden bg-[#1E1E1E]">
+    <div className="h-full w-full flex flex-col overflow-hidden bg-black/40">
       {/* Editor Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-[#3C3C3C]">
+      <div className="flex items-center justify-between px-4 py-2 bg-black/40 border-b border-[#3C3C3C]">
         <div className="flex items-center">
           <FileCode2 className="h-4 w-4 mr-2 text-blue-400" />
           <span className="text-sm font-medium text-gray-200">{file.name}</span>
@@ -328,11 +328,8 @@ export function CodeEditor({ file, containerId }: CodeEditorProps) {
       </div>
 
       {/* Status Bar */}
-      <div className="flex items-center justify-between px-4 py-1 bg-zinc-950 text-white text-xs">
+      <div className="flex items-center justify-between px-4 py-1 bg-black/10 text-white text-xs border-t border-[#3C3C3C]">
         <div className="flex items-center space-x-4">
-          <span>{language.charAt(0).toUpperCase() + language.slice(1)}</span>
-          <span>UTF-8</span>
-          <span>LF</span>
         </div>
         <div className="flex items-center space-x-4">
           <span>

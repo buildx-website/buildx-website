@@ -25,7 +25,7 @@ export function SendPrompt({
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full h-40 p-4 text-lg rounded-lg resize-none border border-gray-700 bg-black/30 backdrop-blur-sm shadow-inner shadow-primary/10 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 font-mono pr-12"
+                className="w-full h-40 p-4 text-lg rounded-lg resize-none border border-zinc-900 bg-black/30 backdrop-blur-sm shadow-inner shadow-primary/10 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 font-mono pr-12"
                 placeholder="Write your idea here..."
                 disabled={disabled}
             />
