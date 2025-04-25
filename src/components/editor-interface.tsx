@@ -213,7 +213,7 @@ export function EditorInterface({ containerId }: { containerId: string }) {
                 {selectedFile ? (
                   <CodeEditor file={selectedFile} containerId={containerId} />
                 ) : (
-                  <div className="flex items-center justify-center h-full bg-zinc-900 text-gray-300">
+                  <div className="flex items-center justify-center h-full bg-black/40 text-gray-300">
                     <div className="text-center p-6">
                       <BlocksIcon size={64} className="mx-auto mb-4 text-gray-400" />
                       <h2 className="text-2xl font-light mb-2 text-gray-200">Welcome to the Editor</h2>
