@@ -43,7 +43,7 @@ export default function Editor() {
     const [project, setProject] = useState<any | null>(null);
     const [currentActionBuilding, setCurrentActionBuilding] = useState<string | null>(null);
 
-    const [containerPort, setContainerPort] = useState<ContainerPort>({});
+    const [containerPort, setContainerPort] = useState<ContainerPort[]>([{}]);
 
     const params = useParams()
     const projectId = params.projectId as string
@@ -150,7 +150,7 @@ export default function Editor() {
                 console.log("Image: ", image);
                 console.log("Starting container with image:", image);
 
-                const data = await startNewContainer(image, "tail -f /dev/null", ["3000", "5173"]);
+                const data = await startNewContainer(image, "tail -f /dev/null", ["3000"]);
                 console.log("Container started", data);
 
                 setContainerId(data.containerId);
@@ -445,7 +445,6 @@ export default function Editor() {
 
                             <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
                                 <BrowserPreview
-                                    containerId={containerId}
                                     containerPort={containerPort}
                                     height="100%"
                                     width="100%"
