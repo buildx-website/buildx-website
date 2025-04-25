@@ -206,7 +206,7 @@ export function FileExplorer({ files, onFileSelect, onToggleDirectory, selectedF
           <RotateCcw className="h-4 w-4 spin" />
         </button>
       </div>
-      <div className="flex-1 py-1">
+      <div className="flex-1 py-1 bg-black/40">
         {files.length > 0 ? (
           renderFileTree(files)
         ) : (
