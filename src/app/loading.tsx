@@ -8,7 +8,7 @@ export default function Loading() {
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0)
 
   const quotes = [
-    "Getting your project up and running in no time....",
+    "Getting your project up and running in no time.  ",
     "Building the future, one line of code at a time.",
     "Your code, your way. BuildX makes it happen.",
     "Sit tight, we're building something amazing.",
@@ -56,7 +56,7 @@ export default function Loading() {
             duration: 0.5,
             ease: "easeOut"
           }}
-          className="fixed bottom-20 hidden md:block text-white/40 text-center max-w-md px-6 text-lg"
+          className="fixed bottom-20 hidden md:block text-white/40 text-center max-w-lg px-6 text-md"
         >
           &quot;{quotes[currentQuoteIndex]}&quot;
         </motion.div>

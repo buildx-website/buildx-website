@@ -111,7 +111,8 @@ export const baseReactFiles = `<boltArtifact id="project-import" title="React + 
     },
   }
   </boltAction>
-  <boltAction type="file" filePath="src/App.tsx">import { Button } from "@/components/ui/button";
+  <boltAction type="file" filePath="src/App.tsx">
+  import { Button } from "@/components/ui/button";
   import { Card } from "@/components/ui/card";
   import { ArrowRight } from "lucide-react";
   export default function Home() {
