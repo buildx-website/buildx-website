@@ -76,6 +76,15 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
 
         socket.onopen = () => {
             socket.send(JSON.stringify({ type: "start", containerId }))
+            
+            setTimeout(() => {
+                if (terminal.current && socket.readyState === WebSocket.OPEN) {
+                    const initCmd = "npm install && npm run dev";
+                    terminal.current.write(`${initCmd}\r\n`);
+                    socket.send(`${initCmd}\r`);
+                    socket.send('\n');
+                }
+            }, 1500);
         }
 
         socket.onmessage = (event) => {
@@ -91,8 +100,7 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
         socket.onclose = () => {
             term.writeln("\r\n\x1b[33m Connection closed\x1b[0m\r\n")
         }
-
-        // Send terminal input to WebSocket
+        
         term.onData((data) => {
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(data)

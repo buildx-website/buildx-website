@@ -27,7 +27,7 @@ export async function chat(llm: OpenAI, prompt: string) {
     }
 }
 
-export async function chatStream(llm: OpenAI, messages: Message[], framework: string, modelName: string, response: (token: string) => void) {
+export async function chatStream(llm: OpenAI, messages: Message[], prompt: string, framework: string, modelName: string, response: (token: string) => void) {
     try {
         if (framework === "REACT") {
             messages.unshift({
@@ -46,13 +46,18 @@ export async function chatStream(llm: OpenAI, messages: Message[], framework: st
                 }]
             });
         }
-
-        console.log("Messages: ", messages);
+        messages.push({
+            role: "user", content: [{
+                type: "text",
+                text: prompt
+            }]
+        });
 
         const completion = await llm.chat.completions.create({
             model: modelName,
             messages: messages as ChatCompletionMessageParam[],
-            stream: true
+            temperature: 0,
+            stream: true,
         });
 
         let fullContent = "";

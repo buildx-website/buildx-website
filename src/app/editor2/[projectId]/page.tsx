@@ -7,7 +7,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Switch } from "@/components/ui/switch"
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { BlocksIcon, Download } from "lucide-react";
+import { Download, PanelRight, PanelRightClose } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
 import { ContainerPort, Content, Message, } from "@/types/types";
 import { StepList } from "@/components/StepList";
@@ -203,13 +203,14 @@ export default function Editor() {
             setUiMsgs(prev => [...prev, { role: "user", content: content }]);
             setUiMsgs(prev => [...prev, { role: "assistant", content: [], loading: true }]);
 
+            const prompt = content.map((c) => c.text).join(" ");
+            console.log("Prompt: ", prompt);
+
             await saveMsg([{
                 role: "user",
                 content: content,
                 ignoreInUI: false
             }]);
-
-            console.log("Framework: ", project?.framework);
 
             const response = await fetch('/api/main/chat', {
                 method: 'POST',
@@ -388,59 +389,28 @@ export default function Editor() {
     }
 
     return (
-        <div className="flex flex-row h-screen">
-            <SidebarProvider>
-                <Sidebar className="w-16 flex-shrink-0 bg-black border-r border-zinc-950">
+        <SidebarProvider>
+            <div className="flex flex-row h-screen w-screen">
+                <Sidebar className="bg-black border-r border-zinc-950">
                     <SidebarHeader className="p-2">
                         <SidebarMenu>
                             <SidebarMenuItem>
                                 <SidebarMenuButton
-                                    size="lg"
-                                    className="flex justify-center"
-                                    onClick={() => (window.location.href = "/")}
-                                >
-                                    <BlocksIcon size={24} />
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                            <SidebarMenuItem>
-                                <SidebarMenuButton
-                                    size="lg"
+                                    size='lg'
                                     className="flex justify-center"
                                     onClick={() => setShowConversation(!showConversation)}
                                     tooltip="Toggle Conversation"
                                 >
                                     {showConversation ? (
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="24"
-                                            height="24"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            className="lucide lucide-message-square"
-                                        >
-                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                                        </svg>
+                                        <PanelRightClose
+                                            className="text-gray-200"
+                                            size={30}
+                                        />
                                     ) : (
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="24"
-                                            height="24"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            className="lucide lucide-message-square-off"
-                                        >
-                                            <path d="M21 15V5a2 2 0 0 0-2-2H9" />
-                                            <path d="m2 2 20 20" />
-                                            <path d="M3.6 3.6A2 2 0 0 0 3 5v14l4-4h10" />
-                                        </svg>
+                                        <PanelRight
+                                            className="text-gray-200"
+                                            size={30}
+                                        />
                                     )}
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
@@ -448,11 +418,11 @@ export default function Editor() {
                     </SidebarHeader>
                 </Sidebar>
 
-                <main className="h-screen flex flex-col md:grid md:grid-cols-4 gap-0 p-0 bg-[#121212] overflow-hidden w-full">
+                <main className="h-screen w-full flex flex-1 flex-col md:grid md:grid-cols-4 gap-0 p-0 bg-[#121212] overflow-hidden">
                     {showConversation && (
                         <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col overflow-hidden shadow-lg px-2">
-                            <div className="p-4 flex flex-row">
-                                <h2 className="text-lg font-medium text-gray-200">Conversation</h2>
+                            <div className="p-4 flex flex-row gap-2 my-auto">
+                                <h2 className="text-lg font-medium text-gray-200 my-auto">Conversation</h2>
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
@@ -509,7 +479,7 @@ export default function Editor() {
                         </div>
                     </div>
                 </main>
-            </SidebarProvider>
-        </div>
+            </div>
+        </SidebarProvider>
     )
 }
