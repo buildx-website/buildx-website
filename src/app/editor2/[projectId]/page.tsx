@@ -50,7 +50,10 @@ export default function Editor() {
     const [building, setBuilding] = useState(false);
     const conversationRef = useRef<HTMLDivElement>(null);
     const [validationError, setValidationError] = useState<string>("");
-    const [project, setProject] = useState<any | null>(null);
+    const [project, setProject] = useState<{
+        framework: string;
+        messages: Message[];
+    } | null>(null);
     const [currentActionBuilding, setCurrentActionBuilding] = useState<string | null>(null);
 
     const [containerPort, setContainerPort] = useState<ContainerPort[]>([{}]);
@@ -446,7 +449,7 @@ export default function Editor() {
                                 <div className="bg-red-500/10 p-6 rounded-lg border border-red-500/20">
                                     <h3 className="text-xl font-semibold text-red-400 mb-2">Container Not Running</h3>
                                     <p className="text-gray-400 mb-4">
-                                        Our worker is not currently running. Please wait while we try to reconnect.
+                                        Our worker is not currently running. Please retry after a few minutes.
                                     </p>
                                     <div className="animate-pulse">
                                         <div className="h-2 w-24 bg-red-500/20 rounded mx-auto"></div>
@@ -489,11 +492,11 @@ export default function Editor() {
                                 </div>
 
                                 <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
-                                    <BrowserPreview 
-                                        containerPort={containerPort} 
-                                        height="100%" 
-                                        width="100%" 
-                                        building={building} 
+                                    <BrowserPreview
+                                        containerPort={containerPort}
+                                        height="100%"
+                                        width="100%"
+                                        building={building}
                                     />
                                 </div>
                             </>
