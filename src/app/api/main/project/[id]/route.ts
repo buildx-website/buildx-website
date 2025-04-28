@@ -1,8 +1,8 @@
 import { db } from "@/db";
 import { Content, Message } from "@/types/types";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-    const { id } = params;
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
 
     console.log("Fetching project with ID:", id);
 
