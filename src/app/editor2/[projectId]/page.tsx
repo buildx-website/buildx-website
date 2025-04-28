@@ -439,44 +439,65 @@ export default function Editor() {
                     )}
 
                     <div
-                        className={`flex-1 ${showConversation ? "md:col-span-3" : "md:col-span-4"} flex flex-col bg-black/10 text-white rounded-xl overflow-hidden shadow-lg`}
+                        className={`flex-1 ${showConversation ? "md:col-span-3" : "md:col-span-4"} flex flex-col bg-black/10 text-white rounded-xl overflow-hidden shadow-lg font-heading`}
                     >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-4">
-                            <div className="flex items-center gap-3 sm:gap-6">
-                                <h2 className="text-lg font-medium text-gray-200">{showPreview ? "Preview" : "Code"}</h2>
-                            </div>
-
-                            <div className="flex flex-wrap items-center gap-3 sm:gap-6">
-                                <div className="flex items-center gap-2">
-                                    <span className={`text-sm ${!showPreview ? "text-gray-300" : "text-gray-500"}`}>Code</span>
-                                    <Switch
-                                        checked={showPreview}
-                                        onCheckedChange={setShowPreview}
-                                        className="data-[state=checked]:bg-gray-700 data-[state=unchecked]:bg-gray-800"
-                                    />
-                                    <span className={`text-sm ${showPreview ? "text-gray-300" : "text-gray-500"}`}>Preview</span>
+                        {containerStatus !== "running" ? (
+                            <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                                <div className="bg-red-500/10 p-6 rounded-lg border border-red-500/20">
+                                    <h3 className="text-xl font-semibold text-red-400 mb-2">Container Not Running</h3>
+                                    <p className="text-gray-400 mb-4">
+                                        Our worker is not currently running. Please wait while we try to reconnect.
+                                    </p>
+                                    <div className="animate-pulse">
+                                        <div className="h-2 w-24 bg-red-500/20 rounded mx-auto"></div>
+                                    </div>
                                 </div>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="border-gray-700 hover:bg-gray-800"
-                                    onClick={() => {
-                                        // handleDownload(files, projectId);
-                                    }}
-                                >
-                                    <Download size={16} />
-                                </Button>
-                                <User user={user} />
                             </div>
-                        </div>
+                        ) : (
+                            <>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2 px-4 gap-4">
+                                    <div className="flex items-center gap-3 sm:gap-6">
+                                        <h2 className="text-lg font-medium text-gray-200">{showPreview ? "Preview" : "Code"}</h2>
+                                    </div>
 
-                        <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
-                            <EditorInterface containerId={containerId} />
-                        </div>
+                                    <div className="flex flex-wrap items-center gap-3 sm:gap-6">
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-sm ${!showPreview ? "text-gray-300" : "text-gray-500"}`}>Code</span>
+                                            <Switch
+                                                checked={showPreview}
+                                                onCheckedChange={setShowPreview}
+                                                className="data-[state=checked]:bg-gray-700 data-[state=unchecked]:bg-gray-800"
+                                            />
+                                            <span className={`text-sm ${showPreview ? "text-gray-300" : "text-gray-500"}`}>Preview</span>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="border-gray-700 hover:bg-gray-800"
+                                            onClick={() => {
+                                                // handleDownload(files, projectId);
+                                            }}
+                                        >
+                                            <Download size={16} />
+                                        </Button>
+                                        <User user={user} />
+                                    </div>
+                                </div>
 
-                        <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
-                            <BrowserPreview containerPort={containerPort} height="100%" width="100%" />
-                        </div>
+                                <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
+                                    <EditorInterface containerId={containerId} />
+                                </div>
+
+                                <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
+                                    <BrowserPreview 
+                                        containerPort={containerPort} 
+                                        height="100%" 
+                                        width="100%" 
+                                        building={building} 
+                                    />
+                                </div>
+                            </>
+                        )}
                     </div>
                 </main>
             </div>

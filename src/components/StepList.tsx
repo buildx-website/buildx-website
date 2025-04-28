@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { type Step, StepType } from "@/types/types"
-import { SquareCheck, ChevronDown, ChevronUp, Loader2, OctagonAlert } from "lucide-react"
+import { SquareCheck, ChevronDown, ChevronUp, Loader2, OctagonAlert, Loader } from "lucide-react"
 import { Button } from "./ui/button"
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
 import { useState, useEffect, useRef } from "react"
@@ -90,7 +90,7 @@ export function StepList({ StepTitle, steps, building = false, maxHeight = "400p
                         <div className="flex items-center gap-2">
                             {building ? (
                                 <div className="relative flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary/10 text-primary">
-                                    <Loader2 size={18} className="animate-spin" />
+                                    <Loader size={18} className="animate-spin" />
                                     <span className="text-sm font-medium">Building...</span>
                                     <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full animate-pulse shadow-md shadow-primary/20"></span>
                                 </div>
