@@ -1,7 +1,6 @@
 import { chatBodyTypes } from "@/types/types";
 
-
-export const baseReactPrompt = `
+const baseReactPrompt = `
 Hello! I can help you set up a React + ShadCN + Framer Motion project. Here's a step-by-step guide to get you started:
 <boltArtifact id="project-import" title="React + ShadCN + Framer Motion Project"><boltAction type="file" filePath="components.json">{
     "$schema": "https://ui.shadcn.com/schema.json",
