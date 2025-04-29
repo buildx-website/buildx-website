@@ -5,11 +5,18 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AuthCard } from "./AuthCard";
 import { UserCard } from "./UserCard";
 import { BlocksIcon, UserRound, UserRoundCheck } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User } from "better-auth";
 
-export function Navbar({ user, isLoggedIn }: { user: User | null, isLoggedIn: boolean }) {
+export function Navbar({ user, isLoggedIn, openDialog }: { user: User | null, isLoggedIn: boolean, openDialog?: boolean }) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    // Effect to handle external dialog opening requests
+    useEffect(() => {
+        if (openDialog) {
+            setIsDialogOpen(true);
+        }
+    }, [openDialog]);
 
     function handleClick() {
         setIsDialogOpen(true);
