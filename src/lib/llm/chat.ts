@@ -62,8 +62,11 @@ export async function chatStream(llm: OpenAI, messages: Message[], prompt: strin
 
         let fullContent = "";
         for await (const chunk of completion) {
-            response(chunk.choices[0]?.delta?.content || '');
-            fullContent += chunk.choices[0]?.delta?.content || '';
+
+            if (chunk.choices?.[0]?.delta?.content === undefined) continue;
+
+            response(chunk.choices?.[0]?.delta?.content || '');
+            fullContent += chunk.choices?.[0]?.delta?.content || '';
         }
         return fullContent;
 

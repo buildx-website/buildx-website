@@ -233,6 +233,24 @@ export default function Home() {
       return;
     }
     setLoading(true);
+    const refinePrompt = await fetch("/api/main/refine-prompt", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prompt }),
+    });
+    if (refinePrompt.ok) {
+      const data = await refinePrompt.json();
+      console.log("Refined Prompt: ", data);
+      setPrompt(data.refinedPrompt);
+      toast.success("Prompt refined successfully");
+    }
+    else {
+      const data = await refinePrompt.json();
+      toast.error(data.error);
+    }
+    setLoading(false);
 
   }
 
@@ -419,7 +437,7 @@ export default function Home() {
                         <Button
                           onClick={handleSubmit}
                           variant="default"
-                          disabled={loading || prompt.trim() === ""}
+                          disabled={loading}
                         >
                           {loading ? (
                             <motion.div
