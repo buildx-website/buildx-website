@@ -7,6 +7,28 @@ import { FitAddon } from "xterm-addon-fit"
 import { WebLinksAddon } from "xterm-addon-web-links"
 import "xterm/css/xterm.css"
 
+// Add custom styles for terminal container
+const terminalStyles = `
+  .terminal-container {
+    position: relative;
+    height: calc(100% - 16px);
+    margin-bottom: 16px;
+  }
+  .terminal-container .xterm {
+    height: 100%;
+    width: 100%;
+    padding: 4px;
+  }
+  .terminal-container .xterm-viewport {
+    overflow-y: scroll !important;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+  }
+  .xterm .xterm-screen {
+    position: relative;
+  }
+`
+
 type TerminalProps = {
     containerId: string
     autoFocus?: boolean
@@ -36,6 +58,11 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
     })
 
     useEffect(() => {
+        // Add styles to document head
+        const styleElement = document.createElement('style')
+        styleElement.textContent = terminalStyles
+        document.head.appendChild(styleElement)
+
         // Initialize XTerm.js
         const term = new Terminal({
             cursorBlink: true,
@@ -68,6 +95,17 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
             if (autoFocus) {
                 term.focus()
             }
+        }
+
+        // Set up resize observer
+        const resizeObserver = new ResizeObserver(() => {
+            if (fitAddon.current) {
+                fitAddon.current.fit()
+            }
+        })
+
+        if (xtermRef.current) {
+            resizeObserver.observe(xtermRef.current)
         }
 
         // Connect to WebSocket
@@ -109,9 +147,12 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
 
         // Clean up
         return () => {
+            resizeObserver.disconnect()
             socket.close()
             terminal.current?.dispose()
             socketRef.current = null
+            // Remove styles
+            styleElement.remove()
         }
     }, [containerId])
 
@@ -140,7 +181,7 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
     }, [startCmd])
 
     return (
-        <div className="overflow-hidden border-t border-zinc-800">
+        <div className="flex flex-col h-full overflow-hidden border-t border-zinc-800" style={{ paddingBottom: "20px" }}>
             <div className="px-3 py-1 text-sm font-semibold text-gray-300 border-b border-[#333333] bg-black/40 sticky top-0 z-10 flex items-center justify-between">
                 <span>Terminal</span>
                 <button
@@ -156,12 +197,14 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
             </div>
             <div
                 ref={xtermRef}
-                className="terminal-container"
+                className="terminal-container flex-1"
                 style={{
-                    height: "500px",
                     width: "100%",
                     backgroundColor: getThemeColors().background,
                     padding: "4px",
+                    minHeight: "200px",
+                    display: "flex",
+                    flexDirection: "column"
                 }}
                 aria-label="Terminal window"
                 role="application"
