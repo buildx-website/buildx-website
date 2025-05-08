@@ -7,20 +7,20 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useMessagesStore } from "@/store/messagesAtom";
 import { useStepsStore } from "@/store/initialStepsAtom";
-import { Sparkles, BlocksIcon, Paperclip, ArrowUp, X, Github } from "lucide-react";
+import { Sparkles, LayoutDashboard, Paperclip, ArrowUp, X, Github } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { motion } from "framer-motion";
 import { Content } from "@/types/types";
-import { Spotlight } from "@/components/ui/spotlight-new";
-import Sidebar from "@/components/Sidebar";
-import { Navbar } from "@/components/navbar";
+import HomeSidebar from "@/components/HomeSidebar";
 import { ArtifactParser } from "@/lib/artifactParser";
 import { useUser } from "@/hooks/useUser";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { AuthCard } from "@/components/AuthCard";
 
 export default function Home() {
   const router = useRouter();
-  const { user, isLoggedIn } = useUser();
+  const { isLoggedIn } = useUser();
   const [prompt, setPrompt] = useState<string>("");
   const addMessage = useMessagesStore((state) => state.addMessage);
   const addSteps = useStepsStore((state) => state.addSteps);
@@ -30,7 +30,7 @@ export default function Home() {
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const [openAuthDialog, setOpenAuthDialog] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const autoResize = () => {
     const textarea = textareaRef.current;
@@ -145,7 +145,7 @@ export default function Home() {
       return toast.error("Please write your idea first");
     }
     if (!isLoggedIn) {
-      setOpenAuthDialog(true);
+      setIsDialogOpen(true);
       return;
     }
     setLoading(true);
@@ -229,7 +229,7 @@ export default function Home() {
       return toast.error("Please write your idea first");
     }
     if (!isLoggedIn) {
-      setOpenAuthDialog(true);
+      setIsDialogOpen(true);
       return;
     }
     setLoading(true);
@@ -256,7 +256,7 @@ export default function Home() {
 
   async function handleModelChange(modelId: string) {
     if (!isLoggedIn) {
-      setOpenAuthDialog(true);
+      setIsDialogOpen(true);
       return;
     }
 
@@ -308,22 +308,14 @@ export default function Home() {
 
 
   return (<>
-    <div className="flex relative overflow-hidden min-h-screen">
-      <Sidebar isLoggedIn={isLoggedIn} />
-      <main className="flex-1 bg-gradient-to-b from-black to-zinc-950">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col">
-            <Navbar
-              user={user}
-              isLoggedIn={isLoggedIn}
-              openDialog={openAuthDialog}
-            />
-
-            <main className="flex-1 flex flex-col items-center justify-center py-12 md:py-24">
-              <Spotlight />
-              {/* Hero Section */}
+    <div className="flex relative min-h-screen">
+      <HomeSidebar />
+      <main className={`flex-1 bg-gradient-to-b from-black to-zinc-950 transition-all duration-300`}>
+        <div className="h-full w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col h-full">
+            <div className="flex-1 flex flex-col items-center justify-center py-12 md:py-24">
               <motion.div
-                className="flex flex-col gap-6 items-center text-center w-full max-w-4xl"
+                className="flex flex-col gap-6 items-center text-center max-w-3xl mx-auto"
                 initial="hidden"
                 animate="visible"
                 variants={fadeIn}
@@ -333,7 +325,7 @@ export default function Home() {
                   variants={slideUp}
                 >
                   <Sparkles className="w-4 h-4 mr-2 text-slate-500" />
-                  <span className="text-sm text-zinc-300 font-heading italic">V1 is here! Try it out!</span>
+                  <span className="text-xs text-zinc-300 font-heading italic">V2 is here! Try it out!</span>
                 </motion.div>
 
                 <motion.h1
@@ -345,7 +337,7 @@ export default function Home() {
 
 
                 <motion.p
-                  className="text-zinc-400 max-w-lg text-center text-lg text-muted-foreground sm:text-lg tracking-wide text-balance"
+                  className="text-zinc-400 max-w-lg text-center text-sm text-muted-foreground sm:text-base tracking-tight text-balance"
                   variants={slideUp}
                 >
                   Transform your ideas into working MVPs within minutes. No coding required.
@@ -524,7 +516,7 @@ export default function Home() {
                   </div>
                 </motion.div>
               </motion.div>
-            </main>
+            </div>
           </div>
         </div>
         <motion.footer
@@ -540,7 +532,7 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
-                <BlocksIcon className="w-6 h-6 text-slate-400" />
+                <LayoutDashboard className="w-6 h-6 text-slate-400" />
                 <span className="text-white font-medium font-heading">Builder</span>
               </motion.div>
 
@@ -583,31 +575,13 @@ export default function Home() {
           </div>
         </motion.footer>
       </main>
-      <motion.div
-        className="absolute top-1/4 -left-64 w-96 h-96 bg-slate-500/10 rounded-full blur-3xl"
-        animate={{
-          x: [0, 20, 0],
-          opacity: [0.5, 0.7, 0.5]
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          repeatType: "reverse"
-        }}
-      ></motion.div>
-      <motion.div
-        className="absolute bottom-1/3 -right-64 w-96 h-96 bg-slate-400/10 rounded-full blur-3xl"
-        animate={{
-          x: [0, -20, 0],
-          opacity: [0.5, 0.7, 0.5]
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          repeatType: "reverse",
-          delay: 2
-        }}
-      ></motion.div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTitle />
+        <DialogContent>
+          <AuthCard setIsDialogOpen={setIsDialogOpen} />
+        </DialogContent>
+      </Dialog>
     </div>
   </>
   )

@@ -7,7 +7,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Switch } from "@/components/ui/switch"
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, PanelRight, PanelRightClose } from "lucide-react";
+import { Download, } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
 import { ContainerPort, Content, Message, } from "@/types/types";
 import { StepList } from "@/components/StepList";
@@ -19,15 +19,7 @@ import { ArtifactParser } from "@/lib/artifactParser";
 import { useUser } from "@/hooks/useUser";
 import Loading from "@/app/loading";
 import { BrowserPreview } from "@/components/WebPreview/browser-preview";
-
-import {
-  Sidebar,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+import HomeSidebar from "@/components/HomeSidebar";
 
 export default function Editor() {
   const router = useRouter();
@@ -42,7 +34,7 @@ export default function Editor() {
 
   const [containerId, setContainerId] = useState<string>("");
   const [containerStatus, setContainerStatus] = useState<string>("");
-  const [showConversation, setShowConversation] = useState(true)
+  const [showConversation, /* setShowConversation */] = useState(true)
 
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -392,36 +384,9 @@ export default function Editor() {
   }
 
   return (
-    <SidebarProvider>
       <div className="flex flex-row h-screen w-screen">
-        <Sidebar className="bg-black border-r border-zinc-950">
-          <SidebarHeader className="p-2">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  size='lg'
-                  className="flex justify-center"
-                  onClick={() => setShowConversation(!showConversation)}
-                  tooltip="Toggle Conversation"
-                >
-                  {showConversation ? (
-                    <PanelRightClose
-                      className="text-gray-200"
-                      size={30}
-                    />
-                  ) : (
-                    <PanelRight
-                      className="text-gray-200"
-                      size={30}
-                    />
-                  )}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarHeader>
-        </Sidebar>
-
-        <main className="h-screen w-full flex flex-1 flex-col md:grid md:grid-cols-4 gap-0 p-0 bg-[#121212] overflow-hidden">
+        <HomeSidebar />
+        <main className="h-screen w-full flex flex-1 flex-col md:grid md:grid-cols-4 gap-0 p-0 bg-[#121212] overflow-hidden ml-[64px] md:ml-[64px] transition-all duration-300">
           {showConversation && (
             <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col overflow-hidden shadow-lg px-2">
               <div className="p-4 flex flex-row gap-2 my-auto">
@@ -501,9 +466,9 @@ export default function Editor() {
                 </div>
               </>
             )}
-          </div>
-        </main>
-      </div>
-    </SidebarProvider>
-  )
+        </div>
+      </main>
+    </div>
+    // </SidebarProvider>
+  ) 
 }
