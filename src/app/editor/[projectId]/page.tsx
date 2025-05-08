@@ -113,11 +113,15 @@ export default function Editor() {
                     text: (content.text
                       ? `\n\n**Content before response:**\n${content.text}`
                         .replace(
-                          /<boltArtifact[\s\S]*?<\/boltArtifact>([\s\S]*)/,
+                          /<boltArtifact[^>]*>|<boltArtifact[\s\S]*?<\/boltArtifact>([\s\S]*)/, 
                           (match, after) =>
-                            after.trim()
+                            after && after.trim()
                               ? `\n\n**Content after response:**\n${after.trim()}`
                               : ""
+                        )
+                        .replace(
+                          /<boltAction[\s\S]*?<\/boltAction>/g,
+                          ""
                         )
                       : "")
 
@@ -407,7 +411,7 @@ export default function Editor() {
           )}
 
           <div
-            className={`flex-1 ${showConversation ? "md:col-span-3" : "md:col-span-4"} flex flex-col bg-black/10 text-white rounded-xl overflow-hidden shadow-lg font-heading`}
+            className={`flex-1 ${showConversation ? "md:col-span-3" : "md:col-span-4"} flex flex-col bg-black/10 text-white overflow-hidden shadow-lg font-heading`}
           >
             {containerStatus !== "running" ? (
               <div className="flex flex-col items-center justify-center h-full p-8 text-center">

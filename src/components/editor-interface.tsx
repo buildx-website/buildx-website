@@ -228,7 +228,7 @@ export function EditorInterface({ containerId }: { containerId: string }) {
 
           <ResizableHandle />
 
-          <ResizablePanel defaultSize={30} minSize={5} maxSize={90}>
+          <ResizablePanel defaultSize={35} minSize={20} maxSize={90}>
             <TerminalComponent containerId={containerId} startCmd={startCmd} />
           </ResizablePanel>
 
