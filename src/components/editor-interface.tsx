@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { FileExplorer } from "@/components/file-explorer"
 import { CodeEditor } from "@/components/code-editor"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
-import { BlocksIcon } from "lucide-react"
+import { LayoutDashboard } from "lucide-react"
 import { getFileTree } from "@/lib/worker-config"
 import { StepType, type FileType } from "@/types/types"
 import TerminalComponent from "@/components/terminal"
@@ -215,7 +215,7 @@ export function EditorInterface({ containerId }: { containerId: string }) {
                 ) : (
                   <div className="flex items-center justify-center h-full bg-black/40 text-gray-300">
                     <div className="text-center p-6">
-                      <BlocksIcon size={64} className="mx-auto mb-4 text-gray-400" />
+                      <LayoutDashboard size={64} className="mx-auto mb-4 text-gray-400" />
                       <h2 className="text-2xl font-light mb-2 text-gray-200">Welcome to the Editor</h2>
                       <p className="text-gray-400">Select a file from the explorer to start editing</p>
                     </div>

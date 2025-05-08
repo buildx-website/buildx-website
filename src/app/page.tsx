@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useMessagesStore } from "@/store/messagesAtom";
 import { useStepsStore } from "@/store/initialStepsAtom";
-import { Sparkles, BlocksIcon, Paperclip, ArrowUp, X, Github } from "lucide-react";
+import { Sparkles, LayoutDashboard, Paperclip, ArrowUp, X, Github } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { motion } from "framer-motion";
@@ -532,7 +532,7 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
-                <BlocksIcon className="w-6 h-6 text-slate-400" />
+                <LayoutDashboard className="w-6 h-6 text-slate-400" />
                 <span className="text-white font-medium font-heading">Builder</span>
               </motion.div>
 
