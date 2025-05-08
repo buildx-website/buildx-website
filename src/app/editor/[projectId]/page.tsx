@@ -113,11 +113,15 @@ export default function Editor() {
                     text: (content.text
                       ? `\n\n**Content before response:**\n${content.text}`
                         .replace(
-                          /<boltArtifact[\s\S]*?<\/boltArtifact>([\s\S]*)/,
+                          /<boltArtifact[^>]*>|<boltArtifact[\s\S]*?<\/boltArtifact>([\s\S]*)/, 
                           (match, after) =>
-                            after.trim()
+                            after && after.trim()
                               ? `\n\n**Content after response:**\n${after.trim()}`
                               : ""
+                        )
+                        .replace(
+                          /<boltAction[\s\S]*?<\/boltAction>/g,
+                          ""
                         )
                       : "")
 
