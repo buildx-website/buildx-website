@@ -156,8 +156,6 @@ export default function Editor() {
     const startContainer = async () => {
       try {
         const image = project?.framework === "REACT" ? "buildx-react" : "null";
-        console.log("Image: ", image);
-        console.log("Starting container with image:", image);
 
         const data = await startNewContainer(image, "tail -f /dev/null", ["3000"]);
         console.log("Container started", data);

@@ -1,5 +1,5 @@
-# Builder - Create Web Apps using AI
-Builder is a prompt-to-app web application that allows you to create web applications using natural language prompts. It is designed to be user-friendly and accessible to everyone, regardless of their technical background.
+# BuildX Website - Create Web Apps using AI
+BuildX is a prompt-to-app web application that allows you to create web applications using natural language prompts. It is designed to be user-friendly and accessible to everyone, regardless of their technical background.
 
 ![image](https://github.com/user-attachments/assets/e2db493a-a838-48d9-b04c-d6ec4ef07cad)
 
