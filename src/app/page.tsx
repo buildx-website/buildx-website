@@ -35,7 +35,6 @@ export default function Home() {
   const titles = ['What do you want to build today?', 'Build, Build & Build', 'Welcome, Let\'s Build Together', 'How can I help you today?', 'What\'s on your mind today?', 'Let\'s create something amazing.', 'Your next big thing starts here.', 'Think it. Build it. Ship it.', 'Dream it. Code it. Do it.'];
 
   useEffect(() => {
-    console.log(Math.floor(Math.random() * titles.length))
     setTitle(titles[Math.floor(Math.random() * titles.length)]);
   }, []);
 

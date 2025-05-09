@@ -20,6 +20,7 @@ import { useUser } from "@/hooks/useUser";
 import Loading from "@/app/loading";
 import { BrowserPreview } from "@/components/WebPreview/browser-preview";
 import HomeSidebar from "@/components/HomeSidebar";
+import { toast } from "sonner";
 
 export default function Editor() {
   const router = useRouter();
@@ -28,6 +29,8 @@ export default function Editor() {
   const [showPreview, setShowPreview] = useState<boolean>(false);
   const { messages, addMessage, setMessages } = useMessagesStore();
   const { steps, setSteps, addSteps } = useStepsStore();
+  const [allModels, setAllModels] = useState<{ id: string, name: string, displayName: string }[]>([]);
+  const [model, setModel] = useState<string | null>(null);
 
   const [prompt, setPrompt] = useState("");
   const [framework, setFramework] = useState<string>("");
@@ -108,24 +111,24 @@ export default function Editor() {
               if (msg.role === "assistant" && msg.content.length > 0) {
                 return {
                   ...msg,
-                  content: msg.content.map((content: Content) => ({
-                    ...content,
-                    text: (content.text
-                      ? `\n\n**Content before response:**\n${content.text}`
-                        .replace(
-                          /<boltArtifact[^>]*>|<boltArtifact[\s\S]*?<\/boltArtifact>([\s\S]*)/, 
-                          (match, after) =>
-                            after && after.trim()
-                              ? `\n\n**Content after response:**\n${after.trim()}`
-                              : ""
-                        )
-                        .replace(
-                          /<boltAction[\s\S]*?<\/boltAction>/g,
-                          ""
-                        )
-                      : "")
+                  content: msg.content.map((content: Content) => {
+                    if (!content.text) return content;
+                    
+                    const processedText = content.text
+                      .replace(/<boltArtifact[^>]*>[\s\S]*?<\/boltArtifact>/g, '')
+                      .replace(/<boltAction[^>]*>[\s\S]*?<\/boltAction>/g, '')
+                      .replace(/<boltAction[^>]*>[\s\S]*?<boltArtifact[^>]*>[\s\S]*?<\/boltArtifact>[\s\S]*?<\/boltAction>/g, '')
+                      .trim();
 
-                  }))
+                    const finalText = processedText 
+                      ? `\n\n**Content before response:**\n${processedText}`
+                      : "";
+
+                    return {
+                      ...content,
+                      text: finalText
+                    };
+                  })
                 };
               }
               return msg;
@@ -176,6 +179,78 @@ export default function Editor() {
       conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
     }
   }, [uiMsgs]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      getModels();
+      getUserModel();
+    }
+  }, [isLoggedIn]);
+
+  async function getModels() {
+    if (!isLoggedIn) {
+      return;
+    }
+    const models = await fetch("/api/main/models", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (models.ok) {
+      const data = await models.json();
+      setAllModels(data);
+    } else {
+      const data = await models.json();
+      console.log("Error fetching models: ", data.error);
+    }
+  }
+
+  async function getUserModel() {
+    if (!isLoggedIn) {
+      return;
+    }
+    const userModel = await fetch("/api/main/user-model", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (userModel.ok) {
+      const data = await userModel.json();
+      setModel(data.id);
+    } else {
+      const data = await userModel.json();
+      toast.error(data.error);
+    }
+  }
+
+  async function handleModelChange(modelId: string) {
+    if (!isLoggedIn) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/main/user-model", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ modelId }),
+      });
+
+      if (response.ok) {
+        setModel(modelId);
+        toast.success("Model updated successfully");
+      } else {
+        const data = await response.json();
+        toast.error(data.error);
+      }
+    } catch (error) {
+      console.error("Error updating model: ", error);
+      toast.error("Failed to update model");
+    }
+  }
 
   async function saveMsg(msg: Message[]) {
     try {
@@ -403,7 +478,15 @@ export default function Editor() {
 
               <div className="p-4">
                 <StepList StepTitle={currentActionBuilding} steps={steps} building={building} setPrompt={setPrompt} />
-                <SendPrompt handleSubmit={handleSubmit} prompt={prompt} setPrompt={setPrompt} disabled={isStreaming} />
+                <SendPrompt 
+                  handleSubmit={handleSubmit} 
+                  prompt={prompt} 
+                  setPrompt={setPrompt} 
+                  disabled={isStreaming}
+                  model={model}
+                  onModelChange={handleModelChange}
+                  allModels={allModels}
+                />
               </div>
             </div>
           )}
