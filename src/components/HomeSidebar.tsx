@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import {
-    Loader2,
     Home,
     Plus,
     FolderKanban,
     Settings,
     UserRound,
     UserRoundCheck,
-    LayoutDashboard
+    LayoutDashboard,
+    Loader
 } from "lucide-react";
 import { getChatsTypes } from "@/types/types";
 import Link from "next/link";
@@ -70,7 +70,7 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
         <>
             <div
                 className={`fixed top-0 left-0 h-screen z-40 flex flex-col transition-all duration-300 border-r border-zinc-900 ${
-                    isOpen ? 'w-[260px] bg-black' : 'w-[64px] bg-black/30'
+                    isOpen ? 'w-[230px] bg-black' : 'w-[64px] bg-black/30'
                 }`}
                 onMouseEnter={() => setIsOpen(true)}
                 onMouseLeave={() => setIsOpen(false)}
@@ -81,21 +81,21 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                             className="flex items-center gap-2 text-slate-200 cursor-pointer select-none"
                             onClick={() => window.location.href = '/'}
                         >
-                            <LayoutDashboard className="h-8 w-auto" />
+                            <LayoutDashboard size={24} />
                             {isOpen && (
-                                <span className="text-xl font-bold text-slate-200 my-auto font-heading">
-                                    Builder
+                                <span className="text-lg font-bold text-slate-200 my-auto font-heading">
+                                    BuildX
                                 </span>
                             )}
                         </span>
                     </div>
                     <nav className="flex flex-col gap-2 mt-2">
                         <Link href="/" className={`flex items-center ${isOpen ? 'px-4 py-2 gap-3' : 'justify-center py-3'} text-zinc-100 hover:bg-zinc-800/ rounded-lg transition-colors`}>
-                            <Home className="h-5 w-5" />
+                            <Home size={20} />
                             {isOpen && <span>Home</span>}
                         </Link>
                         <Link href="/new" onClick={handleAuthRequired} className={`flex items-center ${isOpen ? 'px-4 py-2 gap-3' : 'justify-center py-3'} text-zinc-100 hover:bg-zinc-800/50 rounded-lg transition-colors`}>
-                            <Plus className="h-5 w-5" />
+                            <Plus size={20} />
                             {isOpen && <span>New Project</span>}
                         </Link>
                         <div className={`my-2 ${isOpen ? 'mx-4' : 'mx-auto w-8'} h-px bg-zinc-800/50`} />
@@ -106,7 +106,7 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                         )}
                         {!isOpen && (
                             <div className="flex flex-col gap-1 items-center">
-                                <FolderKanban className="h-5 w-5 text-zinc-500" />
+                                <FolderKanban size={20} className="text-zinc-500" />
                             </div>
                         )}
                         {isOpen && (!isLoggedIn ? (
@@ -115,7 +115,7 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                             </div>
                         ) : loading ? (
                             <div className="flex flex-col items-center justify-center py-8 text-zinc-400">
-                                <Loader2 size={24} className="animate-spin mb-2" />
+                                <Loader size={20} className="animate-spin mb-2" />
                                 <span className="text-sm">Loading projects...</span>
                             </div>
                         ) : error ? (
@@ -132,7 +132,7 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                                     onClick={handleAuthRequired}
                                     className="flex items-center px-4 py-2 gap-3 text-zinc-100 hover:bg-zinc-800/50 rounded-lg transition-colors"
                                 >
-                                    <FolderKanban className="h-5 w-5" />
+                                    <FolderKanban size={20} />
                                     <span>{chat.name}</span>
                                 </Link>
                             ))
@@ -152,7 +152,7 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                         onClick={handleAuthRequired}
                         className={`flex items-center ${isOpen ? 'w-full gap-2 px-3 py-2' : 'justify-center p-2'} text-zinc-100 hover:bg-zinc-800/50 rounded-lg transition-colors`}
                     >
-                        <Settings className="h-5 w-5" />
+                        <Settings size={20} />
                         {isOpen && <span>Settings</span>}
                     </Link>
                 </div>

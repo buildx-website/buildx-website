@@ -31,6 +31,12 @@ export default function Home() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [title, setTitle] = useState<string>("");
+  const titles = ['What do you want to build today?', 'Build, Build & Build', 'Welcome, Let\'s Build Together', 'How can I help you today?', 'What\'s on your mind today?', 'Let\'s create something amazing.', 'Your next big thing starts here.', 'Think it. Build it. Ship it.', 'Dream it. Code it. Do it.'];
+
+  useEffect(() => {
+    setTitle(titles[Math.floor(Math.random() * titles.length)]);
+  }, []);
 
   const autoResize = () => {
     const textarea = textareaRef.current;
@@ -332,7 +338,7 @@ export default function Home() {
                   className="text-balance text-center font-heading text-4xl font-bold sm:text-5xl lg:text-6xl leading-tight text-zinc-200"
                   variants={slideUp}
                 >
-                  What do you want to build today?
+                  {title}
                 </motion.h1>
 
 
@@ -340,7 +346,7 @@ export default function Home() {
                   className="text-zinc-400 max-w-lg text-center text-sm text-muted-foreground sm:text-base tracking-tight text-balance"
                   variants={slideUp}
                 >
-                  Transform your ideas into working MVPs within minutes. No coding required.
+                  Make your idea real. No code, just click, build and ship.
                 </motion.p>
               </motion.div>
 
@@ -520,7 +526,7 @@ export default function Home() {
           </div>
         </div>
         <motion.footer
-          className="py-8 border-t border-zinc-800 mt-12"
+          className="py-5 border-t border-zinc-800"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.5 }}
@@ -533,7 +539,7 @@ export default function Home() {
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
                 <LayoutDashboard className="w-6 h-6 text-slate-400" />
-                <span className="text-white font-medium font-heading">Builder</span>
+                <span className="text-white font-medium font-heading">BuildX</span>
               </motion.div>
 
               <div className="flex flex-wrap gap-3 justify-center">
@@ -545,7 +551,7 @@ export default function Home() {
                     onClick={() => window.open("https://github.com/tsahil01/builder", "_blank")}
                   >
                     <Github className="w-4 h-4" />
-                    <span className="font-heading tracking-tighter">Builder</span>
+                    <span className="font-heading tracking-tighter">BuildX</span>
                   </Button>
                 </div>
 
@@ -557,7 +563,7 @@ export default function Home() {
                     onClick={() => window.open("https://github.com/tsahil01/builder-templates", "_blank")}
                   >
                     <Github className="w-4 h-4" />
-                    <span className="font-heading tracking-tighter">Builder Template</span>
+                    <span className="font-heading tracking-tighter">BuildX Template</span>
                   </Button>
                 </div>
               </div>
@@ -570,7 +576,7 @@ export default function Home() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
             >
-              <span>© {new Date().getFullYear()} Builder. All rights reserved.</span>
+              <span>© {new Date().getFullYear()} BuildX. All rights reserved.</span>
             </motion.div>
           </div>
         </motion.footer>
