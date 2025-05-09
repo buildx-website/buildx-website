@@ -55,6 +55,7 @@ model Models {
   displayName       String?
   default           Boolean?     @default(false)
   inputImageSupport Boolean?     @default(false)
+  provider          Provider?
   userModels        UserModels[]
 }
 
@@ -65,6 +66,13 @@ model UserModels {
   createdAt DateTime @default(now())
   model     Models   @relation(fields: [modelId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
+}
+
+enum Provider {
+  OPENAI
+  ANTHROPIC
+  OPENROUTER
+  GEMINI
 }
 
 enum ProjectFramework {
@@ -123,13 +131,4 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
-}
-
-model Jwks {
-  id         String   @id
-  publicKey  String
-  privateKey String
-  createdAt  DateTime
-
-  @@map("jwks")
 }
