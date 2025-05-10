@@ -1,17 +1,20 @@
-
 import { Check, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+
+interface ActionListProps {
+    actionHistory: { title: string; isComplete: boolean }[];
+    actionOpen: boolean;
+    setActionOpen: (open: boolean) => void;
+    onActionClick?: (title: string) => void;
+}
 
 export function ActionList({
     actionHistory,
     actionOpen,
     setActionOpen,
-}: {
-    actionHistory: { title: string; isComplete: boolean }[];
-    actionOpen: boolean;
-    setActionOpen: (open: boolean) => void;
-}) {
+    onActionClick,
+}: ActionListProps) {
     return <>
         <div className="mt-4 pt-4 border-t border-zinc-800/70">
             <Collapsible open={actionOpen} onOpenChange={setActionOpen}>
@@ -26,7 +29,11 @@ export function ActionList({
                 <CollapsibleContent>
                     <div className="space-y-2">
                         {actionHistory.map((action, index) => (
-                            <div key={index} className="flex items-center justify-between text-sm text-primary/50">
+                            <div 
+                                key={index} 
+                                className="flex items-center justify-between text-sm text-primary/50 cursor-pointer hover:bg-gray-800/20 p-2 rounded-md"
+                                onClick={() => onActionClick?.(action.title)}
+                            >
                                 <div className="flex items-center gap-2">
                                     {action.isComplete ?
                                         <Check className="text-green-500" size={16} /> :
