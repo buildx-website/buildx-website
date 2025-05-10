@@ -32,7 +32,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         }
 
         // Transform messages
-        const transformedMessages: Message[] = project.messages.map((msg) => {
+        const transformedMessages: Message[] = project.messages.map((msg: { content: string, imgUrl: string, role: string, ignoreInUI: boolean }) => {
             const contents: Content[] = [];
 
             if (msg.content) {
