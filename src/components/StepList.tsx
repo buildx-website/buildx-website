@@ -10,6 +10,7 @@ import { useState, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { ActionList } from "./ActionList"
+import { FilePreviewDialog } from "./FilePreviewDialog"
 
 interface StepsListProps {
     StepTitle: string | null
@@ -18,15 +19,17 @@ interface StepsListProps {
     maxHeight?: string
     prompt?: string
     setPrompt: React.Dispatch<React.SetStateAction<string>>
+    currentActionContent?: string | null
 }
 
-export function StepList({ StepTitle, steps, building = false, maxHeight = "400px", setPrompt }: StepsListProps) {
+export function StepList({ StepTitle, steps, building = false, maxHeight = "400px", setPrompt, currentActionContent }: StepsListProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [actionOpen, setActionOpen] = useState(true)
     const scrollContainerRef = useRef<HTMLDivElement>(null)
     const [actionHistory, setActionHistory] = useState<Array<{ title: string; isComplete: boolean }>>([])
     const prevBuildingRef = useRef(building)
     const prevStepTitleRef = useRef(StepTitle)
+    const [showFilePreview, setShowFilePreview] = useState(false)
 
     useEffect(() => {
         if (isOpen) setActionOpen(false)
@@ -202,8 +205,23 @@ export function StepList({ StepTitle, steps, building = false, maxHeight = "400p
                         </div>
                     </CollapsibleContent>
                 </Collapsible>
-                <ActionList actionHistory={actionHistory} actionOpen={actionOpen} setActionOpen={setActionOpen} />
+                <ActionList 
+                    actionHistory={actionHistory} 
+                    actionOpen={actionOpen} 
+                    setActionOpen={setActionOpen}
+                    onActionClick={() => {
+                        if (!building) return;
+                        setShowFilePreview(true);
+                    }}
+                />
             </div>
+            <FilePreviewDialog
+                isOpen={showFilePreview}
+                onClose={() => setShowFilePreview(false)}
+                fileName={actionHistory[actionHistory.length - 1]?.title}
+                content={currentActionContent || ""}
+                isBuilding={building}
+            />
         </div>
     )
 }

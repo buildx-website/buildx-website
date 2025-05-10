@@ -38,6 +38,7 @@ export class ArtifactParser {
     private contentBeforeArtifact: string;
     private contentAfterArtifact: string;
     private currentAction: string;
+    private currentActionContent: string;
     private actions: string[];
     private artifactTitle: string;
     private artifactId: string;
@@ -47,6 +48,7 @@ export class ArtifactParser {
         this.contentBeforeArtifact = '';
         this.contentAfterArtifact = '';
         this.currentAction = '';
+        this.currentActionContent = '';
         this.actions = [];
         this.artifactTitle = '';
         this.artifactId = '';
@@ -93,13 +95,18 @@ export class ArtifactParser {
                         const filePathMatch = actionTag.match(/<boltAction[^>]*filePath="([^"]+)"/);
                         if (filePathMatch) {
                             this.currentAction = `Create ${filePathMatch[1]}`;
+                            this.currentActionContent = this.content.substring(actionStartIdx + actionTag.length);
+                            if (this.currentActionContent.includes("</boltAction>")) {
+                                this.currentActionContent = this.currentActionContent.replace("</boltAction>", "");
+                            }
                         }
                     } else if (actionType === 'shell') {
-                            this.currentAction = `Running commands`;
+                        this.currentAction = `Running commands`;
                     }
                 }
                 else {
                     this.currentAction = "";
+                    this.currentActionContent = "";
                 }
 
             }
@@ -127,6 +134,10 @@ export class ArtifactParser {
 
     getActions(): string[] {
         return this.actions;
+    }
+
+    getCurrentActionContent(): string {
+        return this.currentActionContent;
     }
 
     getCurrentActionTitle(): string {

@@ -155,22 +155,33 @@ export function CodeEditor({ file, containerId }: CodeEditorProps) {
     model.onDidChangeContent(() => {
       setLineCount(model.getLineCount())
     })
+
+    // Add format on save
+    if (monaco) {
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+        editor.getAction('editor.action.formatDocument')?.run()
+      })
+    }
   }
 
   const handleEditorChange = (value: string | undefined) => {
-      if (value !== undefined && editorContent) {
-        setEditorContent({
-          ...editorContent,
-          fileContent: value,
-        });
-      }
+    if (value !== undefined && editorContent) {
+      setEditorContent({
+        ...editorContent,
+        fileContent: value,
+      });
     }
+  }
 
   const saveChanges = async () => {
     if (editorContent?.fileContent !== originalContent?.fileContent) {
       setIsSaving(true)
 
       try {
+        // Format the document before saving
+        if (editorRef.current) {
+          await editorRef.current.getAction('editor.action.formatDocument')?.run()
+        }
 
         await saveOrCreateFileContent(
           containerId,
@@ -185,7 +196,6 @@ export function CodeEditor({ file, containerId }: CodeEditorProps) {
       } catch (error) {
         console.error("Error saving file:", error);
         setIsSaving(false);
-        // Handle error (could add toast notification here)
       }
     }
   }
