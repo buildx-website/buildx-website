@@ -1,5 +1,5 @@
+import { Prisma } from '../generated/prisma/client';
 import { db } from '../src/db'
-import { Prisma } from '@prisma/client';
 
 const modelData: Prisma.ModelsCreateInput[] = [{
     name: "deepseek/deepseek-chat-v3-0324:free",
