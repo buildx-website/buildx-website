@@ -50,6 +50,7 @@ export default function Editor() {
     messages: Message[];
   } | null>(null);
   const [currentActionBuilding, setCurrentActionBuilding] = useState<string | null>(null);
+  const [currentActionContent, setCurrentActionContent] = useState<string | null>(null);
 
   const [containerPort, setContainerPort] = useState<ContainerPort[]>([{}]);
 
@@ -317,9 +318,12 @@ export default function Editor() {
         artifactParser.addChunk(chunk);
         const newStep = artifactParser.getStep();
         const currentAction = artifactParser.getCurrentActionTitle();
+        const currentActionContent = artifactParser.getCurrentActionContent();
         if (currentAction) {
-          // console.log("Current action: ", currentAction);
           setCurrentActionBuilding(currentAction);
+        }
+        if (currentActionContent) {
+          setCurrentActionContent(currentActionContent);
         }
         if (newStep) {
           console.log("New step: ", newStep);
@@ -385,7 +389,8 @@ export default function Editor() {
         }
       }
       const currentAction = artifactParser.getCurrentActionTitle();
-      // console.log("Current action222: ", currentAction);
+      const currentActionContent = artifactParser.getCurrentActionContent();
+      console.log("Current action content: ", currentActionContent);
       setCurrentActionBuilding(currentAction);
 
       const newMsg: Message = {
@@ -477,7 +482,13 @@ export default function Editor() {
               </div>
 
               <div className="p-4">
-                <StepList StepTitle={currentActionBuilding} steps={steps} building={building} setPrompt={setPrompt} />
+                <StepList 
+                  StepTitle={currentActionBuilding} 
+                  steps={steps} 
+                  building={building} 
+                  setPrompt={setPrompt}
+                  currentActionContent={currentActionContent}
+                />
                 <SendPrompt 
                   handleSubmit={handleSubmit} 
                   prompt={prompt} 
@@ -554,6 +565,5 @@ export default function Editor() {
         </div>
       </main>
     </div>
-    // </SidebarProvider>
-  ) 
+      ) 
 }

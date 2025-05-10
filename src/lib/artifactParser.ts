@@ -95,8 +95,10 @@ export class ArtifactParser {
                         const filePathMatch = actionTag.match(/<boltAction[^>]*filePath="([^"]+)"/);
                         if (filePathMatch) {
                             this.currentAction = `Create ${filePathMatch[1]}`;
-                            this.currentActionContent += chunk;
-
+                            this.currentActionContent = this.content.substring(actionStartIdx + actionTag.length);
+                            if (this.currentActionContent.includes("</boltAction>")) {
+                                this.currentActionContent = this.currentActionContent.replace("</boltAction>", "");
+                            }
                         }
                     } else if (actionType === 'shell') {
                         this.currentAction = `Running commands`;

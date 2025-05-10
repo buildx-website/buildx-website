@@ -558,7 +558,7 @@ export async function POST(req: Request) {
                 let token;
                 while ((token = nextToken()) !== null) {
                     controller.enqueue(new TextEncoder().encode(token));
-                    await new Promise((res) => setTimeout(res, 10));
+                    await new Promise((res) => setTimeout(res, 50));
                 }
 
                 controller.close();
