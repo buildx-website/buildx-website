@@ -2,7 +2,7 @@ import { getApiKey } from "@/lib/apiKey";
 import { baseNextPrompt } from "@/lib/defaults/nextjs";
 import { baseNodePrompt } from "@/lib/defaults/node";
 import { reactRunCommands } from "@/lib/defaults/react";
-import { llm } from "@/lib/llm";
+import { defaultLLM } from "@/lib/llm";
 import { chat } from "@/lib/llm/chat";
 import { BASE_PROMPT } from "@/lib/prompts";
 import { getTempleteTypes } from "@/types/types";
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
             apiKey = process.env.OPENROUTER_API_KEY || '';
         }
 
-        const response = await chat(llm(apiKey), prompt);
+        const response = await chat(defaultLLM(), prompt);
 
         if (response.content === "react") {
             return new Response(JSON.stringify({

@@ -1,5 +1,4 @@
-import { getApiKey } from "@/lib/apiKey";
-import { llm } from "@/lib/llm";
+import { defaultLLM } from "@/lib/llm";
 import { refinePromptTypes } from "@/types/types";
 
 export async function POST(req: Request) {
@@ -15,10 +14,9 @@ export async function POST(req: Request) {
         const parsedPrompt = parsedData.data;
         if (!parsedPrompt || !userId) {
             return new Response("Missing prompt or userId", { status: 400 });
-        }
-        const apiKey = (await getApiKey(userId)) || "";
+        }   
 
-        const chatBot = llm(apiKey);
+        const chatBot = defaultLLM();
         const completion = await chatBot.chat.completions.create({
             model: "qwen/qwen-2.5-coder-32b-instruct",
             max_tokens: 200,

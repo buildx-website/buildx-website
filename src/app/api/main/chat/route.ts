@@ -29,13 +29,15 @@ export async function POST(req: Request) {
             return new Response("No model found", { status: 404 });
         }
         const modelName = model.model.name;
+        const modelProvider = model.model.provider;
+        console.log("modelProvider", modelProvider);
         if (!modelName) {
             return new Response("No model name found", { status: 404 });
         }
 
         const stream = new ReadableStream({
             async start(controller) {
-                await chatStream(llm(apiKey), messages, prompt, framework, modelName, (token) => {
+                await chatStream(llm(apiKey, modelProvider), messages, prompt, framework, modelName, (token) => {
                     if (token) {
                         controller.enqueue(new TextEncoder().encode(token));
                     }
