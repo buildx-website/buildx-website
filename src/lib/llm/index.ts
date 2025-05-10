@@ -13,7 +13,7 @@ export function llm(apiKey: string, modelProvider: string) {
             });
         } else if (modelProvider === "ANTHROPIC") {
             return new OpenAI({
-                baseURL: "https://api.anthropic.com/v1",
+                baseURL: "https://api.anthropic.com/v1/",
                 apiKey: process.env.ANTHROPIC_API_KEY
             });
         } else if (modelProvider === "GEMINI") {
