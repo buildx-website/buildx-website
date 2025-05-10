@@ -2,21 +2,22 @@ import { db } from '../src/db'
 import { Prisma } from '@prisma/client';
 
 const modelData: Prisma.ModelsCreateInput[] = [{
-    name: 'google/gemini-2.5-pro-exp-03-25:free',
-    displayName: "Gemini 2.5 Pro",
-}, {
     name: "deepseek/deepseek-chat-v3-0324:free",
     displayName: "DeepSeek Chat v3",
+    provider: "OPENROUTER",
     default: true,
 }, {
-    name: "deepseek/deepseek-r1-zero:free",
-    displayName: "DeepSeek R1 Zero",
+    name: "claude-3-5-haiku-20241022",
+    displayName: "Claude 3.5",
+    provider: "ANTHROPIC",
 }, {
-    name: "mistralai/mistral-nemo:free",
-    displayName: "Mistral Nemo",
+    name: "gemini-2.0-flash",
+    displayName: "Gemini flash 2.0",
+    provider: "GEMINI",
 }, {
-    name: "meta-llama/llama-4-maverick:free",
-    displayName: "Llama 4 Maverick",
+    name: "gemini-2.5-flash-preview-04-17",
+    displayName: "Gemini flash 2.5",
+    provider: "GEMINI",
 }]
 
 
