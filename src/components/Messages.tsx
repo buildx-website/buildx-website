@@ -15,13 +15,14 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
   const renderContent = (content: Content) => {
     if (content.type === "text") {
       return (
-        <ReactMarkdown
-          // className="prose prose-invert max-w-none"
-          remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeHighlight]}
-        >
-          {content.text}
-        </ReactMarkdown>
+        <div className="prose prose-invert prose-headings:mt-4 prose-headings:mb-2 prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-pre:my-2 prose-pre:p-2 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-sm prose-code:bg-zinc-800 prose-code:before:content-none prose-code:after:content-none max-w-none">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeHighlight]}
+          >
+            {content.text}
+          </ReactMarkdown>
+        </div>
       )
     }
     else if (content.type === "image_url") {
@@ -46,7 +47,7 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
         "bg-black/40 border-zinc-800",
       )}
     >
-      <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-800/70 font-heading">
+      <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-800/70">
         <div className="flex items-center gap-3">
           {isUser ? <UserRoundIcon className="" size={18} /> : <BotMessageSquare className="" size={18} />}
           <div className="flex items-center gap-2">
@@ -62,10 +63,10 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
         {message.loading ? (
           <div className="flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="italic font-heading">Thinking...</span>
+            <span className="italic">Thinking...</span>
           </div>
         ) : (
-          <div className={cn("tracking-tight font-heading", isUser ? "text-zinc-50" : "text-zinc-50")}>
+          <div className="text-white/90">
             {message.content.map((content, index) => (
               <div key={index}>
                 {renderContent(content)}

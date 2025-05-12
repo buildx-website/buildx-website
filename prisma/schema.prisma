@@ -23,8 +23,21 @@ model User {
   updatedAt     DateTime
   sessions      Session[]
   accounts      Account[]
-
+  limits        Limits?
   @@map("user")
+}
+
+model Limits {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  limit     Int
+  used      Int
+  remaining Int
+
+  @@map("limits")
 }
 
 model Project {

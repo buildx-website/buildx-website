@@ -13,14 +13,14 @@ import { Card, CardContent } from "@/components/ui/card"
 import { motion } from "framer-motion";
 import { Content } from "@/types/types";
 import HomeSidebar from "@/components/HomeSidebar";
-import { ArtifactParser } from "@/lib/artifactParser";
 import { useUser } from "@/hooks/useUser";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AuthCard } from "@/components/AuthCard";
+import { examplePrompts } from "@/lib/constants";
 
 export default function Home() {
   const router = useRouter();
-  const { isLoggedIn } = useUser();
+  const { isLoggedIn, user } = useUser();
   const [prompt, setPrompt] = useState<string>("");
   const addMessage = useMessagesStore((state) => state.addMessage);
   const addSteps = useStepsStore((state) => state.addSteps);
@@ -33,7 +33,7 @@ export default function Home() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [title, setTitle] = useState<string>("");
-  const titles = ['What do you want to build today?', 'Build, Build & Build', 'Welcome, Let\'s Build Together', 'How can I help you today?', 'What\'s on your mind today?', 'Let\'s create something amazing.', 'Your next big thing starts here.', 'Think it. Build it. Ship it.', 'Dream it. Code it. Do it.'];
+  const titles = ['What do you want to build today?', 'Build, Build & Build', 'Welcome, Let\'s Build Together', 'How can I help you today?', 'What\'s on your mind today?', 'Let\'s create something amazing.', 'Your next big thing starts here.', 'Think it. Build it. Ship it.', 'Dream it. Code it. Do it.', `${isLoggedIn ? "Welcome back, " + (user?.name)?.split(" ")[0] : "Welcome to BuildX"}`];
 
   useEffect(() => {
     setTitle(titles[Math.floor(Math.random() * titles.length)]);
@@ -96,13 +96,6 @@ export default function Home() {
     }
   }, [isLoggedIn]);
 
-  const examplePrompts: { title: string, prompt: string }[] = [
-    { title: "E-commerce for sports equipment", prompt: "Create a modern e-commerce platform for selling sports equipment with product categories, search functionality, user reviews, and secure checkout" },
-    { title: "Tech blog platform", prompt: "Build a responsive blog platform for tech enthusiasts with article categories, comment system, and user authentication" },
-    { title: "Pet social network", prompt: "Develop a social media platform for pet lovers with profiles, photo sharing, and pet meetup events" },
-    { title: "SaaS analytics dashboard", prompt: "Design an intuitive dashboard for my SaaS product with user metrics, revenue tracking, and customizable widgets" },
-    { title: "Note-taking app backend", prompt: "Create a scalable backend for a note-taking app with user authentication, note organization, and real-time syncing" },
-  ]
 
   async function getModels() {
     if (!isLoggedIn) {
@@ -139,7 +132,8 @@ export default function Home() {
       setModel(data.id);
     } else {
       const data = await userModel.json();
-      toast.error(data.error);
+      // toast.error(data.error);
+      console.log("Error fetching user model: ", data.error);
     }
   }
 
@@ -170,18 +164,9 @@ export default function Home() {
     })
 
     if (template.ok) {
-      const artifactParser = new ArtifactParser();
       const data = await template.json();
       if (data.message === "Try again with a different prompt") {
         return toast.error("Try again with a different prompt");
-      }
-      const { uiPrompts } = data;
-      artifactParser.addChunk(uiPrompts[0]);
-      while (artifactParser.getActions().length > 0) {
-        const step = artifactParser.getStep();
-        if (step) {
-          addSteps([step]);
-        }
       }
       if (image) {
         const base64 = await getBase64(image);
@@ -408,7 +393,7 @@ export default function Home() {
                     />
                     <div className="flex space-x-2 z-20 justify-end">
                       <Select value={model || ""} onValueChange={handleModelChange}>
-                        <SelectTrigger className="w-[160px] bg-black/50 border-zinc-800">
+                        <SelectTrigger className="w-[190px] bg-black/50 border-zinc-800">
                           <SelectValue placeholder="Select Model" />
                         </SelectTrigger>
                         <SelectContent className="bg-zinc-900 border-zinc-800">
@@ -431,6 +416,7 @@ export default function Home() {
                       />
                       <motion.div whileHover="hover" variants={buttonHover}>
                         <Button
+                          disabled
                           variant="ghost"
                           size="icon"
                           className="w-10 h-10 hover:bg-zinc-800/50"
