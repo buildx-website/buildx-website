@@ -1,3 +1,5 @@
+import { stripIndents } from "../stripindents";
+
 export const baseReactFiles = `<boltArtifact id="project-import" title="React + ShadCN + Framer Motion Project"><boltAction type="file" filePath="components.json">{
   "$schema": "https://ui.shadcn.com/schema.json",
   "style": "new-york",
@@ -417,83 +419,6 @@ export default {
   },
   plugins: [require("tailwindcss-animate")],
 }</boltAction>
-<boltAction type="file" filePath="tsconfig.app.json">{
-  "compilerOptions": {
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "noEmit": true,
-    "jsx": "react-jsx",
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-    
-    "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    }
-  },
-  "include": ["src"]
-}
-</boltAction>
-<boltAction type="file" filePath="tsconfig.json">{
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ],
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
-}
-</boltAction>
-<boltAction type="file" filePath="tsconfig.node.json">{
-  "compilerOptions": {
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
-    "target": "ES2022",
-    "lib": ["ES2023"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "noEmit": true,
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
-  },
-  "include": ["vite.config.ts"]
-}
-</boltAction>
 <boltAction type="file" filePath="vite.config.ts">import path from "path"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
@@ -523,10 +448,41 @@ npm run dev
 </boltAction>
 </boltArtifact>`;
 
+const ignoreFiles = [".gitignore", "package.json", "package-lock.json", "eslint.config.js", "tsconfig.node.json", "tsconfig.json", "tsconfig.app.json"];
 
+export const reactPrompt = `PROJECT STRUCTURE
 
+PRE-EXISTING FILES (not shown)
+${ignoreFiles.map(file => `- ${file}`).join("\n")}
 
-export const reactPrompt = `Here is an artifact that contains all files of the project visible to you.\nNote that, We are using SHADCN components, which are not shown to you in the artifact.\nAll the shadcn components are present in the project in /src/components/ui directory.\n\nConsider the contents of ALL files in the project.\n\n${baseReactFiles} \n\n\nHere is a list of files that exist on the file system but are not being shown to you: \n\n - .gitignore\n - package.json - package-lock.json\n - eslint.config.js`;
+AVAILABLE COMPONENTS
+- ShadCN UI components are available in /src/components/ui/ but not required
+- Feel free to create custom components or use alternative libraries
+- Project uses Tailwind CSS, React 19, and Framer Motion
+- Lucide React is available for icons
 
+DESIGN GUIDELINES
+- Create visually striking, beautiful interfaces
+- Implement rich, engaging UI with thoughtful animations
+- Focus on modern design principles and excellent UX
+- Don't hesitate to use gradients, animations, and visual flourishes
 
-export const reactRunCommands = `< boltArtifact id = "project init" title = "Project Init" > <boltAction type="shell" > npm install < /boltAction><boltAction type="shell">npm run dev</boltAction > </boltArtifact>`
+ROUTING REQUIREMENTS
+- IMPORTANT: Always put all content on the root path (/) 
+- Do NOT create routes like /dashboard, /profile, etc.
+- All views and functionality should be accessible directly at website:port/
+- This avoids confusing the user with navigation complexities
+
+PROJECT CONFIGURATION
+- TypeScript support is enabled
+- React Router DOM is configured but can be ignored
+- Vite is used as the build tool
+
+REFERENCE PROJECT
+The following artifact contains all the visible project files that you can reference:
+
+${stripIndents(baseReactFiles)}
+
+Note: You can edit App.tsx directly according to your needs without being constrained by the current router implementation.`;
+
+export const reactRunCommands = `<boltArtifact id = "project init" title = "Project Init"><boltAction type="shell"> npm install </boltAction><boltAction type="shell">npm run dev</boltAction></boltArtifact>`
