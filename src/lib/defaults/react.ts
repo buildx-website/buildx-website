@@ -484,5 +484,3 @@ The following artifact contains all the visible project files that you can refer
 ${stripIndents(baseReactFiles)}
 
 Note: You can edit App.tsx directly according to your needs without being constrained by the current router implementation.`;
-
-export const reactRunCommands = `<boltArtifact id = "project init" title = "Project Init"><boltAction type="shell"> npm install </boltAction><boltAction type="shell">npm run dev</boltAction></boltArtifact>`

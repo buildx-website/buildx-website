@@ -1,6 +1,5 @@
 import { baseNextPrompt } from "@/lib/defaults/nextjs";
 import { baseNodePrompt } from "@/lib/defaults/node";
-import { reactRunCommands } from "@/lib/defaults/react";
 import { defaultLLM } from "@/lib/llm";
 import { chat } from "@/lib/llm/chat";
 import { BASE_PROMPT } from "@/lib/prompts";
@@ -19,7 +18,6 @@ export async function POST(req: Request) {
 
         if (response.content?.toLowerCase().includes("react")) {
             return new Response(JSON.stringify({
-                uiPrompts: [reactRunCommands],
                 framework: "react"
             }))
         }
