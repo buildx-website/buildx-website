@@ -121,3 +121,15 @@ export type SessionDataType = {
 export interface ContainerPort {
     [port: number]: string;
 }
+
+
+export interface SessionType {
+    id: string;
+    createdAt: string | Date;
+    updatedAt: string | Date;
+    userId: string;
+    expiresAt: string | Date;
+    token: string;
+    ipAddress?: string | null;
+    userAgent?: string | null;
+}
