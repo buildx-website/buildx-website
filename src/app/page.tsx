@@ -20,7 +20,7 @@ import { examplePrompts } from "@/lib/constants";
 
 export default function Home() {
   const router = useRouter();
-  const { isLoggedIn } = useUser();
+  const { isLoggedIn, user } = useUser();
   const [prompt, setPrompt] = useState<string>("");
   const addMessage = useMessagesStore((state) => state.addMessage);
   const addSteps = useStepsStore((state) => state.addSteps);
@@ -33,7 +33,7 @@ export default function Home() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [title, setTitle] = useState<string>("");
-  const titles = ['What do you want to build today?', 'Build, Build & Build', 'Welcome, Let\'s Build Together', 'How can I help you today?', 'What\'s on your mind today?', 'Let\'s create something amazing.', 'Your next big thing starts here.', 'Think it. Build it. Ship it.', 'Dream it. Code it. Do it.'];
+  const titles = ['What do you want to build today?', 'Build, Build & Build', 'Welcome, Let\'s Build Together', 'How can I help you today?', 'What\'s on your mind today?', 'Let\'s create something amazing.', 'Your next big thing starts here.', 'Think it. Build it. Ship it.', 'Dream it. Code it. Do it.', `${isLoggedIn ? "Welcome back, " + (user?.name)?.split(" ")[0] : "Welcome to BuildX"}`];
 
   useEffect(() => {
     setTitle(titles[Math.floor(Math.random() * titles.length)]);
@@ -132,7 +132,8 @@ export default function Home() {
       setModel(data.id);
     } else {
       const data = await userModel.json();
-      toast.error(data.error);
+      // toast.error(data.error);
+      console.log("Error fetching user model: ", data.error);
     }
   }
 
