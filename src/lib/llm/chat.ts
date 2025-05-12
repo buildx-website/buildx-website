@@ -1,8 +1,9 @@
 import { Message } from "@/types/types";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import OpenAI from "openai";
-import { getSystemPrompt } from "../prompts";
+import { BASE_PROMPT, getSystemPrompt } from "../prompts";
 import { reactPrompt } from "../defaults/react";
+import { stripIndents } from "../stripindents";
 
 
 export async function chat(llm: OpenAI, prompt: string) {
@@ -33,7 +34,7 @@ export async function chatStream(llm: OpenAI, messages: Message[], prompt: strin
             messages.unshift({
                 role: "user", content: [{
                     type: "text",
-                    text: reactPrompt
+                    text: stripIndents(reactPrompt)
                 }]
             });
         }
@@ -42,10 +43,18 @@ export async function chatStream(llm: OpenAI, messages: Message[], prompt: strin
             messages.unshift({
                 role: "system", content: [{
                     type: "text",
-                    text: getSystemPrompt()
+                    text: stripIndents(getSystemPrompt())
                 }]
             });
         }
+
+        messages.unshift({
+            role: "user", content: [{
+                type: "text",
+                text: stripIndents(BASE_PROMPT)
+            }]
+        })
+
         messages.push({
             role: "user", content: [{
                 type: "text",
@@ -56,15 +65,13 @@ export async function chatStream(llm: OpenAI, messages: Message[], prompt: strin
         const completion = await llm.chat.completions.create({
             model: modelName,
             messages: messages as ChatCompletionMessageParam[],
-            temperature: 0,
+            temperature: 0.8,
             stream: true,
         });
 
         let fullContent = "";
         for await (const chunk of completion) {
-
             if (chunk.choices?.[0]?.delta?.content === undefined) continue;
-
             response(chunk.choices?.[0]?.delta?.content || '');
             fullContent += chunk.choices?.[0]?.delta?.content || '';
         }
