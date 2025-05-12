@@ -9,7 +9,7 @@ import { stripIndents } from "../stripindents";
 export async function chat(llm: OpenAI, prompt: string) {
     try {
         const completion = await llm.chat.completions.create({
-            model: "qwen/qwen-2.5-coder-32b-instruct",
+            model: "gemini-1.5-flash",
             messages: [{
                 role: "system",
                 content: "Return either node or react based on what do you think this project should be. Only return a single word either 'node' or 'react'. Do not return anything extra."

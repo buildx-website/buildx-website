@@ -29,6 +29,7 @@ export default function Home() {
   const [model, setModel] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [hasRefined, setHasRefined] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [title, setTitle] = useState<string>("");
@@ -36,6 +37,7 @@ export default function Home() {
 
   useEffect(() => {
     setTitle(titles[Math.floor(Math.random() * titles.length)]);
+    addSteps([]);
   }, []);
 
   const autoResize = () => {
@@ -77,10 +79,14 @@ export default function Home() {
     if (getPrompt) {
       setPrompt(getPrompt);
     }
+    setHasRefined(false);
   }, []);
 
   useEffect(() => {
     localStorage.setItem("prompt", prompt);
+    if (prompt) {
+      setHasRefined(false);
+    }
   }, [prompt]);
 
   useEffect(() => {
@@ -90,12 +96,12 @@ export default function Home() {
     }
   }, [isLoggedIn]);
 
-  const examplePrompts: string[] = [
-    "An e-commerce site for selling sports equipment",
-    "A blog platform for tech enthusiasts",
-    "A social media platform for pet lovers",
-    "A dashboard for my SaaS product",
-    "Backend for note-taking app",
+  const examplePrompts: { title: string, prompt: string }[] = [
+    { title: "E-commerce for sports equipment", prompt: "Create a modern e-commerce platform for selling sports equipment with product categories, search functionality, user reviews, and secure checkout" },
+    { title: "Tech blog platform", prompt: "Build a responsive blog platform for tech enthusiasts with article categories, comment system, and user authentication" },
+    { title: "Pet social network", prompt: "Develop a social media platform for pet lovers with profiles, photo sharing, and pet meetup events" },
+    { title: "SaaS analytics dashboard", prompt: "Design an intuitive dashboard for my SaaS product with user metrics, revenue tracking, and customizable widgets" },
+    { title: "Note-taking app backend", prompt: "Create a scalable backend for a note-taking app with user authentication, note organization, and real-time syncing" },
   ]
 
   async function getModels() {
@@ -217,10 +223,13 @@ export default function Home() {
     } else {
       const data = await template.json();
       if (template.status === 401) {
+        setLoading(false);
         return toast.warning(data.error);
       }
+      setLoading(false);
       return toast.error(data.error);
     }
+    setLoading(false);
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -250,6 +259,7 @@ export default function Home() {
       const data = await refinePrompt.json();
       console.log("Refined Prompt: ", data);
       setPrompt(data.refinedPrompt);
+      setHasRefined(true);
       toast.success("Prompt refined successfully");
     }
     else {
@@ -257,7 +267,6 @@ export default function Home() {
       toast.error(data.error);
     }
     setLoading(false);
-
   }
 
   async function handleModelChange(modelId: string) {
@@ -286,6 +295,16 @@ export default function Home() {
       console.error("Error updating model: ", error);
       toast.error("Failed to update model");
     }
+  }
+
+  // Function to check if prompt is too large
+  const isPromptTooLarge = () => {
+    return prompt.length > 1000;
+  }
+
+  // Function to check if refine button should be disabled
+  const shouldDisableRefine = () => {
+    return loading || hasRefined || isPromptTooLarge() || !prompt.trim();
   }
 
   const fadeIn = {
@@ -423,10 +442,11 @@ export default function Home() {
                       <motion.div whileHover="hover" variants={buttonHover}>
                         <Button
                           variant="ghost"
-                          disabled={loading}
+                          disabled={shouldDisableRefine()}
                           size="icon"
                           className="w-10 h-10 hover:bg-zinc-800/50"
                           onClick={handleRefinePrompt}
+                          title={hasRefined ? "Prompt already refined" : isPromptTooLarge() ? "Prompt is too large" : "Refine prompt"}
                         >
                           <Sparkles className="w-5 h-5" />
                         </Button>
@@ -512,10 +532,10 @@ export default function Home() {
                       >
                         <Button
                           variant="outline"
-                          onClick={() => setPrompt(example)}
+                          onClick={() => setPrompt(example.prompt)}
                           className="text-xs border-zinc-800 bg-zinc-900/30 hover:bg-zinc-800/50 transition-colors tracking-tight font-heading"
                         >
-                          {example}
+                          {example.title}
                         </Button>
                       </motion.div>
                     ))}

@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     try {
         const chatBot = defaultLLM();
         const completion = await chatBot.chat.completions.create({
-            model: "qwen/qwen-2.5-coder-32b-instruct",
+            model: "gemini-1.5-flash",
             max_tokens: 200,
             messages: [{
                 role: "system",

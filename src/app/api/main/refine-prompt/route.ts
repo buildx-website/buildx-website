@@ -18,11 +18,10 @@ export async function POST(req: Request) {
 
         const chatBot = defaultLLM();
         const completion = await chatBot.chat.completions.create({
-            model: "qwen/qwen-2.5-coder-32b-instruct",
-            max_tokens: 200,
+            model: "gemini-2.0-flash",
             messages: [{
                 role: "system",
-                content: "Make the prompt more specific and clear. Do not change the meaning of the prompt. Do not add any extra information. Just make it more specific and clear."
+                content: "Your only job is to refine the given prompt for creating a web application project. Focus exclusively on the web app's features, functionality, user interface, and user experience. Make the prompt more specific, detailed, and clear. Do not include any deployment steps, hosting information, or DevOps concerns. Keep the prompt to the point and focused on what the web app should do and how it should look/function. Do not add any commentary or explanations. Simply return the refined prompt text only. The prompt should be no more than 1000 characters."
             }, {
                 role: "user",
                 content: parsedPrompt.prompt

@@ -1,4 +1,3 @@
-import { getApiKey } from "@/lib/apiKey";
 import { baseNextPrompt } from "@/lib/defaults/nextjs";
 import { baseNodePrompt } from "@/lib/defaults/node";
 import { reactRunCommands } from "@/lib/defaults/react";
@@ -15,15 +14,10 @@ export async function POST(req: Request) {
             return new Response(JSON.stringify({ err: "Zod Error" }), { status: 400 });
         }
         const { prompt } = parsedData.data;
-        const userId = req.headers.get('X-User-Id') || '';
-        let apiKey = await getApiKey(userId) || '';
-        if (!apiKey) {
-            apiKey = process.env.OPENROUTER_API_KEY || '';
-        }
 
         const response = await chat(defaultLLM(), prompt);
 
-        if (response.content === "react") {
+        if (response.content?.toLowerCase().includes("react")) {
             return new Response(JSON.stringify({
                 uiPrompts: [reactRunCommands],
                 framework: "react"

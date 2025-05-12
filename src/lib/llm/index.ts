@@ -31,7 +31,7 @@ export function llm(apiKey: string, modelProvider: string) {
 
 export function defaultLLM() {
     return new OpenAI({
-        baseURL: 'https://openrouter.ai/api/v1',
-        apiKey: process.env.OPENROUTER_API_KEY
+        baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+        apiKey: process.env.GEMINI_API_KEY
     });
 }
