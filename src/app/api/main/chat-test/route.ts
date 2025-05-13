@@ -523,7 +523,112 @@ Hello! I can help you set up a React + ShadCN + Framer Motion project. Here's a 
   <boltAction type="shell">
   npm run dev
   </boltAction>
-  </boltArtifact>
+
+<bolt_file_modifications>
+<diff path="/home/app/src/pages/Home.tsx">
+--- a/src/pages/Home.tsx
++++ b/src/pages/Home.tsx
+@@ -1,30 +1,34 @@
+ import { useState } from 'react';
+-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+-import { Button } from '@/components/ui/button';
++import Header from '@/components/Header';
++import Sidebar from '@/components/Sidebar';
++import VideoGrid from '@/components/VideoGrid';
++import VideoPlayerView from '@/components/VideoPlayerView';
+ 
+-export default function MinimalHomepage() {
+-const [count, setCount] = useState(0);
++export default function Home() {
++  const [view, setView] = useState<'home' | 'watch'>('home');
++  const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
+ 
+-const features = [{
+-title: 'Feature One',
+-description: 'Enhance your workflow',
+-}, {
+-title: 'Feature Two',
+-description: 'Maximize productivity',
+-}, {
+-title: 'Feature Three',
+-description: 'Simplify development',
+-}];
++  const handleWatchVideo = (videoId: string) => {
++    setSelectedVideoId(videoId);
++    setView('watch');
++  };
+ 
+-return (
+-<div className="flex flex-col items-center justify-center min-h-screen bg-white p-4">
+-<main className="w-full max-w-4xl mx-auto">
+-<div className="space-y-8">
+-<div className="text-center space-y-4">
+-<h1 className="text-4xl font-bold tracking-tight">Welcome to Our Platform</h1>
+-<p className="text-lg text-gray-600">A clean, minimal design for your next project</p>
+-<div className="flex justify-center gap-4">
+-<Button>Get Started</Button>
+-<Button variant="outline">Learn More</Button>
++  const handleGoHome = () => {
++    setSelectedVideoId(null);
++    setView('home');
++  };
++
++  // Dummy search handler - in a real app, this would change the view to search results
++  const handleSearch = (query: string) => {
++    console.log("search");
++    // For now, just go back home or stay
++    setView('home');
++  };
++
++  return (
++    <div className="flex flex-col min-h-screen bg-background text-foreground">
++      <Header onSearch={handleSearch} />
++      <div className="flex flex-1 overflow-hidden"> {/* Use overflow-hidden to manage scrolling */}
++        {/* Sidebar - Hidden on small screens, always present in layout but width is 0 unless lg:flex */}
++        <Sidebar onNavigateHome={handleGoHome} />
++        {/* Main content area - scrolls independently */}
++        <main className="flex-1 overflow-y-auto"> {/* Make main content scrollable */}
++          {view === 'home' && <VideoGrid onVideoSelect={handleWatchVideo} />}
++          {view === 'watch' && selectedVideoId && <VideoPlayerView videoId={selectedVideoId} onGoBack={handleGoHome} />} {/* Pass videoId and a back handler */}
++        </main>
++      </div>
++    </div>
++  );
++}
+</diff>
+-</div>
+-</div>
+-<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+-{features.map((feature, index) => (
+-<Card key={index} className="bg-white shadow-md">
+-<CardHeader>
+-<CardTitle>{feature.title}</CardTitle>
+-<CardDescription>{feature.description}</CardDescription>
+-</CardHeader>
+-<CardContent>
+-<p className="text-gray-600">This component uses shadcn/ui Card with a clean white background.</p>
+-</CardContent>
+-</Card>
+-))}
+-</div>
+-<Card className="mt-12">
+-<CardHeader>
+-<CardTitle>Interactive Component</CardTitle>
+-<CardDescription>Try clicking the button below</CardDescription>
+-</CardHeader>
+-<CardContent className="flex flex-col items-center gap-4">
+-<p className="text-2xl font-bold">{count}</p>
+-<Button onClick={() => setCount(count + 1)}>Increment</Button>
+-</CardContent>
+-</Card>
+-</div>
+-</main>
+-</div>
+-);
+-}
+</bolt_file_modifications>
+
+</boltArtifact>
 
   I hope this helps you get started with a React + ShadCN + Framer Motion project! You can customize the components and styles as per your requirements. If you have any questions or need further assistance, feel free to ask.`;
 
