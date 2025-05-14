@@ -3,32 +3,67 @@ import { Step, StepType } from "@/types/types";
 let stepId = 1;
 
 function getStep(action: string): Step | null {
-    const typeMatch = action.match(/<boltAction[^>]*type="([^"]+)"/);
-    const type = typeMatch ? typeMatch[1] : null;
-    const filePathMatch = action.match(/<boltAction[^>]*filePath="([^"]+)"/);
-    const filePath = filePathMatch ? filePathMatch[1] : null;
-    const contentMatch = action.match(/<boltAction[^>]*>([\s\S]*?)<\/boltAction>/);
-    const content = contentMatch ? contentMatch[1] : "";
+    const actionTypeMatch = action.match(/<boltAction[^>]*type="([^"]+)"/);
+    const diffMatch = action.match(/<diff[^>]*>/);
+    if (diffMatch) {
+        const lines = diffMatch[0].trim().split("\n");
+        const diff = lines[0].trim();
+        const pathMatch = diff.match(/path="([^"]+)"/);
+        const path = pathMatch ? pathMatch[1] : null;
+        const diffContent = action.substring(lines[0].length + 1, action.indexOf("</diff>"));
+        const diffLines = diffContent.split("\n").map(line => line.trim()).filter(line => line !== "");
+        const diffs = diffLines.slice(2).map(line => {
+            if (line.startsWith('+')) {
+                return { type: 'add', line: line.slice(1) };
+            } else if (line.startsWith('-')) {
+                return { type: 'remove', line: line.slice(1) };
+            } else if (line.startsWith('@@')) {
+                return { type: 'context', line };
+            }
+            else {
+                return { type: 'unchanged', line };
+            }
+        });
 
-    if (type === 'file') {
         return ({
             id: stepId++,
-            title: `Create ${filePath || 'file'}`,
-            description: '',
-            type: StepType.CreateFile,
+            title: `Update ${path || 'file'}`,
+            description: `Update ${path || 'file'}, ${diffLines[1]}`,
+            type: StepType.EditFile,
             status: 'pending',
-            code: content.trim(),
-            path: filePath ? filePath : undefined
-        });
-    } else if (type === 'shell') {
-        return ({
-            id: stepId++,
-            title: 'Run command',
-            description: '',
-            type: StepType.RunScript,
-            status: 'pending',
-            code: content.trim()
-        });
+            code: JSON.stringify(diffs, null, 2),
+            path: path ? path : undefined
+        })
+
+    }
+
+    if (actionTypeMatch) {
+        const actionType = actionTypeMatch ? actionTypeMatch[1] : null;
+        const filePathMatch = action.match(/<boltAction[^>]*filePath="([^"]+)"/);
+        const filePath = filePathMatch ? filePathMatch[1] : null;
+        const contentMatch = action.match(/<boltAction[^>]*>([\s\S]*?)<\/boltAction>/);
+        const content = contentMatch ? contentMatch[1] : "";
+
+        if (actionType === 'file') {
+            return ({
+                id: stepId++,
+                title: `Create ${filePath || 'file'}`,
+                description: '',
+                type: StepType.CreateFile,
+                status: 'pending',
+                code: content.trim(),
+                path: filePath ? filePath : undefined
+            });
+        } else if (actionType === 'shell') {
+            return ({
+                id: stepId++,
+                title: 'Run command',
+                description: '',
+                type: StepType.RunScript,
+                status: 'pending',
+                code: content.trim()
+            });
+        }
     }
     return null;
 }
@@ -42,7 +77,7 @@ export class ArtifactParser {
     private actions: string[];
     private artifactTitle: string;
     private artifactId: string;
-
+    private diffContent: string;
     constructor() {
         this.content = '';
         this.contentBeforeArtifact = '';
@@ -52,6 +87,7 @@ export class ArtifactParser {
         this.actions = [];
         this.artifactTitle = '';
         this.artifactId = '';
+        this.diffContent = '';
     }
 
     addChunk(chunk: string) {
@@ -75,6 +111,7 @@ export class ArtifactParser {
         }
 
         const endIdx = this.content.indexOf("</boltArtifact>");
+
         if (endIdx !== -1 && startIdx !== -1 && endIdx > startIdx) {
             const after = this.content.substring(endIdx + "</boltArtifact>".length);
             this.contentAfterArtifact = after;
@@ -85,6 +122,9 @@ export class ArtifactParser {
         while (true) {
             const actionStartIdx = this.content.indexOf("<boltAction");
             const actionEndIdx = this.content.indexOf("</boltAction>");
+
+            const diffStartIdx = this.content.indexOf("<bolt_file_modifications>");
+            const diffEndIdx = this.content.indexOf("</bolt_file_modifications>");
 
             if (actionStartIdx !== -1) {
                 const actionTag = this.content.substring(actionStartIdx, this.content.indexOf(">", actionStartIdx) + 1);
@@ -108,6 +148,14 @@ export class ArtifactParser {
                     this.currentAction = "";
                     this.currentActionContent = "";
                 }
+
+            }
+
+            if (diffStartIdx !== -1 && diffEndIdx !== -1 && diffEndIdx > diffStartIdx) {
+                this.diffContent = this.content.substring(diffStartIdx, diffEndIdx + "</bolt_file_modifications>".length);
+                this.actions.push(this.diffContent);
+                this.content = this.content.replace(this.diffContent, "");
+                this.diffContent = '';
 
             }
 
