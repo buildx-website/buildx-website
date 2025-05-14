@@ -31,29 +31,19 @@ export default function Editor() {
   const { steps, setSteps, addSteps } = useStepsStore();
   const [allModels, setAllModels] = useState<{ id: string, name: string, displayName: string }[]>([]);
   const [model, setModel] = useState<string | null>(null);
-
   const [prompt, setPrompt] = useState("");
   const [framework, setFramework] = useState<string>("");
-
   const [containerId, setContainerId] = useState<string>("");
   const [containerStatus, setContainerStatus] = useState<string>("");
-  const [showConversation, /* setShowConversation */] = useState(true)
-
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [uiMsgs, setUiMsgs] = useState<Message[]>([]);
   const [building, setBuilding] = useState(false);
   const conversationRef = useRef<HTMLDivElement>(null);
-  const [validationError, setValidationError] = useState<string>("");
-  const [project, setProject] = useState<{
-    framework: string;
-    messages: Message[];
-  } | null>(null);
+  const [project, setProject] = useState<{ framework: string; messages: Message[]; } | null>(null);
   const [currentActionBuilding, setCurrentActionBuilding] = useState<string | null>(null);
   const [currentActionContent, setCurrentActionContent] = useState<string | null>(null);
-
   const [containerPort, setContainerPort] = useState<ContainerPort[]>([{}]);
-
   const params = useParams()
   const projectId = params.projectId as string
 
@@ -66,8 +56,7 @@ export default function Editor() {
       setLoading(true);
       try {
         if (!isLoggedIn) {
-          setValidationError("Authentication required");
-          router.push("/");
+            router.push("/");
           return;
         }
 
@@ -79,8 +68,6 @@ export default function Editor() {
         });
 
         if (!response.ok) {
-          const data = await response.json();
-          setValidationError(data.message || 'Invalid project ID or access denied');
           router.push("/");
           return;
         }
@@ -141,7 +128,6 @@ export default function Editor() {
         setInitialLoadComplete(true);
       } catch (error) {
         console.error("Error validating project:", error);
-        setValidationError('Error loading project data');
         router.push("/");
       } finally {
         setLoading(false);
@@ -277,7 +263,6 @@ export default function Editor() {
       setUiMsgs(prev => [...prev, { role: "assistant", content: [], loading: true }]);
 
       const prompt = content.map((c) => c.text).join(" ");
-      console.log("Prompt: ", prompt);
 
       await saveMsg([{
         role: "user",
@@ -450,26 +435,10 @@ export default function Editor() {
     );
   }
 
-  if (validationError) {
-    return (
-      <div className="h-full w-full flex flex-col items-center justify-center bg-[#1E1E1E] text-white">
-        <h2 className="text-xl font-medium mb-4">Project Error</h2>
-        <p className="text-red-400">{validationError}</p>
-        <Button
-          className="mt-6"
-          onClick={() => router.push("/")}
-        >
-          Return to Projects
-        </Button>
-      </div>
-    );
-  }
-
   return (
       <div className="flex flex-row h-screen w-screen">
         <HomeSidebar />
         <main className="h-screen w-full flex flex-1 flex-col md:grid md:grid-cols-4 gap-0 p-0 bg-[#121212] overflow-hidden ml-[64px] md:ml-[64px] transition-all duration-300">
-          {showConversation && (
             <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col overflow-hidden shadow-lg px-2">
               <div className="p-4 flex flex-row gap-2 my-auto">
                 <h2 className="text-lg font-medium text-gray-200 my-auto">Conversation</h2>
@@ -500,10 +469,9 @@ export default function Editor() {
                 />
               </div>
             </div>
-          )}
 
           <div
-            className={`flex-1 ${showConversation ? "md:col-span-3" : "md:col-span-4"} flex flex-col bg-black/10 text-white overflow-hidden shadow-lg font-heading`}
+            className={`flex-1 md:col-span-3 flex flex-col bg-black/10 text-white overflow-hidden shadow-lg font-heading`}
           >
             {containerStatus !== "running" ? (
               <div className="flex flex-col items-center justify-center h-full p-8 text-center">
