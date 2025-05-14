@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Step, StepType } from '@/types/types';
-import { execCmd, saveOrCreateFileContent } from '@/lib/worker-config';
+import { DiffContent, Step, StepType } from '@/types/types';
+import { execCmd, fetchFileContent, saveOrCreateFileContent } from '@/lib/worker-config';
 import { toast } from 'sonner';
 
 export function useStepHandler(containerId: string, reloadFileTree: () => Promise<void>) {
@@ -8,7 +8,7 @@ export function useStepHandler(containerId: string, reloadFileTree: () => Promis
 
   const handleStep = async (step: Step): Promise<string | undefined> => {
     if (!step || step.status !== "pending") return;
-    
+
     setCurrentStep(step.path || step.code || null);
 
     try {
@@ -16,8 +16,10 @@ export function useStepHandler(containerId: string, reloadFileTree: () => Promis
         await handleFileStep(step);
       } else if (step.type === StepType.RunScript) {
         return await handleScriptStep(step);
+      } else if (step.type === StepType.EditFile) {
+        await handleEditFileStep(containerId, step);
       }
-      
+
       await reloadFileTree();
     } catch (error) {
       console.error(`Error handling step:`, error);
@@ -33,7 +35,7 @@ export function useStepHandler(containerId: string, reloadFileTree: () => Promis
 
     const split = step.path.split("/");
     const fileName = split[split.length - 1];
-    const filePath = split.length > 1 
+    const filePath = split.length > 1
       ? split.slice(0, split.length - 1).join("/") + "/"
       : "/app";
 
@@ -62,7 +64,7 @@ export function useStepHandler(containerId: string, reloadFileTree: () => Promis
     if (!response.success) {
       throw new Error(`Command failed: ${step.code}`);
     }
-    
+
     toast.success(`Executed: ${step.code}`);
     return undefined;
   };
@@ -72,3 +74,34 @@ export function useStepHandler(containerId: string, reloadFileTree: () => Promis
     handleStep
   };
 }
+
+const handleEditFileStep = async (containerId: string, step: Step): Promise<void> => {
+  if (!step.path || !step.code) return;
+  const stepContent = JSON.parse(step.code);
+  let context = stepContent.filter((diff: DiffContent) => diff.type === 'context').map((diff: DiffContent) => diff.line);
+  context = context.map((line: string) => line.replace(/@@/g, '').trim());
+  context = context[0].split(' ');
+
+  const rm = context[0]
+  const add = context[1]
+
+  const rmStart = rm.split(',')[0].replace('-', '')
+  const rmEnd = rm.split(',')[1].replace('-', '')
+
+  const addStart = add.split(',')[0].replace('+', '')
+  const addEnd = add.split(',')[1].replace('+', '')
+
+  const fileContent = await fetchFileContent(containerId, step.path);
+  const fileContentArray = fileContent.split('\n');
+
+  const rmStartIndex = parseInt(rmStart);
+  const rmEndIndex = parseInt(rmEnd);
+  const addStartIndex = parseInt(addStart);
+  const addEndIndex = parseInt(addEnd);
+
+  const newFileContent = fileContentArray.slice(0, rmStartIndex).concat(fileContentArray.slice(rmEndIndex + 1, addStartIndex)).concat(fileContentArray.slice(addEndIndex + 1));
+
+  await saveOrCreateFileContent(containerId, step.path, step.path, newFileContent.join('\n'));
+}
+
+

@@ -81,6 +81,11 @@ export interface Step {
     error?: string;
 }
 
+export interface DiffContent {
+    type: 'context' | 'add' | 'remove'
+    line: string;
+}
+
 
 export interface MessagesState {
     messages: Message[];
