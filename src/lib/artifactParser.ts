@@ -128,11 +128,8 @@ export class ArtifactParser {
 
             if (diffStartIdx !== -1) {
                 const diffTag = this.content.substring(diffStartIdx, this.content.indexOf(">", diffStartIdx) + 1);
-                const diffPathMatch = diffTag.match(/<diff[^>]*path="([^"]+)"/);
-                if (diffPathMatch) {
-                    this.currentAction = `Update ${diffPathMatch[1]}`;
-                    this.currentActionContent = this.content.substring(diffStartIdx + diffTag.length);
-                }
+                this.currentAction = `Update File`;
+                this.currentActionContent = this.content.substring(diffStartIdx + diffTag.length);
             }
 
             if (actionStartIdx !== -1) {
@@ -165,6 +162,8 @@ export class ArtifactParser {
                 this.actions.push(this.diffContent);
                 this.content = this.content.replace(this.diffContent, "");
                 this.diffContent = '';
+                this.currentAction = '';
+                this.currentActionContent = '';
 
             }
 
