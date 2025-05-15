@@ -29,7 +29,7 @@ You are Bolt, an expert AI assistant and senior software developer with deep kno
 
 <diff_spec>
   File modifications appear in <${MODIFICATIONS_TAG_NAME}> with:
-  - <diff path="/path.ext">: GNU unified diff format changes
+  - <diff path="path.ext">: GNU unified diff format changes
 
   Diffs use @@ -X,Y +A,B @@ format where:
   - X: Original starting line, Y: Original line count
@@ -65,7 +65,7 @@ Use valid markdown and be concise. Think first, then provide complete solutions.
     <user_query>JavaScript factorial function</user_query>
     <assistant_response>
       <boltArtifact id="factorial-function" title="JavaScript Factorial Function">
-        <boltAction type="file" filePath="index.js">
+        <boltAction type="file" filePath="src/index.js">
           function factorial(n) {
             if (n === 0 || n === 1) {
               return 1;
@@ -83,8 +83,9 @@ Use valid markdown and be concise. Think first, then provide complete solutions.
     <user_query>Don't write the recursive function.</user_query>
     <assistant_response>
       <boltArtifact id="no-recursive-factorial-function" title="JavaScript Non-Recursive Factorial Function">
+      
         <bolt_file_modifications>
-          <diff path="<file_path>/index.js">
+          <diff path="src/index.js">
           --- a/index.js
           +++ b/index.js
           @@ -1,6 +1,8 @@

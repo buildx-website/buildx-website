@@ -12,7 +12,7 @@ function getStep(action: string): Step | null {
         const path = pathMatch ? pathMatch[1] : null;
         const diffContent = action.substring(lines[0].length + 1, action.indexOf("</diff>"));
         const diffLines = diffContent.split("\n").map(line => line.trim()).filter(line => line !== "");
-        const diffs = diffLines.slice(2).map(line => {
+        const diffs = diffLines.slice(3).map(line => {
             if (line.startsWith('+')) {
                 return { type: 'add', line: line.slice(1) };
             } else if (line.startsWith('-')) {
@@ -125,6 +125,15 @@ export class ArtifactParser {
 
             const diffStartIdx = this.content.indexOf("<bolt_file_modifications>");
             const diffEndIdx = this.content.indexOf("</bolt_file_modifications>");
+
+            if (diffStartIdx !== -1) {
+                const diffTag = this.content.substring(diffStartIdx, this.content.indexOf(">", diffStartIdx) + 1);
+                const diffPathMatch = diffTag.match(/<diff[^>]*path="([^"]+)"/);
+                if (diffPathMatch) {
+                    this.currentAction = `Update ${diffPathMatch[1]}`;
+                    this.currentActionContent = this.content.substring(diffStartIdx + diffTag.length);
+                }
+            }
 
             if (actionStartIdx !== -1) {
                 const actionTag = this.content.substring(actionStartIdx, this.content.indexOf(">", actionStartIdx) + 1);

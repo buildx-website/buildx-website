@@ -76,32 +76,59 @@ export function useStepHandler(containerId: string, reloadFileTree: () => Promis
 }
 
 const handleEditFileStep = async (containerId: string, step: Step): Promise<void> => {
-  if (!step.path || !step.code) return;
-  const stepContent = JSON.parse(step.code);
-  let context = stepContent.filter((diff: DiffContent) => diff.type === 'context').map((diff: DiffContent) => diff.line);
-  context = context.map((line: string) => line.replace(/@@/g, '').trim());
-  context = context[0].split(' ');
+  try {
+    if (!step.path || !step.code) return;
+    const stepContent = JSON.parse(step.code);
+    console.log("stepContent", stepContent);
+    let context = stepContent.filter((diff: DiffContent) => diff.type === 'context').map((diff: DiffContent) => diff.line);
+    context = context.map((line: string) => line.replace(/@@/g, '').trim());
+    context = context[0].split(' ');
+    console.log("context", context);
 
-  const rm = context[0]
-  const add = context[1]
+    const rm = context[0]
+    const add = context[1]
 
-  const rmStart = rm.split(',')[0].replace('-', '')
-  const rmEnd = rm.split(',')[1].replace('-', '')
+    const rmStart = rm.split(',')[0].replace('-', '')
+    const rmEnd = rm.split(',')[1].replace('-', '')
 
-  const addStart = add.split(',')[0].replace('+', '')
-  const addEnd = add.split(',')[1].replace('+', '')
+    const addStart = add.split(',')[0].replace('+', '')
+    const addEnd = add.split(',')[1].replace('+', '')
 
-  const fileContent = await fetchFileContent(containerId, step.path);
-  const fileContentArray = fileContent.split('\n');
+    const fileContent = await fetchFileContent(containerId, step.path);
+    const fileContentArray = (fileContent.fileContent).split('\n');
 
-  const rmStartIndex = parseInt(rmStart);
-  const rmEndIndex = parseInt(rmEnd);
-  const addStartIndex = parseInt(addStart);
-  const addEndIndex = parseInt(addEnd);
+    console.log("fileContentArray", fileContentArray);
 
-  const newFileContent = fileContentArray.slice(0, rmStartIndex).concat(fileContentArray.slice(rmEndIndex + 1, addStartIndex)).concat(fileContentArray.slice(addEndIndex + 1));
+    const rmStartIndex = parseInt(rmStart);
+    const rmEndIndex = parseInt(rmEnd);
+    const addStartIndex = parseInt(addStart);
+    const addEndIndex = parseInt(addEnd);
+    console.log("rmStartIndex", rmStartIndex);
+    console.log("rmEndIndex", rmEndIndex);
+    console.log("addStartIndex", addStartIndex);
+    console.log("addEndIndex", addEndIndex);
 
-  await saveOrCreateFileContent(containerId, step.path, step.path, newFileContent.join('\n'));
+    fileContentArray.splice(rmStartIndex - 1, rmEndIndex - rmStartIndex + 1);
+    console.log("fileContentArray after removing lines", fileContentArray);
+
+    const newLines = stepContent.filter((diff: DiffContent) => diff.type === 'add').map((diff: DiffContent) => diff.line);
+    console.log("newLines", newLines);
+    fileContentArray.splice(addStartIndex - 1, 0, ...newLines);
+
+    console.log("modified fileContentArray", fileContentArray);
+
+    const finalFileContent = fileContentArray.join('\n');
+    console.log("finalFileContent", finalFileContent);
+
+    const dir = step.path.split('/').slice(0, -1).join('/');
+    console.log("dir", dir);
+    console.log("step.path", step.path);
+
+    await saveOrCreateFileContent(containerId, "/app", step.path, finalFileContent);
+  } catch (error) {
+    console.error('Error in handleEditFileStep:', error);
+    throw error;
+  }
 }
 
 
