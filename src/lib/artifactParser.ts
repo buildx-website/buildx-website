@@ -12,7 +12,7 @@ function getStep(action: string): Step | null {
         const path = pathMatch ? pathMatch[1] : null;
         const diffContent = action.substring(lines[0].length + 1, action.indexOf("</diff>"));
         const diffLines = diffContent.split("\n").map(line => line.trim()).filter(line => line !== "");
-        const diffs = diffLines.slice(2).map(line => {
+        const diffs = diffLines.slice(3).map(line => {
             if (line.startsWith('+')) {
                 return { type: 'add', line: line.slice(1) };
             } else if (line.startsWith('-')) {

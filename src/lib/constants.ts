@@ -12,7 +12,7 @@ export const jwtConfig = {
   secret: new TextEncoder().encode(process.env.NEXT_PUBLIC_JWT_SECRET ?? 'secret'),
 }
 export const WORK_DIR_NAME = 'app';
-export const WORK_DIR = `/home/${WORK_DIR_NAME}`;
+export const WORK_DIR = `/${WORK_DIR_NAME}`;
 export const MODIFICATIONS_TAG_NAME = 'bolt_file_modifications';
 
 export const allowedHTMLElements = [

@@ -83,6 +83,7 @@ Use valid markdown and be concise. Think first, then provide complete solutions.
     <user_query>Don't write the recursive function.</user_query>
     <assistant_response>
       <boltArtifact id="no-recursive-factorial-function" title="JavaScript Non-Recursive Factorial Function">
+      
         <bolt_file_modifications>
           <diff path="<file_path>/index.js">
           --- a/index.js
