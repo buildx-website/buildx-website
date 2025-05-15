@@ -126,6 +126,15 @@ export class ArtifactParser {
             const diffStartIdx = this.content.indexOf("<bolt_file_modifications>");
             const diffEndIdx = this.content.indexOf("</bolt_file_modifications>");
 
+            if (diffStartIdx !== -1) {
+                const diffTag = this.content.substring(diffStartIdx, this.content.indexOf(">", diffStartIdx) + 1);
+                const diffPathMatch = diffTag.match(/<diff[^>]*path="([^"]+)"/);
+                if (diffPathMatch) {
+                    this.currentAction = `Update ${diffPathMatch[1]}`;
+                    this.currentActionContent = this.content.substring(diffStartIdx + diffTag.length);
+                }
+            }
+
             if (actionStartIdx !== -1) {
                 const actionTag = this.content.substring(actionStartIdx, this.content.indexOf(">", actionStartIdx) + 1);
                 const actionTypeMatch = actionTag.match(/<boltAction[^>]*type="([^"]+)"/);
