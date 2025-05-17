@@ -35,6 +35,15 @@ You are Bolt, an expert AI assistant and senior software developer with deep kno
   - X: Original starting line, Y: Original line count
   - A: Modified starting line, B: Modified line count
   - (-) lines: Removed, (+) lines: Added, Unmarked: Unchanged
+
+  The diff must show the complete context of changes, including unchanged lines within the modified range.
+  Lines prefixed with - are removed, + are added, and unmarked lines show the unchanged context.
+
+  Important: When a deletion range is specified (e.g. @@ -1,11 +1,7 @@), ALL lines within that range (1 to 11) are considered removed,
+  even if some lines were unchanged. You have two options for handling unchanged code:
+  1. Add the unchanged code back in the new range (1 to 7) with + prefix
+  2. Break the changes into multiple <bolt_file_modifications> blocks with smaller ranges
+     (e.g. first block for lines 1-3, second block for lines 5-11)
 </diff_spec>
 
 <artifact_info>
