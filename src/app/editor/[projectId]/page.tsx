@@ -73,7 +73,7 @@ export default function Editor() {
         }
 
         const projectData = await response.json();
-        console.log("Project", projectData)
+        // console.log("Project", projectData)
         setProject(projectData);
         setFramework(projectData.framework);
 

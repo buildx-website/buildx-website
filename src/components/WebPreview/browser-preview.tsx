@@ -53,12 +53,12 @@ export function BrowserPreview({ containerPort, height, width, building }: Brows
   }, [isLoading]);
 
   const loadContent = async () => {
-    console.log("loadContent", containerPort, selectedPort);
+    // console.log("loadContent", containerPort, selectedPort);
     const portConfig = containerPort.find(item => Object.keys(item)[0] === selectedPort.toString());
     if (!portConfig) return;
 
     const hostname = portConfig[selectedPort];
-    console.log("hostname", hostname);
+    // console.log("hostname", hostname);
     const url = `https://${hostname}${path}`;
 
     try {
