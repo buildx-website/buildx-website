@@ -6,11 +6,13 @@ const modelData: Prisma.ModelsCreateInput[] = [{
     displayName: "DeepSeek Chat v3",
     provider: "OPENROUTER",
     default: true,
-}, {
-    name: "claude-3-5-haiku-20241022",
-    displayName: "Claude 3.5",
-    provider: "ANTHROPIC",
-}, {
+}, 
+// {
+//     name: "claude-3-5-haiku-20241022",
+//     displayName: "Claude 3.5",
+//     provider: "ANTHROPIC",
+// }, 
+{
     name: "gemini-2.0-flash",
     displayName: "Gemini flash 2.0",
     provider: "GEMINI",
