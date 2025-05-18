@@ -11,30 +11,16 @@ function getStep(action: string): Step | null {
         const pathMatch = diff.match(/path="([^"]+)"/);
         const path = pathMatch ? pathMatch[1] : null;
         const diffContent = action.substring(lines[0].length + 1, action.indexOf("</diff>"));
-        const diffLines = diffContent.split("\n").map(line => line.trim()).filter(line => line !== "");
-        const diffs = diffLines.slice(3).map(line => {
-            if (line.startsWith('+')) {
-                return { type: 'add', line: line.slice(1) };
-            } else if (line.startsWith('-')) {
-                return { type: 'remove', line: line.slice(1) };
-            } else if (line.startsWith('@@')) {
-                return { type: 'context', line };
-            }
-            else {
-                return { type: 'unchanged', line };
-            }
-        });
-
+        
         return ({
             id: stepId++,
             title: `Update ${path || 'file'}`,
-            description: `Update ${path || 'file'}, ${diffLines[1]}`,
+            description: `Update ${path || 'file'}`,
             type: StepType.EditFile,
             status: 'pending',
-            code: JSON.stringify(diffs, null, 2),
+            code: diffContent.trim(),
             path: path ? path : undefined
-        })
-
+        });
     }
 
     if (actionTypeMatch) {
