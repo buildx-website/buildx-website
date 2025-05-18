@@ -67,6 +67,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/diff": "^7.0.2",
     "@types/node": "^20.17.46",
     "@types/react": "^19",
     "@types/react-dom": "^19",
