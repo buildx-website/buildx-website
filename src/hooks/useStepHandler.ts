@@ -70,50 +70,46 @@ export function useStepHandler(containerId: string, reloadFileTree: () => Promis
     return undefined;
   };
 
+  const handleEditFileStep = async (containerId: string, step: Step): Promise<void> => {
+    try {
+      if (!step.path || !step.code) return;
+      
+      const normalizedDiff = step.code.replace(/\r\n/g, '\n');
+      const patch = Diff.parsePatch(normalizedDiff);
+      
+      if (!patch || patch.length === 0) {
+        throw new Error('Invalid patch format');
+      }
+  
+      const fileContent = await fetchFileContent(containerId, step.path);
+      
+      const result = Diff.applyPatch(fileContent.fileContent, patch[0], {
+        compareLine: (lineNumber, line, operation, patchContent) => {
+          const normalizedLine = line.trim();
+          const normalizedPatchLine = patchContent.trim();
+          return normalizedLine === normalizedPatchLine;
+        }
+      });
+      
+      if (result === false) {
+        throw new Error('Failed to apply patch - content mismatch');
+      }
+      await saveOrCreateFileContent(containerId, "/app", step.path, result);
+      toast.success(`Edited file: ${step.path}`);
+      
+    } catch (error) {
+      console.error('Error in handleEditFileStep:', error);
+      toast.error(`Failed to edit file: ${step.path}`);
+      throw error;
+    }
+  }
+  
   return {
     currentStep,
     handleStep
   };
 }
 
-const handleEditFileStep = async (containerId: string, step: Step): Promise<void> => {
-  try {
-    if (!step.path || !step.code) return;
-    
-    // Ensure proper line endings
-    const normalizedDiff = step.code.replace(/\r\n/g, '\n');
-    const patch = Diff.parsePatch(normalizedDiff);
-    
-    if (!patch || patch.length === 0) {
-      throw new Error('Invalid patch format');
-    }
 
-    const fileContent = await fetchFileContent(containerId, step.path);
-    
-    // Add debug logging
-    console.log('Original file content:', fileContent.fileContent);
-    console.log('Patch:', patch[0]);
-    
-    // Try to apply the patch
-    const result = Diff.applyPatch(fileContent.fileContent, patch[0], {
-      compareLine: (lineNumber, line, operation, patchContent) => {
-        // More lenient comparison that ignores whitespace
-        const normalizedLine = line.trim();
-        const normalizedPatchLine = patchContent.trim();
-        return normalizedLine === normalizedPatchLine;
-      }
-    });
-    
-    if (result === false) {
-      throw new Error('Failed to apply patch - content mismatch');
-    }
-    
-    await saveOrCreateFileContent(containerId, "/app", step.path, result);
-    
-  } catch (error) {
-    console.error('Error in handleEditFileStep:', error);
-    throw error;
-  }
-}
 
 
