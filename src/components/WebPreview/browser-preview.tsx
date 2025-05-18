@@ -21,7 +21,7 @@ export function BrowserPreview({ containerPort, height, width, building }: Brows
   const [path, setPath] = useState<string>("/");
   const [isLoading, setIsLoading] = useState(false);
   const [iframeSrc, setIframeSrc] = useState<string | null>(null);
-  const [error, setError] = useState<{ code: number; message: string } | null>(null);
+  const [error, setError] = useState<{ code: number; message: string; action?: string } | null>(null);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [isSecure, setIsSecure] = useState(false);
 
@@ -53,12 +53,13 @@ export function BrowserPreview({ containerPort, height, width, building }: Brows
   }, [isLoading]);
 
   const loadContent = async () => {
+    // console.log("loadContent", containerPort, selectedPort);
     const portConfig = containerPort.find(item => Object.keys(item)[0] === selectedPort.toString());
     if (!portConfig) return;
 
-    const baseUrl = portConfig[selectedPort];
-    const fullUrl = baseUrl.startsWith('http') ? baseUrl : `http://${baseUrl}`;
-    const url = `${fullUrl.replace(/\/$/, "")}${path}`;
+    const hostname = portConfig[selectedPort];
+    // console.log("hostname", hostname);
+    const url = `https://${hostname}${path}`;
 
     try {
       setIsLoading(true);
@@ -130,7 +131,8 @@ export function BrowserPreview({ containerPort, height, width, building }: Brows
   const handleIframeError = () => {
     setError({
       code: 503,
-      message: "Failed to load the content. The site may be unavailable or blocking embedding."
+      message: "The site might not be accessible over HTTPS. Try opening it in a new window.",
+      action: "open_new_window"
     });
   };
 
@@ -234,9 +236,16 @@ export function BrowserPreview({ containerPort, height, width, building }: Brows
                   <AlertTitle>Error {error.code}</AlertTitle>
                   <AlertDescription>{error.message}</AlertDescription>
                   {error.code === 503 && (
-                    <Button variant="outline" size="sm" onClick={refresh} className="mt-4 gap-2">
-                      <RefreshCw className="h-4 w-4" /> Retry Connection
-                    </Button>
+                    <div className="mt-4 space-y-2">
+                      <Button variant="outline" size="sm" onClick={refresh} className="gap-2">
+                        <RefreshCw className="h-4 w-4" /> Retry Connection
+                      </Button>
+                      {error.action === "open_new_window" && (
+                        <Button variant="outline" size="sm" onClick={openInNewTab} className="ml-2 gap-2">
+                          <ExternalLink className="h-4 w-4" /> Open in New Window
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </Alert>
               </div>

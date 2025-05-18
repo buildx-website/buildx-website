@@ -20,41 +20,18 @@ export function EditorInterface({ containerId }: { containerId: string }) {
   const { handleStep } = useStepHandler(containerId, reloadFileTree);
 
   useEffect(() => {
-    const executeSteps = async () => {
-      const pendingSteps = steps.filter(step => step.status === "pending");
-
-      for (const step of pendingSteps) {
-        updateStep({ ...step, status: "in-progress" });
-        try {
-          const result = await handleStep(step);
-          if (step.type === StepType.RunScript &&
-            (result === "npm run dev" || result === "npm start")) {
-            setStartCmd(result);
-          }
-          updateStep({ ...step, status: "completed" });
-        } catch (error) {
-          console.error("Step failed:", error);
-          updateStep({ ...step, status: "failed" });
-        }
-      }
-    };
-
-    if (containerId) {
-      executeSteps();
-    }
-  }, [containerId]);
-
-  useEffect(() => {
-    const processNewSteps = async () => {
+    const processSteps = async () => {
       if (isProcessing) return;
 
       const pendingSteps = steps.filter(step => step.status === "pending");
+      console.log("pendingSteps", pendingSteps);
       if (pendingSteps.length === 0) return;
 
       setIsProcessing(true);
 
       try {
         for (const step of pendingSteps) {
+          console.log("running step", step);
           updateStep({ ...step, status: "in-progress" });
           const result = await handleStep(step);
           if (step.type === StepType.RunScript &&
@@ -71,10 +48,9 @@ export function EditorInterface({ containerId }: { containerId: string }) {
     };
 
     if (containerId && steps.some(step => step.status === "pending")) {
-      processNewSteps();
+      processSteps();
     }
   }, [steps, containerId, isProcessing]);
-
 
   async function reloadFileTree() {
     if (!containerId) return
