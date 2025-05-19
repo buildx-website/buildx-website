@@ -101,39 +101,79 @@ export class ArtifactParser {
         if (endIdx !== -1 && startIdx !== -1 && endIdx > startIdx) {
             const after = this.content.substring(endIdx + "</boltArtifact>".length);
             this.contentAfterArtifact = after;
+            // reset the current action
             this.currentAction = "";
         }
 
-        let currentContent = this.content;
         while (true) {
-            const actionStartIdx = currentContent.indexOf("<boltAction");
-            const actionEndIdx = currentContent.indexOf("</boltAction>");
-            const diffStartIdx = currentContent.indexOf("<bolt_file_modifications>");
-            const diffEndIdx = currentContent.indexOf("</bolt_file_modifications>");
+            let foundDiff = false;
+
+            const diffStartIdx = this.content.indexOf("<bolt_file_modifications>");
+            const diffEndIdx = this.content.indexOf("</bolt_file_modifications>");
+    
+            const actionStartIdx = this.content.indexOf("<boltAction");
+            const actionEndIdx = this.content.indexOf("</boltAction>");
+
+            console.log("Diff Start Index", diffStartIdx);
+            console.log("Diff End Index", diffEndIdx);
+            console.log("Action Start Index", actionStartIdx);
+            console.log("Action End Index", actionEndIdx);
+
+            if (diffStartIdx !== -1 && !foundDiff) {
+                const diffTag = this.content.substring(diffStartIdx, this.content.indexOf(">", diffStartIdx) + 1);
+                this.currentAction = `Update File`;
+                this.currentActionContent = this.content.substring(diffStartIdx + diffTag.length);
+                foundDiff = true;
+            }
+
+            if (actionStartIdx !== -1) {
+                const actionTag = this.content.substring(actionStartIdx, this.content.indexOf(">", actionStartIdx) + 1);
+                const actionTypeMatch = actionTag.match(/<boltAction[^>]*type="([^"]+)"/);
+                if (actionTypeMatch) {
+                    const actionType = actionTypeMatch[1];
+                    if (actionType === 'file') {
+                        const filePathMatch = actionTag.match(/<boltAction[^>]*filePath="([^"]+)"/);
+                        if (filePathMatch) {
+                            this.currentAction = `Create ${filePathMatch[1]}`;
+                            this.currentActionContent = this.content.substring(actionStartIdx + actionTag.length);
+                            if (this.currentActionContent.includes("</boltAction>")) {
+                                this.currentActionContent = this.currentActionContent.replace("</boltAction>", "");
+                            }
+                        }
+                    } else if (actionType === 'shell') {
+                        this.currentAction = `Running commands`;
+                    }
+                }
+                else {
+                    this.currentAction = "";
+                    this.currentActionContent = "";
+                }
+            }
 
             if (diffStartIdx !== -1 && diffEndIdx !== -1 && diffEndIdx > diffStartIdx) {
-                const diffContent = currentContent.substring(diffStartIdx, diffEndIdx + "</bolt_file_modifications>".length);
-                this.actions.push(diffContent);
-                currentContent = currentContent.substring(diffEndIdx + "</bolt_file_modifications>".length);
-                continue;
+                this.diffContent = this.content.substring(diffStartIdx, diffEndIdx + "</bolt_file_modifications>".length);
+                this.actions.push(this.diffContent);
+                this.content = this.content.replace(this.diffContent, "");
+                this.diffContent = '';
+                this.currentAction = '';
+                this.currentActionContent = '';
+                continue; // Skip to next iteration to recalculate indices
             }
 
-            if (actionStartIdx !== -1 && actionEndIdx !== -1) {
-                const actionChunk = currentContent.substring(actionStartIdx, actionEndIdx + "</boltAction>".length);
-                this.actions.push(actionChunk);
-                currentContent = currentContent.substring(actionEndIdx + "</boltAction>".length);
-                continue;
+            if (actionStartIdx === -1 || actionEndIdx === -1) {
+                break;
             }
 
-            break;
+            const actionChunk = this.content.substring(actionStartIdx, actionEndIdx + "</boltAction>".length);
+            this.actions.push(actionChunk);
+            this.content = this.content.replace(actionChunk, "");
+            continue; // Skip to next iteration to recalculate indices
         }
-
-        this.content = "";
     }
 
     getStep() {
         if (this.actions.length === 0) return;
-        const action = this.actions.shift();
+        const action = this.actions.shift(); // rmove the first action
         if (!action) return;
         const step = getStep(action);
         if (step) {
