@@ -1,5 +1,5 @@
 import type { Content, Message } from "@/types/types"
-import { BotMessageSquare, UserRoundIcon, Loader2, FileText } from "lucide-react"
+import { BotMessageSquare, UserRoundIcon, Loader2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import ReactMarkdown from "react-markdown"
@@ -25,14 +25,14 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
   const extractFileInfo = (text: string) => {
     const fileRegex = /<userSelectedFile>([\s\S]*?)<\/userSelectedFile>/;
     const match = text.match(fileRegex);
-    
+
     if (match) {
       const content = match[1];
       const fileNameMatch = content.match(/<fileName>([\s\S]*?)<\/fileName>/);
       const fileDirMatch = content.match(/<fileDir>([\s\S]*?)<\/fileDir>/);
       const fileTypeMatch = content.match(/<fileType>([\s\S]*?)<\/fileType>/);
       const fileContentMatch = content.match(/<fileContent>([\s\S]*?)<\/fileContent>/);
-      
+
       if (fileNameMatch && fileDirMatch && fileTypeMatch && fileContentMatch) {
         return {
           fileName: fileNameMatch[1] as string,
@@ -46,26 +46,20 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
   };
 
   const removeFileTag = (text: string) => {
-    return text.replace(/<userSelectedFile>[\s\S]*?<\/userSelectedFile>/, '').trim();
+    return text.replace(/<userSelectedFile>[\s\S]*?<\/userSelectedFile>/, '')
+      .replace(/Reference file:/, '')
+      .trim();
   };
 
   const renderContent = (content: Content) => {
     if (content.type === "text" && content.text) {
       const fileInfo = extractFileInfo(content.text);
       const displayText = removeFileTag(content.text);
-      
+
       return (
         <div className="prose prose-invert prose-headings:mt-4 prose-headings:mb-2 prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-pre:my-2 prose-pre:p-2 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-sm prose-code:bg-zinc-800 prose-code:before:content-none prose-code:after:content-none max-w-none">
-          {displayText && (
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeHighlight]}
-            >
-              {displayText}
-            </ReactMarkdown>
-          )}
           {isUser && fileInfo && (
-            <div className="mt-2">
+            <div className="mb-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -75,10 +69,17 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
                   setShowFilePreview(true);
                 }}
               >
-                <FileText className="w-4 h-4" />
                 {fileInfo.fileName}
               </Button>
             </div>
+          )}
+          {displayText && (
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeHighlight]}
+            >
+              {displayText}
+            </ReactMarkdown>
           )}
         </div>
       )
