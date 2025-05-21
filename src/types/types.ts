@@ -134,3 +134,11 @@ export interface SessionType {
     ipAddress?: string | null;
     userAgent?: string | null;
 }
+
+export interface FileContent {
+    fileName: string
+    fileDir: string
+    fileType: string
+    fileContent: string
+    success: boolean
+}
