@@ -17,6 +17,8 @@ interface SendPromptProps {
     allModels: { id: string, name: string, displayName: string }[];
     containerId: string;
     setSelectedFileText: (value: FileContent | null) => void;
+    setSelectedFile: (value: FileType | null) => void;
+    selectedFile: FileType | null;
 }
 
 export function SendPrompt({
@@ -28,9 +30,11 @@ export function SendPrompt({
     onModelChange,
     allModels,
     containerId,
+    setSelectedFile,
+    selectedFile,
     setSelectedFileText
 }: SendPromptProps) {
-    const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
+
     const [files, setFiles] = useState<FileType[]>([]);
 
     useEffect(() => {

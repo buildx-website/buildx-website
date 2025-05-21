@@ -76,7 +76,7 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
                 }}
               >
                 <FileText className="w-4 h-4" />
-                View {fileInfo.fileName}
+                {fileInfo.fileName}
               </Button>
             </div>
           )}
