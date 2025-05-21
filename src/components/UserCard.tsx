@@ -6,17 +6,34 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { Eye, EyeOff, LogOut, UserCog } from "lucide-react"
+import { Eye, EyeOff, LogOut, UserCog, Settings } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { authClient } from "@/lib/auth-client"
 import { useUser } from "@/hooks/useUser"
+import { useRouter } from "next/navigation"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
 
 export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean) => void }) {
     const [apiKey, setApiKey] = useState<string | undefined>("")
     const [isApiKeyVisible, setIsApiKeyVisible] = useState(false)
-    const [isUpdating, setIsUpdating] = useState(false)
     const [loading, setLoading] = useState(false)
-    const { user } = useUser();
+    const [selectedModel, setSelectedModel] = useState("claude-3-opus")
+    const { user, currentSession } = useUser();
+    const router = useRouter();
+
+    const userPlan = "Trial";
+    
+    // Format the last login time
+    const lastLogin = currentSession?.updatedAt 
+        ? new Date(currentSession.updatedAt).toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })
+        : 'Never';
 
     async function fetchApiKey() {
         setLoading(true)
@@ -44,7 +61,6 @@ export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
     }, [])
 
     async function updateApiKey() {
-        setIsUpdating(true)
         try {
             const res = await fetch("/api/main/api", {
                 method: "POST",
@@ -62,7 +78,6 @@ export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
         } catch {
             toast.error("Something went wrong")
         }
-        setIsUpdating(false)
     }
 
     async function handleLogout() {
@@ -75,71 +90,111 @@ export function UserCard({ setIsDialogOpen }: { setIsDialogOpen: (value: boolean
     return (
         <>
             <CardHeader className="pb-4">
-                <div className="flex items-center justify-center mb-2">
-                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                        <UserCog size={32} className="text-muted-foreground" />
+                <div className="flex items-center justify-center mb-3">
+                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                        {user?.image ? (
+                            <img 
+                                src={user.image} 
+                                alt={user.name || "User"} 
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <UserCog size={32} className="text-muted-foreground" />
+                        )}
                     </div>
                 </div>
-                <CardTitle className="text-center text-2xl font-semibold">{user?.name}</CardTitle>
+                <div className="flex flex-col items-center">
+                    <CardTitle className="text-center text-2xl font-semibold mb-1">
+                        {user?.name}
+                    </CardTitle>
+                    <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="secondary" className="font-normal">
+                            {userPlan}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">•</span>
+                        <span className="text-sm text-muted-foreground">{user?.email}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground/70">
+                        Last login: {lastLogin}
+                    </div>
+                </div>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="space-y-2">
-                    <Label htmlFor="apiKey" className="text-sm font-medium">
-                        API Key
+                    <Label htmlFor="apiKey" className="text-sm font-medium flex items-center justify-between">
+                        <span>API Key</span>
+                        <span className="text-xs text-muted-foreground">(Coming Soon)</span>
                     </Label>
-                    <div className="relative">
-                        <Input
-                            id="apiKey"
-                            type={isApiKeyVisible ? "text" : "password"}
-                            value={loading ? "Loading..." : apiKey || ""}
-                            readOnly={loading}
-                            autoComplete="off"
-                            onChange={(e) => setApiKey(e.target.value)}
-                            disabled={loading}
-                            className="w-full pr-10 transition-all"
-                            placeholder="Enter your API key"
-                        />
-                        <Button
-                            type="button"
-                            variant="ghost"
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <Input
+                                id="apiKey"
+                                type={isApiKeyVisible ? "text" : "password"}
+                                value={loading ? "Loading..." : apiKey || ""}
+                                readOnly={loading}
+                                autoComplete="off"
+                                onChange={(e) => setApiKey(e.target.value)}
+                                disabled={true}
+                                className="w-full pr-10 transition-all opacity-50"
+                                placeholder="API Key feature coming soon"
+                            />
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1 h-8 w-8"
+                                onClick={() => setIsApiKeyVisible(!isApiKeyVisible)}
+                                aria-label={isApiKeyVisible ? "Hide API key" : "Show API key"}
+                                disabled={true}
+                            >
+                                {isApiKeyVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </Button>
+                        </div>
+                        <Select value={selectedModel} onValueChange={setSelectedModel} disabled={true}>
+                            <SelectTrigger className="w-[180px] opacity-50">
+                                <SelectValue placeholder="Select model" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
+                                <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
+                                <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
+                                <SelectItem value="gpt-4">GPT-4</SelectItem>
+                                <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Button 
+                            onClick={updateApiKey} 
+                            disabled={true} 
+                            variant="outline"
                             size="icon"
-                            className="absolute right-1 top-1 h-8 w-8"
-                            onClick={() => setIsApiKeyVisible(!isApiKeyVisible)}
-                            aria-label={isApiKeyVisible ? "Hide API key" : "Show API key"}
+                            className="opacity-50 hover:bg-muted"
+                            title="Configure API Settings"
                         >
-                            {isApiKeyVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                            <Settings size={16} />
                         </Button>
                     </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                        You can use your own API key to access various AI models. 
+                    </p>
                 </div>
-
-                <Button onClick={updateApiKey} disabled={isUpdating} className="font-medium transition-all">
-                    {isUpdating ? (
-                        <>
-                            <svg
-                                className="animate-spin -ml-1 mr-2 h-4 w-4"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                            </svg>
-                            Updating...
-                        </>
-                    ) : (
-                        "Update API Key"
-                    )}
-                </Button>
 
                 <Separator />
 
-                <Button onClick={handleLogout} variant="destructive" className="font-medium transition-all">
-                    <LogOut size={16} className="mr-2" /> Logout
-                </Button>
+                <div className="flex gap-2">
+                    <Button 
+                        onClick={() => {
+                            router.push('/settings');
+                            setIsDialogOpen(false);
+                        }} 
+                        variant="outline" 
+                        className="font-medium transition-all flex-1"
+                    >
+                        <Settings size={16} className="mr-2" /> Settings
+                    </Button>
+                    <Button onClick={handleLogout} variant="destructive" className="font-medium transition-all flex-1">
+                        <LogOut size={16} className="mr-2" /> Logout
+                    </Button>
+                </div>
             </CardContent>
         </>
     )
