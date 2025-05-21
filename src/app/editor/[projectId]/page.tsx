@@ -9,7 +9,7 @@ import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, } from "lucide-react";
 import { SendPrompt } from "@/components/SendPrompt";
-import { ContainerPort, Content, Message, } from "@/types/types";
+import { ContainerPort, Content, FileContent, FileType, Message, } from "@/types/types";
 import { StepList } from "@/components/StepList";
 import { MessageComponent } from "@/components/Messages";
 import { User } from "@/components/User";
@@ -44,6 +44,8 @@ export default function Editor() {
   const [currentActionBuilding, setCurrentActionBuilding] = useState<string | null>(null);
   const [currentActionContent, setCurrentActionContent] = useState<string | null>(null);
   const [containerPort, setContainerPort] = useState<ContainerPort[]>([{}]);
+  const [selectedFileText, setSelectedFileText] = useState<FileContent | null>(null);
+  const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
   const params = useParams()
   const projectId = params.projectId as string
 
@@ -262,13 +264,15 @@ export default function Editor() {
       setUiMsgs(prev => [...prev, { role: "user", content: content }]);
       setUiMsgs(prev => [...prev, { role: "assistant", content: [], loading: true }]);
 
-      const prompt = content.map((c) => c.text).join(" ");
-
       await saveMsg([{
         role: "user",
         content: content,
         ignoreInUI: false
       }]);
+
+      const prompt = content.map(c => c.text).join("\n");
+      setSelectedFileText(null);
+
 
       const response = await fetch('/api/main/chat', {
         method: 'POST',
@@ -415,14 +419,29 @@ export default function Editor() {
 
   async function handleSubmit() {
     if (prompt.trim() === "" || isStreaming || building || !initialLoadComplete) return
+    let fullPrompt = prompt;
+
+    if(selectedFileText) {
+      fullPrompt = fullPrompt + `\n\nReference file:
+      <userSelectedFile>
+        <fileName>${selectedFileText.fileName}</fileName>
+        <fileDir>${selectedFileText.fileDir}</fileDir>
+        <fileType>${selectedFileText.fileType}</fileType>
+        <fileContent>${selectedFileText.fileContent}</fileContent>
+      </userSelectedFile>`
+    }
 
     const userMsg: Message = {
       role: "user",
       content: [{
         type: "text",
-        text: prompt
+        text: fullPrompt
       }]
     };
+
+    // unset the selected file
+    setSelectedFile(null);
+    setSelectedFileText(null);
 
     addMessage(userMsg);
     send(userMsg.content, framework);
@@ -466,6 +485,10 @@ export default function Editor() {
                   model={model}
                   onModelChange={handleModelChange}
                   allModels={allModels}
+                  containerId={containerId}
+                  setSelectedFileText={setSelectedFileText}
+                  setSelectedFile={setSelectedFile}
+                  selectedFile={selectedFile}
                 />
               </div>
             </div>

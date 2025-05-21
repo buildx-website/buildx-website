@@ -6,20 +6,14 @@ import { Loader2, Save, Copy, FileCode2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { editor } from 'monaco-editor'
 import { fetchFileContent, saveOrCreateFileContent } from "@/lib/worker-config"
-import { FileType } from "@/types/types"
+import { FileContent, FileType } from "@/types/types"
 
 interface CodeEditorProps {
   file: FileType
   containerId: string
 }
 
-interface FileContent {
-  fileName: string
-  fileDir: string
-  fileType: string
-  fileContent: string
-  success: boolean
-}
+
 
 export function CodeEditor({ file, containerId }: CodeEditorProps) {
   const [mounted, setMounted] = useState(false)
