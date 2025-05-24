@@ -7,7 +7,9 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useMessagesStore } from "@/store/messagesAtom";
 import { useStepsStore } from "@/store/initialStepsAtom";
-import { Sparkles, LayoutDashboard, Paperclip, ArrowUp, X, Github } from "lucide-react";
+import { FaPaperclip, FaArrowUp, FaTimes, FaGithub } from "react-icons/fa";
+import { IoSparkles } from "react-icons/io5";
+import { MdDashboard } from "react-icons/md";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { motion } from "framer-motion";
@@ -334,7 +336,7 @@ export default function Home() {
                   className="inline-flex items-center px-3 py-1 rounded-full border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm"
                   variants={slideUp}
                 >
-                  <Sparkles className="w-4 h-4 mr-2 text-slate-500" />
+                  <IoSparkles className="w-4 h-4 mr-2 text-slate-500" />
                   <span className="text-xs text-zinc-300 font-heading italic">V2 is here! Try it out!</span>
                 </motion.div>
 
@@ -422,7 +424,7 @@ export default function Home() {
                           className="w-10 h-10 hover:bg-zinc-800/50"
                           onClick={() => document.getElementById("image-input")?.click()}
                         >
-                          <Paperclip className="w-5 h-5" />
+                          <FaPaperclip className="w-5 h-5" />
                         </Button>
                       </motion.div>
                       <motion.div whileHover="hover" variants={buttonHover}>
@@ -434,7 +436,7 @@ export default function Home() {
                           onClick={handleRefinePrompt}
                           title={hasRefined ? "Prompt already refined" : isPromptTooLarge() ? "Prompt is too large" : "Refine prompt"}
                         >
-                          <Sparkles className="w-5 h-5" />
+                          <IoSparkles className="w-5 h-5" />
                         </Button>
                       </motion.div>
                       <motion.div whileHover="hover" variants={buttonHover}>
@@ -451,7 +453,7 @@ export default function Home() {
                             />
                           ) : (<>
                             Build
-                            <ArrowUp className="w-5 h-5" />
+                            <FaArrowUp className="w-5 h-5" />
                           </>
                           )}
                         </Button>
@@ -482,7 +484,7 @@ export default function Home() {
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
-                            <X className="w-4 h-4 text-zinc-400" />
+                            <FaTimes className="w-4 h-4 text-zinc-400" />
                           </motion.button>
                         </div>
                         <div className="flex-1 min-w-0">
@@ -544,7 +546,7 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
-                <LayoutDashboard className="w-6 h-6 text-slate-400" />
+                <MdDashboard className="w-6 h-6 text-slate-400" />
                 <span className="text-white font-medium font-heading">BuildX</span>
               </motion.div>
 
@@ -556,7 +558,7 @@ export default function Home() {
                     className="bg-zinc-900/50 border border-zinc-700 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white transition-all duration-200 gap-2 px-4 py-2 rounded-lg"
                     onClick={() => window.open("https://github.com/tsahil01/builder", "_blank")}
                   >
-                    <Github className="w-4 h-4" />
+                    <FaGithub className="w-4 h-4" />
                     <span className="font-heading tracking-tighter">BuildX</span>
                   </Button>
                 </div>
@@ -568,7 +570,7 @@ export default function Home() {
                     className="bg-zinc-900/50 border border-zinc-700 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white transition-all duration-200 gap-2 px-4 py-2 rounded-lg"
                     onClick={() => window.open("https://github.com/tsahil01/builder-templates", "_blank")}
                   >
-                    <Github className="w-4 h-4" />
+                    <FaGithub className="w-4 h-4" />
                     <span className="font-heading tracking-tighter">BuildX Template</span>
                   </Button>
                 </div>

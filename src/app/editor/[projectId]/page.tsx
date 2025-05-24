@@ -7,7 +7,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Switch } from "@/components/ui/switch"
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, } from "lucide-react";
+import { FaDownload } from "react-icons/fa";
 import { SendPrompt } from "@/components/SendPrompt";
 import { ContainerPort, Content, FileContent, FileType, Message, } from "@/types/types";
 import { StepList } from "@/components/StepList";
@@ -533,7 +533,7 @@ export default function Editor() {
                         // handleDownload(files, projectId);
                       }}
                     >
-                      <Download size={16} />
+                      <FaDownload size={16} />
                     </Button>
                     <User user={user} />
                   </div>

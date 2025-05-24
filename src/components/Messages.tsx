@@ -1,5 +1,6 @@
 import type { Content, Message } from "@/types/types"
-import { BotMessageSquare, UserRoundIcon, Loader2 } from "lucide-react"
+import { FaUserCircle, FaSpinner } from "react-icons/fa";
+import { BsChatSquareQuoteFill } from "react-icons/bs";
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import ReactMarkdown from "react-markdown"
@@ -109,12 +110,12 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
       >
         <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-800/70">
           <div className="flex items-center gap-3">
-            {isUser ? <UserRoundIcon className="" size={18} /> : <BotMessageSquare className="" size={18} />}
+            {isUser ? <FaUserCircle className="" size={18} /> : <BsChatSquareQuoteFill className="" size={18} />}
             <div className="flex items-center gap-2">
               <span className={cn("font-semibold")}>
                 {isUser ? "You" : "Assistant"}
               </span>
-              {!isUser && loading && <Loader2 className="w-3 h-3 animate-spin" />}
+              {!isUser && loading && <FaSpinner className="w-3 h-3 animate-spin" />}
             </div>
           </div>
         </div>
@@ -122,7 +123,7 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
         <div className="message-content">
           {message.loading ? (
             <div className="flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <FaSpinner className="w-4 h-4 animate-spin" />
               <span className="italic">Thinking...</span>
             </div>
           ) : (

@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { type Step, StepType } from "@/types/types"
-import { SquareCheck, ChevronDown, ChevronUp, Loader2, OctagonAlert, Loader } from "lucide-react"
+import { FaCheckSquare, FaChevronDown, FaChevronUp, FaSpinner, FaExclamationTriangle } from "react-icons/fa";
 import { Button } from "./ui/button"
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
 import { useState, useEffect, useRef } from "react"
@@ -93,7 +93,7 @@ export function StepList({ StepTitle, steps, building = false, maxHeight = "400p
                         <div className="flex items-center gap-2">
                             {building ? (
                                 <div className="relative flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary/10 text-primary">
-                                    <Loader size={18} className="animate-spin" />
+                                    <FaSpinner size={18} className="animate-spin" />
                                     <span className="text-sm font-medium">Building...</span>
                                     <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full animate-pulse shadow-md shadow-primary/20"></span>
                                 </div>
@@ -105,7 +105,7 @@ export function StepList({ StepTitle, steps, building = false, maxHeight = "400p
                             )}
                             <CollapsibleTrigger asChild>
                                 <Button variant="ghost" size="sm" className="text-gray-200 hover:bg-gray-800/50">
-                                    {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                    {isOpen ? <FaChevronUp size={20} /> : <FaChevronDown size={20} />}
                                 </Button>
                             </CollapsibleTrigger>
                         </div>
@@ -134,16 +134,16 @@ export function StepList({ StepTitle, steps, building = false, maxHeight = "400p
                                             <div className="flex items-start gap-3 w-full">
                                                 {step.type !== 1 && (
                                                     <div className="flex-shrink-0 mt-0.5">
-                                                        {step.status === "completed" && <SquareCheck size={22} className="text-green-300" />}
-                                                        {step.status === "pending" && <SquareCheck size={22} className="text-gray-400" />}
+                                                        {step.status === "completed" && <FaCheckSquare size={22} className="text-green-300" />}
+                                                        {step.status === "pending" && <FaCheckSquare size={22} className="text-gray-400" />}
                                                         {step.status === "failed" && (
                                                             <div className="flex items-center gap-2">
-                                                                <OctagonAlert size={22} className="text-red-400" />
+                                                                <FaExclamationTriangle size={22} className="text-red-400" />
                                                             </div>
                                                         )}
                                                         {step.status === "in-progress" && (
                                                             <div className="relative">
-                                                                <Loader2 size={22} className="text-blue-400 animate-spin" />
+                                                                <FaSpinner size={22} className="text-blue-400 animate-spin" />
                                                                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 rounded-full animate-ping"></span>
                                                             </div>
                                                         )}

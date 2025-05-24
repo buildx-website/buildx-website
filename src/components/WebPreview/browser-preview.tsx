@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { AlertCircle, ArrowLeft, ArrowRight, Loader, RefreshCw, Lock, Globe, ExternalLink } from "lucide-react";
+import { FaExclamationCircle, FaArrowLeft, FaArrowRight, FaSpinner, FaLock, FaGlobe, FaExternalLinkAlt, FaSync } from "react-icons/fa";
 import { Input } from "../ui/input";
 import { SelectPort } from "./select-port";
 import { ContainerPort } from "@/types/types";
@@ -159,10 +159,10 @@ export function BrowserPreview({ containerPort, height, width, building }: Brows
         <div className="flex items-center px-2 py-2">
           <div className="flex items-center space-x-1">
             <Button variant="ghost" size="icon" onClick={goBack} disabled={historyIndex <= 0} className="h-8 w-8">
-              <ArrowLeft className="h-4 w-4" />
+              <FaArrowLeft className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="icon" onClick={goForward} disabled={historyIndex >= history.length - 1} className="h-8 w-8">
-              <ArrowRight className="h-4 w-4" />
+              <FaArrowRight className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
@@ -171,8 +171,8 @@ export function BrowserPreview({ containerPort, height, width, building }: Brows
               disabled={isLoading}
               className="h-8 w-8 relative"
             >
-              <RefreshCw className={`h-4 w-4 transition-transform duration-300 ${isLoading ? 'hidden' : ''}`} />
-              <Loader className={`h-4 w-4 absolute ${isLoading ? 'block animate-spin' : 'hidden'}`} />
+              <FaSync className={`h-4 w-4 transition-transform duration-300 ${isLoading ? 'hidden' : ''}`} />
+              <FaSpinner className={`h-4 w-4 absolute ${isLoading ? 'block animate-spin' : 'hidden'}`} />
             </Button>
             <SelectPort value={selectedPort} onChange={handlePortChange} />
           </div>
@@ -180,9 +180,9 @@ export function BrowserPreview({ containerPort, height, width, building }: Brows
           <div className="flex-1 mx-2 flex items-center bg-black/20 rounded-md px-2 border border-border">
             <div className="flex items-center">
               {isSecure ? (
-                <Lock className="h-4 w-4 text-green-500 mr-1" />
+                <FaLock className="h-4 w-4 text-green-500 mr-1" />
               ) : (
-                <Globe className="h-4 w-4 text-gray-400 mr-1" />
+                <FaGlobe className="h-4 w-4 text-gray-400 mr-1" />
               )}
             </div>
             
@@ -205,12 +205,12 @@ export function BrowserPreview({ containerPort, height, width, building }: Brows
               className="h-8 w-8 ml-1"
               title="Open in new tab"
             >
-              <ExternalLink className="h-4 w-4" />
+              <FaExternalLinkAlt className="h-4 w-4" />
             </Button>
 
             {isLoading && (
               <div className="ml-2">
-                <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+                <FaSpinner className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             )}
           </div>
@@ -232,17 +232,17 @@ export function BrowserPreview({ containerPort, height, width, building }: Brows
             {error && (
               <div className="flex items-center justify-center h-full p-6">
                 <Alert variant="destructive" className="max-w-md">
-                  <AlertCircle className="h-4 w-4" />
+                  <FaExclamationCircle className="h-4 w-4" />
                   <AlertTitle>Error {error.code}</AlertTitle>
                   <AlertDescription>{error.message}</AlertDescription>
                   {error.code === 503 && (
                     <div className="mt-4 space-y-2">
                       <Button variant="outline" size="sm" onClick={refresh} className="gap-2">
-                        <RefreshCw className="h-4 w-4" /> Retry Connection
+                        <FaSync className="h-4 w-4" /> Retry Connection
                       </Button>
                       {error.action === "open_new_window" && (
                         <Button variant="outline" size="sm" onClick={openInNewTab} className="ml-2 gap-2">
-                          <ExternalLink className="h-4 w-4" /> Open in New Window
+                          <FaExternalLinkAlt className="h-4 w-4" /> Open in New Window
                         </Button>
                       )}
                     </div>

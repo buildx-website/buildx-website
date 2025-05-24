@@ -2,24 +2,22 @@
 
 import { useState } from "react"
 import {
-  ChevronRight,
-  File,
-  FileCode2,
-  FileJson2,
-  FileText,
-  FolderClosed,
-  FolderOpen,
-  FileImage,
-  FileCog,
-  FileArchive,
-  FileAudio,
-  FileVideo,
-  FileSpreadsheet,
-  FilePieChart,
-  FileBarChart2,
-  FileType2,
-  Loader2,
-} from "lucide-react"
+  FaChevronRight,
+  FaFileAlt,
+  FaFileCode,
+  FaFileImage,
+  FaFolder,
+  FaFolderOpen,
+  FaCogs,
+  FaFileArchive,
+  FaFileAudio,
+  FaFileVideo,
+  FaFileExcel,
+  FaChartPie,
+  FaChartBar,
+  FaSpinner
+} from "react-icons/fa";
+import { VscJson } from "react-icons/vsc";
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { FileType } from "@/types/types"
@@ -52,9 +50,9 @@ export function MinimalFileExplorer({
   const renderFileIcon = (file: FileType) => {
     if (file.type === "directory") {
       return file.isOpen ? (
-        <FolderOpen className="h-4 w-4 text-zinc-200" />
+        <FaFolderOpen className="h-4 w-4 text-zinc-200" />
       ) : (
-        <FolderClosed className="h-4 w-4 text-zinc-200" />
+        <FaFolder className="h-4 w-4 text-zinc-200" />
       )
     }
 
@@ -65,50 +63,50 @@ export function MinimalFileExplorer({
       case "ts":
       case "jsx":
       case "js":
-        return <FileCode2 className="h-4 w-4 text-zinc-500" />
+        return <FaFileCode className="h-4 w-4 text-zinc-500" />
       case "json":
-        return <FileJson2 className="h-4 w-4 text-zinc-500" />
+        return <VscJson className="h-4 w-4 text-zinc-500" />
       case "md":
-        return <FileText className="h-4 w-4 text-zinc-500" />
+        return <FaFileAlt className="h-4 w-4 text-zinc-500" />
       case "png":
       case "jpg":
       case "jpeg":
       case "gif":
       case "svg":
       case "webp":
-        return <FileImage className="h-4 w-4 text-zinc-500" />
+        return <FaFileImage className="h-4 w-4 text-zinc-500" />
       case "config":
       case "conf":
       case "env":
-        return <FileCog className="h-4 w-4 text-zinc-500" />
+        return <FaCogs className="h-4 w-4 text-zinc-500" />
       case "zip":
       case "rar":
       case "tar":
       case "gz":
-        return <FileArchive className="h-4 w-4 text-zinc-500" />
+        return <FaFileArchive className="h-4 w-4 text-zinc-500" />
       case "mp3":
       case "wav":
       case "ogg":
-        return <FileAudio className="h-4 w-4 text-zinc-500" />
+        return <FaFileAudio className="h-4 w-4 text-zinc-500" />
       case "mp4":
       case "webm":
       case "mov":
-        return <FileVideo className="h-4 w-4 text-zinc-500" />
+        return <FaFileVideo className="h-4 w-4 text-zinc-500" />
       case "csv":
       case "xls":
       case "xlsx":
-        return <FileSpreadsheet className="h-4 w-4 text-zinc-500" />
+        return <FaFileExcel className="h-4 w-4 text-zinc-500" />
       case "html":
       case "css":
-        return <FileType2 className="h-4 w-4 text-zinc-500" />
+        return <FaFileCode className="h-4 w-4 text-zinc-500" />
       case "pdf":
-        return <FilePieChart className="h-4 w-4 text-zinc-500" />
+        return <FaChartPie className="h-4 w-4 text-zinc-500" />
       case "py":
       case "rb":
       case "php":
-        return <FileBarChart2 className="h-4 w-4 text-zinc-500" />
+        return <FaChartBar className="h-4 w-4 text-zinc-500" />
       default:
-        return <File className="h-4 w-4 text-zinc-500" />
+        return <FaFileAlt className="h-4 w-4 text-zinc-500" />
     }
   }
 
@@ -160,9 +158,9 @@ export function MinimalFileExplorer({
               transition={{ duration: 0.2 }}
             >
               {loadingPaths.has(file.path) ? (
-                <Loader2 className="h-3.5 w-3.5 text-gray-400 animate-spin" />
+                <FaSpinner className="h-3.5 w-3.5 text-gray-400 animate-spin" />
               ) : (
-                <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+                <FaChevronRight className="h-3.5 w-3.5 text-gray-400" />
               )}
             </motion.span>
           )}
@@ -209,7 +207,7 @@ export function MinimalFileExplorer({
             renderFileTree(files)
           ) : (
             <div className="flex justify-center items-center p-4 text-gray-400">
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
               <span className="text-sm">Loading files...</span>
             </div>
           )}
