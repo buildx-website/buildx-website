@@ -117,7 +117,7 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
             
             setTimeout(() => {
                 if (terminal.current && socket.readyState === WebSocket.OPEN) {
-                    const initCmd = "npm install && npm run dev";
+                    const initCmd = "npm install --legacy-peer-deps && npm run dev";
                     terminal.current.write(`${initCmd}\r\n`);
                     socket.send(`${initCmd}\r`);
                     socket.send('\n');
