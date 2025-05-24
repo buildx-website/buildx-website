@@ -39,7 +39,7 @@ export async function POST(req: Request) {
                 name: projectName,
                 ownerId: userId,
                 status: 'CREATED',
-                framework: framework == "node" ? "NODE" : framework == "react" ? "REACT" : framework == "next" ? "NEXT" : "UNDEFINED",
+                framework: framework == "node" ? "NODE" : framework == "react" ? "REACT" : framework == "nextjs" ? "NEXT" : "UNDEFINED",
             }
         });
         return new Response(JSON.stringify(project), { status: 200 });
