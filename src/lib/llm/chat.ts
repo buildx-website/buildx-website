@@ -4,6 +4,7 @@ import OpenAI from "openai";
 import { BASE_PROMPT, getSystemPrompt } from "../prompts";
 import { reactPrompt } from "../defaults/react";
 import { stripIndents } from "../stripindents";
+import { nextPrompt } from "../defaults/nextjs";
 
 
 export async function chat(llm: OpenAI, prompt: string) {
@@ -12,7 +13,7 @@ export async function chat(llm: OpenAI, prompt: string) {
             model: "gemini-1.5-flash",
             messages: [{
                 role: "system",
-                content: "Return either node or react based on what do you think this project should be. Only return a single word either 'node' or 'react'. Do not return anything extra."
+                content: "Return either node or react or nextjs based on what do you think this project should be. Only return a single word either 'node' or 'react' or 'nextjs'. Do not return anything extra."
             }, {
                 role: "user",
                 content: prompt
@@ -35,6 +36,13 @@ export async function chatStream(llm: OpenAI, messages: Message[], prompt: strin
                 role: "user", content: [{
                     type: "text",
                     text: stripIndents(reactPrompt)
+                }]
+            });
+        } else if (framework === "NEXTJS") {
+            messages.unshift({
+                role: "user", content: [{
+                    type: "text",
+                    text: stripIndents(nextPrompt)
                 }]
             });
         }

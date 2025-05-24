@@ -1,8 +1,6 @@
-import { baseNextPrompt } from "@/lib/defaults/nextjs";
-import { baseNodePrompt } from "@/lib/defaults/node";
+
 import { defaultLLM } from "@/lib/llm";
 import { chat } from "@/lib/llm/chat";
-import { BASE_PROMPT } from "@/lib/prompts";
 import { getTempleteTypes } from "@/types/types";
 
 export async function POST(req: Request) {
@@ -20,20 +18,12 @@ export async function POST(req: Request) {
             return new Response(JSON.stringify({
                 framework: "react"
             }))
-        }
-
-        if ((response.content)?.toLowerCase() === "nextjs") {
+        } else if (response.content?.toLowerCase().includes("nextjs")) {
             return new Response(JSON.stringify({
-                prompts: [BASE_PROMPT, `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${baseNextPrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`],
-                uiPrompts: [baseNextPrompt],
                 framework: "nextjs"
             }))
-        }
-
-        if (response.content === "node") {
+        } else if (response.content?.toLowerCase().includes("node")) {
             return new Response(JSON.stringify({
-                prompts: [`Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${baseNodePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`],
-                uiPrompts: [baseNodePrompt],
                 framework: "node"
             }))
         }
