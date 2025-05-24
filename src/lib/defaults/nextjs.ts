@@ -49,6 +49,7 @@ export default eslintConfig;
 
 const nextConfig: NextConfig = {
   /* config options here */
+  allowedDevOrigins: ['*.worker.buildx.website'],
 };
 
 export default nextConfig;
