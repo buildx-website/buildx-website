@@ -38,7 +38,7 @@ export async function chatStream(llm: OpenAI, messages: Message[], prompt: strin
                     text: stripIndents(reactPrompt)
                 }]
             });
-        } else if (framework === "NEXTJS") {
+        } else if (framework === "NEXT") {
             messages.unshift({
                 role: "user", content: [{
                     type: "text",
