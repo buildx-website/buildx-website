@@ -50,6 +50,9 @@ export default eslintConfig;
 const nextConfig: NextConfig = {
   /* config options here */
   allowedDevOrigins: ['*.worker.buildx.website'],
+  images: {
+    domains: ['images.unsplash.com'],
+  },
 };
 
 export default nextConfig;
@@ -417,8 +420,13 @@ ROUTING REQUIREMENTS
 
 PROJECT CONFIGURATION
 - TypeScript support is enabled
-- React Router DOM is configured but can be ignored
-- Vite is used as the build tool
+- Turbopack is used as the build tool
+- Next.js 15 is used as the framework
+- Tailwind CSS is used for styling
+- React 19 is used for the frontend
+- Lucide React is used for icons
+- ShadCN UI is used for components
+- Use valid image urls for images from unsplash.com
 
 REFERENCE PROJECT
 The following artifact contains all the visible project files that you can reference:
