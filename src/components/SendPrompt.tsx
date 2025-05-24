@@ -1,7 +1,7 @@
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { ArrowUp, X } from "lucide-react";
+import { FaArrowUp, FaTimes } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { MinimalFileExplorer } from "./minimal-file-explorer";
 import { FileContent, FileType } from "@/types/types";
@@ -183,7 +183,7 @@ export function SendPrompt({
                         className="h-7 px-2"
                         variant="ghost"
                     >
-                        <ArrowUp className="w-3 h-3" />
+                        <FaArrowUp className="w-3 h-3" />
                     </Button>
                 </div>
             </div>
@@ -201,7 +201,7 @@ export function SendPrompt({
                                 setPrompt(prompt.replace(`\n@${selectedFile.path}`, ''));
                             }}
                         >
-                            <X className="h-3 w-3" />
+                            <FaTimes className="h-3 w-3" />
                         </Button>
                     </div>
                 </div>

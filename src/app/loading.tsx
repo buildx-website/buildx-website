@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { LayoutDashboard } from "lucide-react"
+import { MdDashboard } from "react-icons/md";
 
 export default function Loading() {
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0)
@@ -39,7 +39,7 @@ export default function Loading() {
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.2 }}
         >
-          <LayoutDashboard size={48} className="text-white/90" />
+          <MdDashboard size={48} className="text-white/90" />
           <span className="text-white text-xl font-semibold font-heading">
             BuildX Website
           </span>

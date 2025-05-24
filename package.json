@@ -52,6 +52,7 @@
     "openai": "^4.85.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^2.1.7",
     "rehype-highlight": "^7.0.2",
