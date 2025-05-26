@@ -7,7 +7,6 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { SessionDataType } from "@/types/types";
 
-
 const fontSans = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -18,9 +17,15 @@ const fontHeading = Bricolage_Grotesque({
   subsets: ["latin"],
 });
 
+const iconSvg = `<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"></path></svg>`;
+const iconDataUri = `data:image/svg+xml;base64,${btoa(iconSvg)}`;
+
 export const metadata: Metadata = {
-  title: "AI Website Builder",
-  description: "AI Website Builder",
+  title: "BuildX Website - Build your website in minutes with AI",
+  description: "BuildX Website - Build your website in minutes with AI",
+  icons: {
+    icon: iconDataUri,
+  },
 };
 
 export default async function RootLayout({
