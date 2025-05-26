@@ -1,16 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-    Home,
-    Plus,
-    FolderKanban,
-    Settings,
-    UserRound,
-    UserRoundCheck,
-    LayoutDashboard,
-    Loader
-} from "lucide-react";
+import { SiNextdotjs, SiReact } from "react-icons/si";
+import { FaHome, FaFolder, FaUserCircle, FaUserCheck, FaSpinner } from "react-icons/fa";
+import { FiSettings } from "react-icons/fi";
+import { MdDashboard } from "react-icons/md";
 import { getChatsTypes } from "@/types/types";
 import Link from "next/link";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -57,6 +51,7 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
             }
         }
         getChats();
+        console.log(chats);
     }, [isLoggedIn]);
 
     const handleAuthRequired = (e: React.MouseEvent) => {
@@ -81,7 +76,7 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                             className="flex items-center gap-2 text-slate-200 cursor-pointer select-none"
                             onClick={() => window.location.href = '/'}
                         >
-                            <LayoutDashboard size={24} />
+                            <MdDashboard size={24} />
                             {isOpen && (
                                 <span className="text-lg font-bold text-slate-200 my-auto font-heading">
                                     BuildX
@@ -92,13 +87,24 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                     <nav className="flex flex-col flex-1 min-h-0 bg-black">
                         <div className="flex flex-col gap-2">
                             <Link href="/" className={`flex items-center ${isOpen ? 'px-4 py-2 gap-3' : 'justify-center py-3'} text-zinc-100 hover:bg-zinc-800/ rounded-lg transition-colors`}>
-                                <Home size={20} />
+                                <FaHome size={20} />
                                 {isOpen && <span>Home</span>}
                             </Link>
-                            <Link href="/new" onClick={handleAuthRequired} className={`flex items-center ${isOpen ? 'px-4 py-2 gap-3' : 'justify-center py-3'} text-zinc-100 hover:bg-zinc-800/50 rounded-lg transition-colors`}>
-                                <Plus size={20} />
-                                {isOpen && <span>New Project</span>}
+
+                            <Link href="/new/react" onClick={handleAuthRequired} className={`flex items-center ${isOpen ? 'px-4 py-2 gap-3' : 'justify-center py-3'} text-zinc-100 hover:bg-zinc-800/50 rounded-lg transition-colors`}>
+                                <SiReact size={20} />
+                                {isOpen && <span>
+                                    New React Project
+                                </span>}
                             </Link>
+
+                            <Link href="/new/nextjs" onClick={handleAuthRequired} className={`flex items-center ${isOpen ? 'px-4 py-2 gap-3' : 'justify-center py-3'} text-zinc-100 hover:bg-zinc-800/50 rounded-lg transition-colors`}>
+                                <SiNextdotjs size={20} />
+                                {isOpen && <span>
+                                    New Next Project
+                                </span>}
+                            </Link>
+
                             <div className={`my-2 ${isOpen ? 'mx-4' : 'mx-auto w-8'} h-px bg-zinc-800/50`} />
                             {isOpen && (
                                 <div className="px-4 py-2">
@@ -107,7 +113,7 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                             )}
                             {!isOpen && (
                                 <div className="flex flex-col gap-1 items-center">
-                                    <FolderKanban size={20} className="text-zinc-500" />
+                                    <FaFolder size={20} className="text-zinc-500" />
                                 </div>
                             )}
                         </div>
@@ -118,7 +124,7 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                                 </div>
                             ) : loading ? (
                                 <div className="flex flex-col items-center justify-center py-8 text-zinc-400">
-                                    <Loader size={20} className="animate-spin mb-2" />
+                                    <FaSpinner size={20} className="animate-spin mb-2" />
                                     <span className="text-sm">Loading projects...</span>
                                 </div>
                             ) : error ? (
@@ -135,8 +141,10 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                                         onClick={handleAuthRequired}
                                         className="flex items-center px-4 py-2 gap-3 text-zinc-100 hover:bg-zinc-800/50 rounded-lg transition-colors"
                                     >
-                                        <FolderKanban size={20} />
-                                        <span>{chat.name}</span>
+                                        {chat.framework == "NEXT" ? <SiNextdotjs size={20} /> : <SiReact size={20} />}
+                                        <span>
+                                            {chat.name}
+                                        </span>
                                     </Link>
                                 ))
                             ))}
@@ -147,7 +155,7 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                             onClick={() => setIsDialogOpen(true)}
                             className={`flex items-center ${isOpen ? 'w-full gap-2 px-3 py-2' : 'justify-center p-2'} bg-zinc-900/50 border border-zinc-700 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white transition-all duration-200 rounded-lg`}
                         >
-                            {isLoggedIn ? <UserRoundCheck size={20} /> : <UserRound size={20} />}
+                            {isLoggedIn ? <FaUserCheck size={20} /> : <FaUserCircle size={20} />}
                             {isOpen && <span>{isLoggedIn ? (user?.name || "User") : "Login"}</span>}
                         </button>
                         <Link
@@ -155,7 +163,7 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                             onClick={handleAuthRequired}
                             className={`flex items-center ${isOpen ? 'w-full gap-2 px-3 py-2' : 'justify-center p-2'} text-zinc-100 hover:bg-zinc-800/50 rounded-lg transition-colors`}
                         >
-                            <Settings size={20} />
+                            <FiSettings size={20} />
                             {isOpen && <span>Settings</span>}
                         </Link>
                     </div>
