@@ -110,7 +110,7 @@ export interface getChatsTypes {
     createdAt: string;
     updatedAt: string;
     ownerId: string;
-    frameWork: string;
+    framework: string;
 }
 
 export type SessionDataType = {
