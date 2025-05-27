@@ -1,7 +1,7 @@
 import { Message } from "@/types/types";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import OpenAI from "openai";
-import { BASE_PROMPT, getSystemPrompt } from "../prompts";
+import { BASE_PROMPT, getSystemPrompt } from "../web-prompts";
 import { reactPrompt } from "../defaults/react";
 import { stripIndents } from "../stripindents";
 import { nextPrompt } from "../defaults/nextjs";
