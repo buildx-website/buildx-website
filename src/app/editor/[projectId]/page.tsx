@@ -528,6 +528,7 @@ export default function Editor() {
                     <Button
                       size="sm"
                       variant="outline"
+                      disabled
                       className="border-gray-700 hover:bg-gray-800"
                       onClick={() => {
                         // handleDownload(files, projectId);
