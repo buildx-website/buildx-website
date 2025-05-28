@@ -33,9 +33,10 @@ type TerminalProps = {
     containerId: string
     autoFocus?: boolean
     startCmd: string | null
+    framework: string
 }
 
-const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: TerminalProps) => {
+const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd, framework }: TerminalProps) => {
     const xtermRef = useRef<HTMLDivElement | null>(null)
     const terminal = useRef<Terminal | null>(null)
     const fitAddon = useRef<FitAddon | null>(null)
@@ -114,10 +115,17 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
 
         socket.onopen = () => {
             socket.send(JSON.stringify({ type: "start", containerId }))
-            
+
             setTimeout(() => {
                 if (terminal.current && socket.readyState === WebSocket.OPEN) {
-                    const initCmd = "npm install --legacy-peer-deps && npm run dev";
+                    let initCmd = "";
+                    if (framework === "UNDEFINED") {
+                        return;
+                    } else if (framework === "MANIM") {
+                        initCmd = "manim index.py MyScene -q m --fps 60";
+                    } else {
+                        initCmd = "npm install --legacy-peer-deps && npm run dev";
+                    }
                     terminal.current.write(`${initCmd}\r\n`);
                     socket.send(`${initCmd}\r`);
                     socket.send('\n');
@@ -138,7 +146,7 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
         socket.onclose = () => {
             term.writeln("\r\n\x1b[33m Connection closed\x1b[0m\r\n")
         }
-        
+
         term.onData((data) => {
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(data)

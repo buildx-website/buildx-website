@@ -10,8 +10,7 @@ import TerminalComponent from "@/components/terminal"
 import { useStepsStore } from "@/store/initialStepsAtom"
 import { useStepHandler } from "@/hooks/useStepHandler"
 
-
-export function EditorInterface({ containerId }: { containerId: string }) {
+export function EditorInterface({ containerId, framework }: { containerId: string, framework: string }) {
   const { steps, updateStep } = useStepsStore();
   const [files, setFiles] = useState<FileType[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
@@ -199,15 +198,11 @@ export function EditorInterface({ containerId }: { containerId: string }) {
                 )}
               </ResizablePanel>
             </ResizablePanelGroup>
-
           </ResizablePanel>
-
           <ResizableHandle />
-
           <ResizablePanel defaultSize={35} minSize={20} maxSize={90}>
-            <TerminalComponent containerId={containerId} startCmd={startCmd} />
+            <TerminalComponent containerId={containerId} startCmd={startCmd} framework={framework} />
           </ResizablePanel>
-
         </ResizablePanelGroup>
       </div>
     </div>
