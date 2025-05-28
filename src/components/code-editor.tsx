@@ -13,8 +13,6 @@ interface CodeEditorProps {
   containerId: string
 }
 
-
-
 export function CodeEditor({ file, containerId }: CodeEditorProps) {
   const [mounted, setMounted] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
