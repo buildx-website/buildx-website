@@ -14,14 +14,16 @@ import { RenderComponent } from "./RenderComponent"
 interface EditorInterfaceProps {
   containerId: string;
   framework: string;
+  setVideoPath?: (path: string | null) => void;
 }
 
-export function EditorInterface({ containerId, framework }: EditorInterfaceProps) {
+export function EditorInterface({ containerId, framework, setVideoPath }: EditorInterfaceProps) {
   const { steps, updateStep } = useStepsStore();
   const [files, setFiles] = useState<FileType[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
   const [startCmd, setStartCmd] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
   const { handleStep } = useStepHandler(containerId, reloadFileTree);
 
 
@@ -179,12 +181,11 @@ export function EditorInterface({ containerId, framework }: EditorInterfaceProps
   }
 
   return (
-    <div className="h-screen w-full flex flex-col">
+    <div className="h-full w-full flex flex-col">
       {/* Main content area */}
-      <div className="flex-1 pb-4">
+      <div className="flex-1">
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={70} minSize={5} maxSize={80}>
-
             <ResizablePanelGroup direction="horizontal">
               <ResizablePanel defaultSize={20} minSize={5} maxSize={40}>
                 <FileExplorer
@@ -211,13 +212,11 @@ export function EditorInterface({ containerId, framework }: EditorInterfaceProps
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>
+
           <ResizableHandle />
-          <ResizablePanel defaultSize={35} minSize={20} maxSize={90}>
+          <ResizablePanel defaultSize={30} minSize={20} maxSize={90}>
             {(framework === "MANIM") ? (
-              <RenderComponent
-                containerId={containerId}
-                activeFile={selectedFile}
-              />
+              <RenderComponent containerId={containerId} activeFile={selectedFile} setVideoPath={setVideoPath!} />
             ) : (
               <TerminalComponent containerId={containerId} startCmd={startCmd} framework={framework} />
             )}
