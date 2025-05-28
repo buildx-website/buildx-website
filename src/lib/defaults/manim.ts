@@ -57,21 +57,25 @@ manim index.py MyScene -q m --fps 60
 
 const installedPackages = ['manim', 'manim[jupyterlab]', 'numpy', 'scipy', 'matplotlib', 'pillow', 'opencv-python', 'sympy', 'pandas', 'seaborn', 'plotly', 'networkx', 'scikit-learn', 'statsmodels', 'mpmath', 'pycairo', 'manimpango', 'moderngl', 'moderngl-window', 'pygments', 'rich', 'colour', 'decorator', 'tqdm', 'requests', 'click', 'watchdog', 'jupyter', 'ipython', 'notebook', 'jupyterlab', 'ipywidgets ']
 
-export const manimPrompt = `PROJECT STRUCTURE
+export const manimPrompt = `PROJECT STRUCTURE ->
 
-AVAILABLE COMPONENTS
+AVAILABLE COMPONENTS:
 - Python 3.12 is available
 - All ${installedPackages.join(', ')} are available
 
-DESIGN GUIDELINES
+IMPORTANT:
+- Write all code in index.py ONLY.
+- Do not use any other files.
+
+DESIGN GUIDELINES:
 - Create visually striking, beautiful animations, keep the background black
 - Use LaTeX for all mathematical formulas and strive for the highest-quality text rendering. Animations should be engaging and demonstrate best practices in visual explanation.
 - Use the latest version of Manim Community Edition
 
-PROJECT CONFIGURATION
+PROJECT CONFIGURATION:
 - Manim is used as the framework
 
-REFERENCE PROJECT
+REFERENCE PROJECT:
 The following artifact contains all the visible project files that you can reference:
 
 ${stripIndents(baseManimFiles)}
