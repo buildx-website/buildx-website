@@ -540,7 +540,7 @@ export default function Editor() {
                 </div>
 
                 <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
-                  <EditorInterface containerId={containerId} />
+                  <EditorInterface containerId={containerId} framework={framework} />
                 </div>
 
                 <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
