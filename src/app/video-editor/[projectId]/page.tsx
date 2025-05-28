@@ -9,12 +9,12 @@ import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { FaDownload } from "react-icons/fa";
 import { SendPrompt } from "@/components/SendPrompt";
-import { Content, FileContent, FileType, Message } from "@/types/types";
+import { ContainerPort, Content, FileContent, FileType, Message } from "@/types/types";
 import { StepList } from "@/components/StepList";
 import { MessageComponent } from "@/components/Messages";
 import { User } from "@/components/User";
 import { extractAndParseStepsFromMessages } from "@/lib/extract-parse-steps";
-import { startNewContainer } from "@/lib/worker-config";
+import { execCmd, startNewContainer } from "@/lib/worker-config";
 import { ArtifactParser } from "@/lib/artifactParser";
 import { useUser } from "@/hooks/useUser";
 import Loading from "@/app/loading";
@@ -43,7 +43,8 @@ export default function VideoEditor() {
   const [project, setProject] = useState<{ framework: string; messages: Message[]; } | null>(null);
   const [currentActionBuilding, setCurrentActionBuilding] = useState<string | null>(null);
   const [currentActionContent, setCurrentActionContent] = useState<string | null>(null);
-  const [outputVideoUrl, setOutputVideoUrl] = useState<string | null>(null);
+  const [containerPort, setContainerPort] = useState<ContainerPort[]>([{}]);
+  const [outputVideoUrl, setOutputVideoUrl] = useState<string | null>('/');
   const [selectedFileText, setSelectedFileText] = useState<FileContent | null>(null);
   const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
   const params = useParams()
@@ -58,7 +59,7 @@ export default function VideoEditor() {
       setLoading(true);
       try {
         if (!isLoggedIn) {
-            router.push("/");
+          router.push("/");
           return;
         }
 
@@ -103,14 +104,14 @@ export default function VideoEditor() {
                   ...msg,
                   content: msg.content.map((content: Content) => {
                     if (!content.text) return content;
-                    
+
                     const processedText = content.text
                       .replace(/<boltArtifact[^>]*>[\s\S]*?<\/boltArtifact>/g, '')
                       .replace(/<boltAction[^>]*>[\s\S]*?<\/boltAction>/g, '')
                       .replace(/<boltAction[^>]*>[\s\S]*?<boltArtifact[^>]*>[\s\S]*?<\/boltArtifact>[\s\S]*?<\/boltAction>/g, '')
                       .trim();
 
-                    const finalText = processedText 
+                    const finalText = processedText
                       ? `\n\n**Content before response:**\n${processedText}`
                       : "";
 
@@ -140,6 +141,12 @@ export default function VideoEditor() {
   }, []);
 
   useEffect(() => {
+    if (outputVideoUrl && outputVideoUrl !== '/') {
+      setShowPreview(true);
+    }
+  }, [outputVideoUrl]);
+
+  useEffect(() => {
     if (project == null) {
       console.log("Project is null");
       return;
@@ -151,9 +158,11 @@ export default function VideoEditor() {
 
         const data = await startNewContainer(image, "tail -f /dev/null", ["8000"]);
         console.log("Manim container started", data);
-
+        
         setContainerId(data.containerId);
         setContainerStatus(data.status);
+        setContainerPort(data.urls);
+        await startSimpleHttpServer(data.containerId);
 
       } catch (error) {
         console.error("Error starting Manim container:", error);
@@ -255,6 +264,11 @@ export default function VideoEditor() {
     } catch (error) {
       console.error("Error saving project state:", error);
     }
+  }
+
+  async function startSimpleHttpServer(containerId: string) {
+    const exec = await execCmd(containerId, "nohup python -m http.server 8000", "/");
+    console.log("exec", exec);
   }
 
   async function send(content: Content[], projectFramework: string) {
@@ -403,14 +417,6 @@ export default function VideoEditor() {
       setCurrentActionBuilding(null);
       await saveMsg([newMsg]);
 
-      if (projectFramework === "MANIM") {
-        setOutputVideoUrl("/api/main/media/placeholder_video.mp4");
-        setShowPreview(true);
-        toast.success("Manim scene rendered successfully!");
-      } else if (projectFramework === "MANIM") {
-        toast.error("Manim rendering failed. Check logs.");
-      }
-
     } catch (e) {
       setUiMsgs(prev => {
         const newMsgs = [...prev];
@@ -428,7 +434,7 @@ export default function VideoEditor() {
     if (prompt.trim() === "" || isStreaming || building || !initialLoadComplete) return
     let fullPrompt = prompt;
 
-    if(selectedFileText) {
+    if (selectedFileText) {
       fullPrompt = fullPrompt + `\n\nReference file:
       <userSelectedFile>
         <fileName>${selectedFileText.fileName}</fileName>
@@ -462,106 +468,107 @@ export default function VideoEditor() {
   }
 
   return (
-      <div className="flex flex-row h-screen w-screen">
-        <HomeSidebar />
-        <main className="h-screen w-full flex flex-1 flex-col md:grid md:grid-cols-4 gap-0 p-0 bg-[#121212] overflow-hidden ml-[64px] md:ml-[64px] transition-all duration-300">
-            <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col overflow-hidden shadow-lg px-2">
-              <div className="p-4 flex flex-row gap-2 my-auto">
-                <h2 className="text-lg font-medium text-gray-200 my-auto">Conversation</h2>
-              </div>
+    <div className="flex flex-row h-screen w-screen">
+      <HomeSidebar />
+      <main className="h-screen w-full flex flex-1 flex-col md:grid md:grid-cols-4 gap-0 p-0 bg-[#121212] overflow-hidden ml-[64px] md:ml-[64px] transition-all duration-300">
+        <div className="h-[40vh] md:h-auto md:col-span-1 flex flex-col overflow-hidden shadow-lg px-2">
+          <div className="p-4 flex flex-row gap-2 my-auto">
+            <h2 className="text-lg font-medium text-gray-200 my-auto">Conversation</h2>
+          </div>
 
-              <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
-                {uiMsgs.map((msg, idx) => (
-                  <MessageComponent key={idx} message={msg} loading={isStreaming} />
-                ))}
-              </div>
+          <div className="flex-1 overflow-y-auto p-4 scrollbar-hide gap-3" ref={conversationRef}>
+            {uiMsgs.map((msg, idx) => (
+              <MessageComponent key={idx} message={msg} loading={isStreaming} />
+            ))}
+          </div>
 
-              <div className="p-4">
-                <StepList 
-                  StepTitle={currentActionBuilding} 
-                  steps={steps} 
-                  building={building} 
-                  setPrompt={setPrompt}
-                  currentActionContent={currentActionContent}
-                />
-                <SendPrompt 
-                  handleSubmit={handleSubmit} 
-                  prompt={prompt} 
-                  setPrompt={setPrompt} 
-                  disabled={isStreaming}
-                  model={model}
-                  onModelChange={handleModelChange}
-                  allModels={allModels}
-                  containerId={containerId}
-                  setSelectedFileText={setSelectedFileText}
-                  setSelectedFile={setSelectedFile}
-                  selectedFile={selectedFile}
-                />
+          <div className="p-4">
+            <StepList
+              StepTitle={currentActionBuilding}
+              steps={steps}
+              building={building}
+              setPrompt={setPrompt}
+              currentActionContent={currentActionContent}
+            />
+            <SendPrompt
+              handleSubmit={handleSubmit}
+              prompt={prompt}
+              setPrompt={setPrompt}
+              disabled={isStreaming}
+              model={model}
+              onModelChange={handleModelChange}
+              allModels={allModels}
+              containerId={containerId}
+              setSelectedFileText={setSelectedFileText}
+              setSelectedFile={setSelectedFile}
+              selectedFile={selectedFile}
+            />
+          </div>
+        </div>
+
+        <div
+          className={`flex-1 md:col-span-3 flex flex-col bg-black/10 text-white overflow-hidden shadow-lg font-heading`}
+        >
+          {containerStatus !== "running" ? (
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+              <div className="bg-red-500/10 p-6 rounded-lg border border-red-500/20">
+                <h3 className="text-xl font-semibold text-red-400 mb-2">Container Not Running</h3>
+                <p className="text-gray-400 mb-4">
+                  Our worker is not currently running. Please retry after a few minutes.
+                </p>
+                <div className="animate-pulse">
+                  <div className="h-2 w-24 bg-red-500/20 rounded mx-auto"></div>
+                </div>
               </div>
             </div>
+          ) : (
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2 px-4 gap-4">
+                <div className="flex items-center gap-3 sm:gap-6">
+                  <h2 className="text-lg font-medium text-gray-200">{showPreview ? "Preview" : "Code"}</h2>
+                </div>
 
-          <div
-            className={`flex-1 md:col-span-3 flex flex-col bg-black/10 text-white overflow-hidden shadow-lg font-heading`}
-          >
-            {containerStatus !== "running" ? (
-              <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                <div className="bg-red-500/10 p-6 rounded-lg border border-red-500/20">
-                  <h3 className="text-xl font-semibold text-red-400 mb-2">Container Not Running</h3>
-                  <p className="text-gray-400 mb-4">
-                    Our worker is not currently running. Please retry after a few minutes.
-                  </p>
-                  <div className="animate-pulse">
-                    <div className="h-2 w-24 bg-red-500/20 rounded mx-auto"></div>
+                <div className="flex flex-wrap items-center gap-3 sm:gap-6">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm ${!showPreview ? "text-gray-300" : "text-gray-500"}`}>Code</span>
+                    <Switch
+                      checked={showPreview}
+                      onCheckedChange={setShowPreview}
+                      className="data-[state=checked]:bg-gray-700 data-[state=unchecked]:bg-gray-800"
+                    />
+                    <span className={`text-sm ${showPreview ? "text-gray-300" : "text-gray-500"}`}>Video</span>
                   </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-gray-700 hover:bg-gray-800"
+                    onClick={() => {
+                      // handleDownload(files, projectId);
+                    }}
+                  >
+                    <FaDownload size={16} />
+                  </Button>
+                  <User user={user} />
                 </div>
               </div>
-            ) : (
-              <>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2 px-4 gap-4">
-                  <div className="flex items-center gap-3 sm:gap-6">
-                    <h2 className="text-lg font-medium text-gray-200">{showPreview ? "Preview" : "Code"}</h2>
-                  </div>
 
-                  <div className="flex flex-wrap items-center gap-3 sm:gap-6">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm ${!showPreview ? "text-gray-300" : "text-gray-500"}`}>Code</span>
-                      <Switch
-                        checked={showPreview}
-                        onCheckedChange={setShowPreview}
-                        className="data-[state=checked]:bg-gray-700 data-[state=unchecked]:bg-gray-800"
-                      />
-                      <span className={`text-sm ${showPreview ? "text-gray-300" : "text-gray-500"}`}>Video</span>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-gray-700 hover:bg-gray-800"
-                      onClick={() => {
-                        // handleDownload(files, projectId);
-                      }}
-                    >
-                      <FaDownload size={16} />
-                    </Button>
-                    <User user={user} />
-                  </div>
-                </div>
+              <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
+                {JSON.stringify(outputVideoUrl)}
+                <EditorInterface containerId={containerId} framework="MANIM" setVideoPath={setOutputVideoUrl} />
+              </div>
 
-                <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
-                  <EditorInterface containerId={containerId} framework="MANIM" />
-                </div>
-
-                <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
-                  <VideoPreview
-                    videoUrl={outputVideoUrl}
-                    height="100%"
-                    width="100%"
-                    building={building && currentActionBuilding?.toLowerCase().includes("render")}
-                  />
-                </div>
-              </>
-            )}
+              <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
+                <VideoPreview
+                  containerPort={containerPort}
+                  height="100%"
+                  width="100%"
+                  outputVideoUrl={outputVideoUrl}
+                />
+              </div>
+            </>
+          )}
         </div>
       </main>
     </div>
-      ) 
+  )
 }
