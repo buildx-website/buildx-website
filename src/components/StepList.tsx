@@ -56,7 +56,7 @@ export function StepList({ StepTitle, steps, building = false, maxHeight = "400p
                 },
             })
         }
-    }, [steps, setPrompt])
+    }, [])
 
     useEffect(() => {
         if (building && !prevBuildingRef.current) {
