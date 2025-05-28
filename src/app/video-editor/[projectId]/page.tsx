@@ -9,7 +9,7 @@ import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { FaDownload } from "react-icons/fa";
 import { SendPrompt } from "@/components/SendPrompt";
-import { Content, FileContent, FileType, Message, } from "@/types/types";
+import { Content, FileContent, FileType, Message } from "@/types/types";
 import { StepList } from "@/components/StepList";
 import { MessageComponent } from "@/components/Messages";
 import { User } from "@/components/User";

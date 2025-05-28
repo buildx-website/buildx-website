@@ -9,14 +9,21 @@ import { StepType, type FileType } from "@/types/types"
 import TerminalComponent from "@/components/terminal"
 import { useStepsStore } from "@/store/initialStepsAtom"
 import { useStepHandler } from "@/hooks/useStepHandler"
+import { RenderComponent } from "./RenderComponent"
 
-export function EditorInterface({ containerId, framework }: { containerId: string, framework: string }) {
+interface EditorInterfaceProps {
+  containerId: string;
+  framework: string;
+}
+
+export function EditorInterface({ containerId, framework }: EditorInterfaceProps) {
   const { steps, updateStep } = useStepsStore();
   const [files, setFiles] = useState<FileType[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
   const [startCmd, setStartCmd] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { handleStep } = useStepHandler(containerId, reloadFileTree);
+
 
   useEffect(() => {
     const processSteps = async () => {
@@ -32,12 +39,17 @@ export function EditorInterface({ containerId, framework }: { containerId: strin
         for (const step of pendingSteps) {
           console.log("running step", step);
           updateStep({ ...step, status: "in-progress" });
-          const result = await handleStep(step);
-          if (step.type === StepType.RunScript &&
-            (result === "npm run dev" || result === "npm start")) {
-            setStartCmd(result);
+          try {
+            const result = await handleStep(step);
+            if (step.type === StepType.RunScript &&
+              (result === "npm run dev" || result === "npm start")) {
+              setStartCmd(result);
+            }
+            updateStep({ ...step, status: "completed" });
+          } catch (err) {
+            console.error("Error processing step:", err);
+            updateStep({ ...step, status: "failed" });
           }
-          updateStep({ ...step, status: "completed" });
         }
       } catch (error) {
         console.error("Error processing steps:", error);
@@ -169,7 +181,7 @@ export function EditorInterface({ containerId, framework }: { containerId: strin
   return (
     <div className="h-screen w-full flex flex-col">
       {/* Main content area */}
-      <div className="flex-1">
+      <div className="flex-1 pb-4">
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={70} minSize={5} maxSize={80}>
 
@@ -201,7 +213,14 @@ export function EditorInterface({ containerId, framework }: { containerId: strin
           </ResizablePanel>
           <ResizableHandle />
           <ResizablePanel defaultSize={35} minSize={20} maxSize={90}>
-            <TerminalComponent containerId={containerId} startCmd={startCmd} framework={framework} />
+            {(framework === "MANIM") ? (
+              <RenderComponent
+                containerId={containerId}
+                activeFile={selectedFile}
+              />
+            ) : (
+              <TerminalComponent containerId={containerId} startCmd={startCmd} framework={framework} />
+            )}
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
