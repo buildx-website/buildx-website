@@ -189,7 +189,7 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd, framew
     }, [startCmd])
 
     return (
-        <div className="flex flex-col h-full overflow-hidden border-t border-zinc-800 mb-4 pb-5" style={{ paddingBottom: "20px" }}>
+        <div className="flex flex-col h-full overflow-hidden border-t border-zinc-800 mb-4 pb-4">
             <div className="px-3 py-1 text-sm font-semibold text-gray-300 border-b border-[#333333] bg-black/40 sticky top-0 z-10 flex items-center justify-between">
                 <span>Terminal</span>
                 <button
