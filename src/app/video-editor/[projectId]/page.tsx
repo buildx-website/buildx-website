@@ -142,6 +142,7 @@ export default function VideoEditor() {
 
   useEffect(() => {
     if (outputVideoUrl && outputVideoUrl !== '/') {
+      console.log("Output video url", outputVideoUrl);
       setShowPreview(true);
     }
   }, [outputVideoUrl]);
@@ -541,6 +542,7 @@ export default function VideoEditor() {
                   <Button
                     size="sm"
                     variant="outline"
+                    disabled
                     className="border-gray-700 hover:bg-gray-800"
                     onClick={() => {
                       // handleDownload(files, projectId);
@@ -553,18 +555,18 @@ export default function VideoEditor() {
               </div>
 
               <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
-                {JSON.stringify(outputVideoUrl)}
                 <EditorInterface containerId={containerId} framework="MANIM" setVideoPath={setOutputVideoUrl} />
               </div>
-
-              <div className={`flex-1 overflow-hidden ${showPreview ? "block" : "hidden"}`}>
-                <VideoPreview
-                  containerPort={containerPort}
-                  height="100%"
-                  width="100%"
-                  outputVideoUrl={outputVideoUrl}
-                />
-              </div>
+              {
+                showPreview && (
+                  <VideoPreview
+                    containerPort={containerPort}
+                    height="100%"
+                    width="100%"
+                    outputVideoUrl={outputVideoUrl}
+                  />
+                )
+              }
             </>
           )}
         </div>
