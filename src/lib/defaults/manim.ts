@@ -47,12 +47,6 @@ class MyScene(Scene):
 
         self.wait(1)
 </boltAction>
-<boltAction type="shell">
-manim -v
-</boltAction>
-<boltAction type="shell">
-manim index.py MyScene -q m --fps 60
-</boltAction>
 </boltArtifact>`;
 
 const installedPackages = ['manim', 'manim[jupyterlab]', 'numpy', 'scipy', 'matplotlib', 'pillow', 'opencv-python', 'sympy', 'pandas', 'seaborn', 'plotly', 'networkx', 'scikit-learn', 'statsmodels', 'mpmath', 'pycairo', 'manimpango', 'moderngl', 'moderngl-window', 'pygments', 'rich', 'colour', 'decorator', 'tqdm', 'requests', 'click', 'watchdog', 'jupyter', 'ipython', 'notebook', 'jupyterlab', 'ipywidgets ']
@@ -66,14 +60,16 @@ AVAILABLE COMPONENTS:
 IMPORTANT:
 - Write all code in index.py ONLY.
 - Do not use any other files.
+- Do not give any commands to render the video.
+- You can only give commands to install packages.
 
 DESIGN GUIDELINES:
-- Create visually striking, beautiful animations, keep the background black
+- Create visually striking, beautiful animations, keep the background black.
 - Use LaTeX for all mathematical formulas and strive for the highest-quality text rendering. Animations should be engaging and demonstrate best practices in visual explanation.
-- Use the latest version of Manim Community Edition
+- Use the latest version of Manim Community Edition.
 
 PROJECT CONFIGURATION:
-- Manim is used as the framework
+- Manim is used as the framework.
 
 REFERENCE PROJECT:
 The following artifact contains all the visible project files that you can reference:
