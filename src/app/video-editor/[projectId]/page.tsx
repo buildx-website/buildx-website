@@ -147,9 +147,9 @@ export default function VideoEditor() {
 
     const startContainer = async () => {
       try {
-        const image = "buildx-manim";
+        const image = "buildx-manim-py";
 
-        const data = await startNewContainer(image, "tail -f /dev/null", []);
+        const data = await startNewContainer(image, "tail -f /dev/null", ["8000"]);
         console.log("Manim container started", data);
 
         setContainerId(data.containerId);

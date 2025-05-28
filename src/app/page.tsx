@@ -167,6 +167,7 @@ export default function Home() {
 
     if (template.ok) {
       const data = await template.json();
+      console.log("TemplateData: ", data);
       if (data.message === "Try again with a different prompt") {
         return toast.error("Try again with a different prompt");
       }
@@ -205,7 +206,11 @@ export default function Home() {
       }
 
       setPrompt("");
-      router.push(`/editor/${project.id}`);
+      if (data.framework === "manim") {
+        router.push(`/video-editor/${project.id}`);
+      } else {
+        router.push(`/editor/${project.id}`);
+      }
 
     } else {
       const data = await template.json();
