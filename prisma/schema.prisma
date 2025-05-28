@@ -93,6 +93,7 @@ enum ProjectFramework {
   REACT
   NEXT
   NODE
+  MANIM
   UNDEFINED
 }
 
