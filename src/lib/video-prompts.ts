@@ -134,12 +134,6 @@ Use valid markdown and be concise. Think first, then provide complete solutions.
 
                 self.play(FadeOut(t), FadeOut(s1), FadeOut(s2))
 
-                g2 = VGroup(r1, r2).move_to([-5, 0, 0]);
-                g3 = VGroup(r4, r5).move_to([5, 0, 0]);
-
-                self.play(Transform(group, g2))
-                self.play(Transform(group, g3))
-
                 self.wait(1)
         </boltAction>
         <boltAction type="shell">
