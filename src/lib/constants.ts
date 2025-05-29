@@ -1,5 +1,6 @@
 
 export const examplePrompts: { title: string, prompt: string }[] = [
+  { title: "Pythagorean Theorem", prompt: "Create a video explaining the concept of Pythagorean Theorem in a way that is easy to understand and engaging" },
   { title: "E-commerce for sports equipment", prompt: "Create a modern e-commerce platform for selling sports equipment with product categories, search functionality, user reviews, and secure checkout" },
   { title: "Tech blog platform", prompt: "Build a responsive blog platform for tech enthusiasts with article categories, comment system, and user authentication" },
   { title: "Pet social network", prompt: "Develop a social media platform for pet lovers with profiles, photo sharing, and pet meetup events" },
