@@ -142,3 +142,8 @@ export interface FileContent {
     fileContent: string
     success: boolean
 }
+
+export interface RenderSceneType {
+    sceneName: string;
+    file: FileType;
+}

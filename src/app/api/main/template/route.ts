@@ -26,6 +26,10 @@ export async function POST(req: Request) {
             return new Response(JSON.stringify({
                 framework: "node"
             }))
+        } else if (response.content?.toLowerCase().includes("manim")) {
+            return new Response(JSON.stringify({
+                framework: "manim"
+            }))
         }
 
         return new Response(JSON.stringify({

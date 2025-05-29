@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SiNextdotjs, SiReact } from "react-icons/si";
+import { SiNextdotjs, SiPython, SiReact } from "react-icons/si";
 import { FaHome, FaFolder, FaUserCircle, FaUserCheck, FaSpinner } from "react-icons/fa";
 import { FiSettings } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
@@ -105,6 +105,13 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                                 </span>}
                             </Link>
 
+                            <Link href="/new/manim" onClick={handleAuthRequired} className={`flex items-center ${isOpen ? 'px-4 py-2 gap-3' : 'justify-center py-3'} text-zinc-100 hover:bg-zinc-800/50 rounded-lg transition-colors`}>
+                                <SiPython size={20} />
+                                {isOpen && <span>
+                                    New Manim Project
+                                </span>}
+                            </Link>
+
                             <div className={`my-2 ${isOpen ? 'mx-4' : 'mx-auto w-8'} h-px bg-zinc-800/50`} />
                             {isOpen && (
                                 <div className="px-4 py-2">
@@ -137,11 +144,11 @@ export default function HomeSidebar({ onSidebarChange }: HomeSidebarProps) {
                                 chats.map((chat) => (
                                     <Link
                                         key={chat.id}
-                                        href={`/editor/${chat.id}`}
+                                        href={chat.framework == "NEXT" ? `/editor/${chat.id}` : chat.framework == "REACT" ? `/editor/${chat.id}` : chat.framework == "MANIM" ? `/video-editor/${chat.id}` : "/"}
                                         onClick={handleAuthRequired}
                                         className="flex items-center px-4 py-2 gap-3 text-zinc-100 hover:bg-zinc-800/50 rounded-lg transition-colors"
                                     >
-                                        {chat.framework == "NEXT" ? <SiNextdotjs size={20} /> : <SiReact size={20} />}
+                                        {chat.framework == "NEXT" ? <SiNextdotjs size={20} /> : chat.framework == "REACT" ? <SiReact size={20} /> : chat.framework == "MANIM" ? <SiPython size={20} /> : <FaFolder size={20} />}
                                         <span>
                                             {chat.name}
                                         </span>

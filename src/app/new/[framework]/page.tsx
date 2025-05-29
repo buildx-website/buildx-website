@@ -16,7 +16,7 @@ export default function NewProject() {
     useEffect(() => {
         if (!isLoggedIn) {
             router.push("/");
-        } else if (framework !== "react" && framework !== "nextjs") {
+        } else if (framework !== "react" && framework !== "nextjs" && framework !== "manim") {
             router.push("/");
         } else {
             handleCreateProject();
@@ -40,8 +40,11 @@ export default function NewProject() {
         if (createProject.status != 200) {
             return toast.error(project.error);
         }
-        
-        router.push(`/editor/${project.id}`);
+        if (framework == 'manim') {
+            router.push(`/video-editor/${project.id}`);
+        } else {
+            router.push(`/editor/${project.id}`);
+        }
     }
 
     

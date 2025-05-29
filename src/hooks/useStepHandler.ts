@@ -25,6 +25,7 @@ export function useStepHandler(containerId: string, reloadFileTree: () => Promis
     } catch (error) {
       console.error(`Error handling step:`, error);
       toast.error(`Failed to execute step: ${step.path || step.code}`);
+      step.status = "failed";
       throw error;
     } finally {
       setCurrentStep(null);

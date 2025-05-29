@@ -167,6 +167,7 @@ export default function Home() {
 
     if (template.ok) {
       const data = await template.json();
+      console.log("TemplateData: ", data);
       if (data.message === "Try again with a different prompt") {
         return toast.error("Try again with a different prompt");
       }
@@ -205,7 +206,11 @@ export default function Home() {
       }
 
       setPrompt("");
-      router.push(`/editor/${project.id}`);
+      if (data.framework === "manim") {
+        router.push(`/video-editor/${project.id}`);
+      } else {
+        router.push(`/editor/${project.id}`);
+      }
 
     } else {
       const data = await template.json();
@@ -332,13 +337,14 @@ export default function Home() {
                 animate="visible"
                 variants={fadeIn}
               >
-                <motion.div
-                  className="inline-flex items-center px-3 py-1 rounded-full border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm"
-                  variants={slideUp}
+                <Button
+                size={'sm'}
+                  className="font-heading rounded-full"
+                  onClick={() => window.open("https://github.com/tsahil01/buildx-website", "_blank")}
                 >
-                  <IoSparkles className="w-4 h-4 mr-2 text-slate-500" />
-                  <span className="text-xs text-zinc-300 font-heading italic">V2 is here! Try it out!</span>
-                </motion.div>
+                  Star us on GitHub
+                  <FaGithub className="w-4 h-4 ml-1" />
+                </Button>
 
                 <motion.h1
                   className="text-balance text-center font-heading text-4xl font-bold sm:text-5xl lg:text-6xl leading-tight text-zinc-200"
@@ -505,7 +511,7 @@ export default function Home() {
                   animate="visible"
                 >
                   <motion.p
-                    className="text-sm text-zinc-500 mb-3 italic"
+                    className="text-xs text-zinc-500 mb-3 italic"
                     variants={slideUp}
                   >
                     Need inspiration? Try one of these:
@@ -521,7 +527,9 @@ export default function Home() {
                         <Button
                           variant="outline"
                           onClick={() => setPrompt(example.prompt)}
-                          className="text-xs border-zinc-800 bg-zinc-900/30 hover:bg-zinc-800/50 transition-colors tracking-tight font-heading"
+                          className={`text-xs transition-colors tracking-tight font-heading ${
+                            index === 0 ? "font-bold border-white/60 bg-zinc-700/50 hover:bg-zinc-600/60 text-zinc-100" : "border-zinc-800 bg-zinc-900/30 hover:bg-zinc-800/50 text-zinc-400"
+                          }`}
                         >
                           {example.title}
                         </Button>

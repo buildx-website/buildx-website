@@ -33,9 +33,10 @@ type TerminalProps = {
     containerId: string
     autoFocus?: boolean
     startCmd: string | null
+    framework: string
 }
 
-const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: TerminalProps) => {
+const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd, framework }: TerminalProps) => {
     const xtermRef = useRef<HTMLDivElement | null>(null)
     const terminal = useRef<Terminal | null>(null)
     const fitAddon = useRef<FitAddon | null>(null)
@@ -114,10 +115,17 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
 
         socket.onopen = () => {
             socket.send(JSON.stringify({ type: "start", containerId }))
-            
+
             setTimeout(() => {
                 if (terminal.current && socket.readyState === WebSocket.OPEN) {
-                    const initCmd = "npm install --legacy-peer-deps && npm run dev";
+                    let initCmd = "";
+                    if (framework === "UNDEFINED") {
+                        return;
+                    } else if (framework === "MANIM") {
+                        initCmd = "manim index.py MyScene -q m --fps 60";
+                    } else {
+                        initCmd = "npm install --legacy-peer-deps && npm run dev";
+                    }
                     terminal.current.write(`${initCmd}\r\n`);
                     socket.send(`${initCmd}\r`);
                     socket.send('\n');
@@ -138,7 +146,7 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
         socket.onclose = () => {
             term.writeln("\r\n\x1b[33m Connection closed\x1b[0m\r\n")
         }
-        
+
         term.onData((data) => {
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(data)
@@ -181,7 +189,7 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd }: Term
     }, [startCmd])
 
     return (
-        <div className="flex flex-col h-full overflow-hidden border-t border-zinc-800 mb-4 pb-5" style={{ paddingBottom: "20px" }}>
+        <div className="flex flex-col h-full overflow-hidden border-t border-zinc-800 mb-4 pb-4">
             <div className="px-3 py-1 text-sm font-semibold text-gray-300 border-b border-[#333333] bg-black/40 sticky top-0 z-10 flex items-center justify-between">
                 <span>Terminal</span>
                 <button

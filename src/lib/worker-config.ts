@@ -70,13 +70,18 @@ export async function saveOrCreateFileContent(containerId: string, workingDir: s
     return data;
 }
 
-export async function streamExac(containerId: string, command: string, workdir: string) {
+export async function streamExac(containerId: string, command: string, workdir: string, onData: (data: string) => void) {
     try {
         const response = await fetch(`${WORKER_URL}/exec/stream`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 authorization: `Bearer ${localStorage.getItem("token")}`,
+                "Transfer-Encoding": "chunked",
+                "X-Content-Type-Options": "nosniff",
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Accept": "text/plain",
             },
             body: JSON.stringify({
                 containerId,
@@ -85,15 +90,17 @@ export async function streamExac(containerId: string, command: string, workdir: 
             }),
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`Stream failed: ${errorData.error || response.statusText}`);
+        const reader = response.body?.getReader();
+        if (!reader) {
+            throw new Error("Failed to get reader from response body");
         }
 
-        if (!response.body) {
-            throw new Error("Response body is null");
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            onData(new TextDecoder().decode(value));
         }
-        return response.body;
+        return { success: true };
     } catch (error) {
         console.error("Error in streamExac:", error);
         throw error;

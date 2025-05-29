@@ -114,10 +114,10 @@ export class ArtifactParser {
             const actionStartIdx = this.content.indexOf("<boltAction");
             const actionEndIdx = this.content.indexOf("</boltAction>");
 
-            console.log("Diff Start Index", diffStartIdx);
-            console.log("Diff End Index", diffEndIdx);
-            console.log("Action Start Index", actionStartIdx);
-            console.log("Action End Index", actionEndIdx);
+            // console.log("Diff Start Index", diffStartIdx);
+            // console.log("Diff End Index", diffEndIdx);
+            // console.log("Action Start Index", actionStartIdx);
+            // console.log("Action End Index", actionEndIdx);
 
             if (diffStartIdx !== -1 && !foundDiff) {
                 const diffTag = this.content.substring(diffStartIdx, this.content.indexOf(">", diffStartIdx) + 1);
