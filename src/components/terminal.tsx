@@ -118,12 +118,11 @@ const MainTerminalComponent = ({ containerId, autoFocus = true, startCmd, framew
 
             setTimeout(() => {
                 if (terminal.current && socket.readyState === WebSocket.OPEN) {
+                    console.log("framework", framework)
                     let initCmd = "";
                     if (framework === "UNDEFINED") {
                         return;
-                    } else if (framework === "MANIM") {
-                        initCmd = "manim index.py MyScene -q m --fps 60";
-                    } else {
+                    } else if (framework === "REACT" || framework === "NEXT") {
                         initCmd = "npm install --legacy-peer-deps && npm run dev";
                     }
                     terminal.current.write(`${initCmd}\r\n`);

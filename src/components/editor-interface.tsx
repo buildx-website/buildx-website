@@ -15,15 +15,16 @@ interface EditorInterfaceProps {
   containerId: string;
   framework: string;
   setVideoPath?: (path: string | null) => void;
+  setPrompt?: (prompt: string) => void;
 }
 
-export function EditorInterface({ containerId, framework, setVideoPath }: EditorInterfaceProps) {
+export function EditorInterface({ containerId, framework, setVideoPath, setPrompt }: EditorInterfaceProps) {
   const { steps, updateStep } = useStepsStore();
   const [files, setFiles] = useState<FileType[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
   const [startCmd, setStartCmd] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-
+  
   const { handleStep } = useStepHandler(containerId, reloadFileTree);
 
 
@@ -215,11 +216,15 @@ export function EditorInterface({ containerId, framework, setVideoPath }: Editor
 
           <ResizableHandle />
           <ResizablePanel defaultSize={30} minSize={20} maxSize={90}>
-            {(framework === "MANIM") ? (
-              <RenderComponent containerId={containerId} activeFile={selectedFile} setVideoPath={setVideoPath!} />
-            ) : (
+            <>
+
+            <div className={`${framework === "MANIM" ? "flex-1" : "hidden"}`}>
+                <RenderComponent containerId={containerId} activeFile={selectedFile} setVideoPath={setVideoPath!} setPrompt={setPrompt!} />
+            </div>
+            <div className={`${framework === "MANIM" ? "hidden" : "flex-1"}`}>
               <TerminalComponent containerId={containerId} startCmd={startCmd} framework={framework} />
-            )}
+            </div>
+            </>
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>

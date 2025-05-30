@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import ReactMarkdown from "react-markdown"
 import rehypeHighlight from "rehype-highlight"
 import remarkGfm from "remark-gfm"
+import rehypeRaw from "rehype-raw"
 import { useState } from "react"
 import { FilePreviewDialog } from "./FilePreviewDialog"
 import { Button } from "./ui/button"
@@ -58,7 +59,7 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
       const displayText = removeFileTag(content.text);
 
       return (
-        <div className="prose prose-invert prose-headings:mt-4 prose-headings:mb-2 prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-pre:my-2 prose-pre:p-2 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-sm prose-code:bg-zinc-800 prose-code:before:content-none prose-code:after:content-none max-w-none">
+        <div className="markdown-body">
           {isUser && fileInfo && (
             <div className="mb-2">
               <Button
@@ -77,7 +78,7 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
           {displayText && (
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeHighlight]}
+              rehypePlugins={[rehypeHighlight, rehypeRaw]}
             >
               {displayText}
             </ReactMarkdown>
