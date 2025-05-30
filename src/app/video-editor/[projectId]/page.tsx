@@ -555,7 +555,7 @@ export default function VideoEditor() {
               </div>
 
               <div className={`flex-1 overflow-hidden ${showPreview ? "hidden" : "block"}`}>
-                <EditorInterface containerId={containerId} framework="MANIM" setVideoPath={setOutputVideoUrl} />
+                <EditorInterface containerId={containerId} framework="MANIM" setVideoPath={setOutputVideoUrl} setPrompt={setPrompt} />
               </div>
               {
                 showPreview && (
