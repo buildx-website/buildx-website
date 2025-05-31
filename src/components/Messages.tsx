@@ -1,3 +1,5 @@
+"use client"
+
 import type { Content, Message } from "@/types/types"
 import { FaUserCircle, FaSpinner } from "react-icons/fa";
 import { BsChatSquareQuoteFill } from "react-icons/bs";
@@ -6,7 +8,6 @@ import { cn } from "@/lib/utils"
 import ReactMarkdown from "react-markdown"
 import rehypeHighlight from "rehype-highlight"
 import remarkGfm from "remark-gfm"
-import rehypeRaw from "rehype-raw"
 import { useState } from "react"
 import { FilePreviewDialog } from "./FilePreviewDialog"
 import { Button } from "./ui/button"
@@ -78,7 +79,7 @@ export function MessageComponent({ message, loading }: { message: Message, loadi
           {displayText && (
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeHighlight, rehypeRaw]}
+              rehypePlugins={[rehypeHighlight]}
             >
               {displayText}
             </ReactMarkdown>
