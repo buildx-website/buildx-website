@@ -35,13 +35,13 @@ export default function LandingPage() {
       icon: <FaTerminal className="w-5 h-5" />,
       title: "Live Preview",
       description: "See your changes in real-time with our integrated development environment.",
-      image: "/images/preview.jpg"
+      video: "/videos/preview.mp4"
     },
     {
       icon: <FaEdit className="w-5 h-5" />,
       title: "Code Editor",
       description: "Customize your application with our built-in code editor and terminal.",
-      image: "/images/editor.jpg"
+      video: "/videos/editor.mp4"
     }
   ];
 
@@ -165,9 +165,22 @@ export default function LandingPage() {
               >
                 <div className="relative aspect-video">
                   <div className="absolute inset-0 bg-gradient-to-br from-zinc-800/20 to-zinc-900/20" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-zinc-500 text-sm">{feature.title} Preview</div>
-                  </div>
+                  {feature.video ? (
+                    <video 
+                      src={feature.video}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="absolute inset-0 w-full h-full object-contain bg-black"
+                    />
+                  ) : (
+                    <img 
+                      src={feature.image}
+                      alt={feature.title}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  )}
                 </div>
                 <div className="p-6">
                   <div className="text-zinc-400 mb-4">{feature.icon}</div>
